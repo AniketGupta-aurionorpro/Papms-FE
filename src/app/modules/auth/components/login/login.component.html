@@ -1,0 +1,104 @@
+<!-- src/app/modules/auth/components/login/login.component.html -->
+
+<div class="login-dark-page">
+  <!-- Left Visual Panel -->
+  <div class="visual-panel hidden lg:flex">
+    <div class="relative z-10 max-w-md">
+       <div class="flex items-center gap-3 mb-4">
+        <div class="h-10 w-10 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-lg flex items-center justify-center">
+          <ion-icon name="wallet-outline" class="text-white text-xl"></ion-icon>
+        </div>
+        <h1 class="text-2xl font-bold text-white">PayFlow</h1>
+      </div>
+      <h2 class="text-4xl font-bold text-white leading-tight">
+        Securely Sign In to Your Dashboard
+      </h2>
+      <p class="mt-4 text-lg text-slate-400">
+        Manage payroll, track payments, and access financial insights all in one place.
+      </p>
+    </div>
+  </div>
+
+  <!-- Right Form Panel -->
+  <div class="form-panel">
+    <div class="max-w-sm w-full">
+      <!-- Header -->
+      <div appFadeIn class="text-left mb-10">
+        <h2 class="text-3xl font-bold text-white">Welcome Back</h2>
+        <p class="mt-2 text-sm text-slate-400">
+          Enter your credentials to continue.
+        </p>
+      </div>
+
+      <!-- Login Form -->
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-6">
+        <!-- Username -->
+        <div appFadeIn class="delay-1">
+          <label for="username" class="block text-sm font-medium text-slate-300 mb-2">
+            Username
+          </label>
+          <input
+            id="username"
+            type="text"
+            formControlName="username"
+            class="form-input-dark block w-full"
+            placeholder="e.g., john.doe"
+          >
+          <div *ngIf="username?.invalid && username?.touched" class="mt-2 text-sm text-red-500">
+            <span *ngIf="username?.errors?.['required']">Username is required</span>
+          </div>
+        </div>
+
+        <!-- Password -->
+        <div appFadeIn class="delay-2">
+          <label for="password" class="block text-sm font-medium text-slate-300 mb-2">
+            Password
+          </label>
+          <input
+            id="password"
+            type="password"
+            formControlName="password"
+            class="form-input-dark block w-full"
+            placeholder="Enter your password"
+          >
+          <div *ngIf="password?.invalid && password?.touched" class="mt-2 text-sm text-red-500">
+            <span *ngIf="password?.errors?.['required']">Password is required</span>
+          </div>
+        </div>
+
+        <!-- Forgot Password -->
+        <div appFadeIn class="delay-3 text-right">
+          <a routerLink="/auth/forgot-password" class="text-sm font-medium text-cyan-400 hover:text-cyan-300 transition-colors">
+            Forgot Password?
+          </a>
+        </div>
+
+        <!-- Error Message -->
+        <div *ngIf="error" class="bg-red-900/50 border border-red-700 text-red-300 rounded-md p-3 text-sm">
+          {{ error }}
+        </div>
+
+        <!-- Submit Button -->
+        <div appFadeIn class="delay-4">
+          <button
+            type="submit"
+            [disabled]="isLoading"
+            class="w-full btn-primary-glow disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <span *ngIf="!isLoading">Sign In</span>
+            <span *ngIf="isLoading">Signing In...</span>
+          </button>
+        </div>
+      </form>
+
+      <!-- Register Link -->
+      <div appFadeIn class="delay-4 text-center mt-8 text-sm text-slate-400">
+        Don't have an account?
+        <a routerLink="/auth/register" class="font-medium text-cyan-400 hover:text-cyan-300 transition-colors">
+          Sign up
+        </a>
+      </div>
+
+    </div>
+  </div>
+</div>

@@ -1,0 +1,212 @@
+<div class="space-y-6">
+  <!-- Page Header -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-900">Document Verification</h1>
+        <p class="text-gray-600 mt-1">Review and verify organization documents</p>
+      </div>
+      <div class="flex items-center space-x-4">
+        <div class="text-right">
+          <p class="text-sm text-gray-500">Pending Documents</p>
+          <p class="text-2xl font-bold text-gray-900">{{ getTotalPending() }}</p>
+        </div>
+        <div class="h-12 w-12 bg-gradient-to-r from-red-500 to-red-600 rounded-xl flex items-center justify-center">
+          <ion-icon name="shield-checkmark-outline" class="text-white text-xl"></ion-icon>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      <div class="flex items-center">
+        <div class="flex-shrink-0">
+          <div class="h-12 w-12 bg-gradient-to-r from-amber-500 to-orange-600 rounded-xl flex items-center justify-center">
+            <ion-icon name="time-outline" class="text-white text-xl"></ion-icon>
+          </div>
+        </div>
+        <div class="ml-4">
+          <p class="text-sm font-medium text-gray-600">Pending Review</p>
+          <p class="text-2xl font-bold text-gray-900">{{ getTotalPending() }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      <div class="flex items-center">
+        <div class="flex-shrink-0">
+          <div class="h-12 w-12 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
+            <ion-icon name="checkmark-circle-outline" class="text-white text-xl"></ion-icon>
+          </div>
+        </div>
+        <div class="ml-4">
+          <p class="text-sm font-medium text-gray-600">Approved</p>
+          <p class="text-2xl font-bold text-gray-900">{{ getTotalApproved() }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      <div class="flex items-center">
+        <div class="flex-shrink-0">
+          <div class="h-12 w-12 bg-gradient-to-r from-red-500 to-red-600 rounded-xl flex items-center justify-center">
+            <ion-icon name="close-circle-outline" class="text-white text-xl"></ion-icon>
+          </div>
+        </div>
+        <div class="ml-4">
+          <p class="text-sm font-medium text-gray-600">Rejected</p>
+          <p class="text-2xl font-bold text-gray-900">{{ getTotalRejected() }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+    <div class="border-b border-gray-200">
+      <div class="flex items-center justify-between px-6">
+        <nav class="flex space-x-8">
+          <button
+            *ngFor="let tab of tabs"
+            (click)="setActiveTab(tab.id)"
+            [class]="
+              'flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm ' +
+              (activeTab === tab.id
+                ? 'border-indigo-500 text-indigo-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300')
+            "
+          >
+            <ion-icon [name]="tab.icon" class="text-lg"></ion-icon>
+            <span>{{ tab.label }}</span>
+          </button>
+        </nav>
+
+        <!-- Search -->
+        <div class="w-64">
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <ion-icon name="search-outline" class="text-gray-400"></ion-icon>
+            </div>
+            <input
+              type="text"
+              [(ngModel)]="searchTerm"
+              (ngModelChange)="onSearchChange()"
+              class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              placeholder="Search documents..."
+            >
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab Content -->
+    <div class="p-6">
+      <!-- Loading State -->
+      <div *ngIf="isLoading" class="p-12 text-center">
+        <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+        <p class="mt-2 text-gray-600">Loading documents...</p>
+      </div>
+
+      <!-- Error State -->
+      <div *ngIf="error && !isLoading" class="p-6">
+        <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+          <div class="flex items-center">
+            <ion-icon name="alert-circle-outline" class="text-red-500 text-xl mr-3"></ion-icon>
+            <div>
+              <h3 class="text-red-800 font-medium">Error Loading Documents</h3>
+              <p class="text-red-600 text-sm mt-1">{{ error }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Documents List -->
+      <div *ngIf="!isLoading && !error" class="space-y-4">
+        <div
+          *ngFor="let doc of getFilteredDocuments()"
+          class="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:border-indigo-200 transition-colors"
+        >
+          <div class="flex items-center space-x-4 flex-1 min-w-0">
+            <!-- Document Icon -->
+            <div class="flex-shrink-0">
+              <div class="h-12 w-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
+                <ion-icon [name]="getDocumentIcon(doc.type)" class="text-white text-xl"></ion-icon>
+              </div>
+            </div>
+
+            <!-- Document Details -->
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center space-x-2">
+                <h4 class="text-lg font-semibold text-gray-900 truncate">
+                  {{ doc.fileName }}
+                </h4>
+                <span
+                  [class]="'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ' + getStatusColor(doc.status)"
+                >
+                  <ion-icon [name]="getStatusIcon(doc.status)" class="mr-1"></ion-icon>
+                  {{ doc.status }}
+                </span>
+              </div>
+              <div class="flex items-center space-x-4 mt-2 text-sm text-gray-600">
+                <span class="flex items-center">
+                  <ion-icon name="business-outline" class="mr-1 text-gray-400"></ion-icon>
+                  {{ getOrganizationName(doc) }}
+                </span>
+                <span class="flex items-center">
+                  <ion-icon name="document-outline" class="mr-1 text-gray-400"></ion-icon>
+                  {{ doc.type.replace('_', ' ') }}
+                </span>
+                <span class="flex items-center">
+                  <ion-icon name="calendar-outline" class="mr-1 text-gray-400"></ion-icon>
+                  {{ doc.uploadedAt | date:'medium' }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="flex items-center space-x-2 ml-4">
+            <button
+              (click)="downloadDocument(doc)"
+              class="inline-flex items-center p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+            >
+              <ion-icon name="download-outline" class="text-lg"></ion-icon>
+            </button>
+            <button
+              *ngIf="doc.status === 'PENDING'"
+              (click)="approveDocument(getOrganizationId(doc), doc.id)"
+              class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors"
+            >
+              <ion-icon name="checkmark-outline" class="mr-1"></ion-icon>
+              Approve
+            </button>
+            <button
+              *ngIf="doc.status === 'PENDING'"
+              (click)="rejectDocument(getOrganizationId(doc), doc.id)"
+              class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
+            >
+              <ion-icon name="close-outline" class="mr-1"></ion-icon>
+              Reject
+            </button>
+            <button
+              (click)="viewOrganization(getOrganizationId(doc))"
+              class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+            >
+              <ion-icon name="eye-outline" class="mr-1"></ion-icon>
+              View Org
+            </button>
+          </div>
+        </div>
+
+        <!-- Empty State -->
+        <div *ngIf="getFilteredDocuments().length === 0 && !isLoading" class="p-12 text-center">
+          <ion-icon name="document-text-outline" class="text-4xl text-gray-400 mb-3"></ion-icon>
+          <h3 class="text-lg font-medium text-gray-900">No documents found</h3>
+          <p class="text-gray-600 mt-1">Try adjusting your search or filter criteria</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

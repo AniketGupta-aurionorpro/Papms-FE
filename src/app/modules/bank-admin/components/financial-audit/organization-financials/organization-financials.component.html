@@ -1,0 +1,56 @@
+<!-- Financial Health Summary -->
+<div class="bg-white rounded-xl shadow-sm border border-gray-200">
+  <div class="px-6 py-5 border-b border-gray-200">
+    <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+      <ion-icon name="pulse-outline" class="mr-2 text-indigo-600"></ion-icon>
+      Financial Health Summary
+    </h3>
+  </div>
+  <div class="p-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div class="text-center">
+        <div class="h-16 w-16 bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <ion-icon name="trending-up-outline" class="text-white text-2xl"></ion-icon>
+        </div>
+        <h4 class="text-lg font-semibold text-gray-900">Healthy Organizations</h4>
+        <p class="text-3xl font-bold text-green-600 mt-2">
+          {{ healthyOrganizationsCount }}
+        </p>
+        <p class="text-sm text-gray-600 mt-1">Good financial health</p>
+      </div>
+
+      <div class="text-center">
+        <div class="h-16 w-16 bg-gradient-to-r from-amber-500 to-orange-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <ion-icon name="warning-outline" class="text-white text-2xl"></ion-icon>
+        </div>
+        <h4 class="text-lg font-semibold text-gray-900">Low Balance</h4>
+        <p class="text-3xl font-bold text-amber-600 mt-2">
+          {{ lowBalanceOrganizationsCount }}
+        </p>
+        <p class="text-sm text-gray-600 mt-1">Monitor closely</p>
+      </div>
+
+      <div class="text-center">
+        <div class="h-16 w-16 bg-gradient-to-r from-red-500 to-red-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <ion-icon name="alert-circle-outline" class="text-white text-2xl"></ion-icon>
+        </div>
+        <h4 class="text-lg font-semibold text-gray-900">Zero Balance</h4>
+        <p class="text-3xl font-bold text-red-600 mt-2">
+          {{ zeroBalanceOrganizationsCount }}
+        </p>
+        <p class="text-sm text-gray-600 mt-1">Requires attention</p>
+      </div>
+
+      <div class="text-center">
+        <div class="h-16 w-16 bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-4">
+          <ion-icon name="time-outline" class="text-white text-2xl"></ion-icon>
+        </div>
+        <h4 class="text-lg font-semibold text-gray-900">Pending Approval</h4>
+        <p class="text-3xl font-bold text-blue-600 mt-2">
+          {{ pendingApprovalCount }}
+        </p>
+        <p class="text-sm text-gray-600 mt-1">Awaiting review</p>
+      </div>
+    </div>
+  </div>
+</div>

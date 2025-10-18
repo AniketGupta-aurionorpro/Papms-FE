@@ -1,0 +1,304 @@
+<div class="space-y-6" *ngIf="payroll">
+  <!-- Header -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center space-x-4">
+        <button
+          (click)="goBack()"
+          class="p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+        >
+          <ion-icon name="arrow-back-outline" class="text-xl"></ion-icon>
+        </button>
+        <div>
+          <h1 class="text-2xl font-bold text-gray-900">Payroll Batch #{{ payroll.id }}</h1>
+          <div class="flex items-center space-x-4 mt-2">
+            <span
+              [class]="'inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ' + getStatusColor(payroll.status)"
+            >
+              <ion-icon [name]="getStatusIcon(payroll.status)" class="mr-1"></ion-icon>
+              {{ payroll.status.replace('_', ' ') }}
+            </span>
+            <span class="text-sm text-gray-600">
+              <ion-icon name="business-outline" class="mr-1"></ion-icon>
+              {{ payroll.organizationName }}
+            </span>
+            <span class="text-sm text-gray-600">
+              <ion-icon name="calendar-outline" class="mr-1"></ion-icon>
+              {{ getMonthName(payroll.payrollMonth) }} {{ payroll.payrollYear }}
+            </span>
+          </div>
+        </div>
+      </div>
+      <div class="flex items-center space-x-3" *ngIf="payroll.status === 'PENDING_APPROVAL'">
+        <button
+          (click)="approvePayroll()"
+          class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors"
+        >
+          <ion-icon name="checkmark-outline" class="mr-2"></ion-icon>
+          Approve
+        </button>
+        <button
+          (click)="rejectPayroll()"
+          class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
+        >
+          <ion-icon name="close-outline" class="mr-2"></ion-icon>
+          Reject
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Quick Stats -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-gray-600">Total Amount</p>
+          <p class="text-2xl font-bold text-gray-900">{{ formatCurrency(payroll.totalAmount) }}</p>
+        </div>
+        <div class="h-10 w-10 bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
+          <ion-icon name="cash-outline" class="text-white text-lg"></ion-icon>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-gray-600">Total Employees</p>
+          <p class="text-2xl font-bold text-gray-900">{{ payroll.totalEmployees }}</p>
+        </div>
+        <div class="h-10 w-10 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
+          <ion-icon name="people-outline" class="text-white text-lg"></ion-icon>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-gray-600">Total Earnings</p>
+          <p class="text-2xl font-bold text-gray-900">{{ formatCurrency(getTotalEarnings()) }}</p>
+        </div>
+        <div class="h-10 w-10 bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg flex items-center justify-center">
+          <ion-icon name="trending-up-outline" class="text-white text-lg"></ion-icon>
+        </div>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm font-medium text-gray-600">Total Deductions</p>
+          <p class="text-2xl font-bold text-gray-900">{{ formatCurrency(getTotalDeductions()) }}</p>
+        </div>
+        <div class="h-10 w-10 bg-gradient-to-r from-amber-500 to-orange-600 rounded-lg flex items-center justify-center">
+          <ion-icon name="trending-down-outline" class="text-white text-lg"></ion-icon>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="bg-white rounded-xl shadow-sm border border-gray-200">
+    <div class="border-b border-gray-200">
+      <nav class="flex space-x-8 px-6">
+        <button
+          *ngFor="let tab of tabs"
+          (click)="setActiveTab(tab.id)"
+          [class]="
+            'flex items-center space-x-2 py-4 px-1 border-b-2 font-medium text-sm ' +
+            (activeTab === tab.id
+              ? 'border-indigo-500 text-indigo-600'
+              : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300')
+          "
+        >
+          <ion-icon [name]="tab.icon" class="text-lg"></ion-icon>
+          <span>{{ tab.label }}</span>
+        </button>
+      </nav>
+    </div>
+
+    <!-- Tab Content -->
+    <div class="p-6">
+      <!-- Overview Tab -->
+      <div *ngIf="activeTab === 'overview'" class="space-y-6">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- Batch Information -->
+          <div class="space-y-4">
+            <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+              <ion-icon name="information-circle-outline" class="mr-2 text-indigo-600"></ion-icon>
+              Batch Information
+            </h3>
+            <div class="space-y-3">
+              <div class="flex justify-between py-2 border-b border-gray-200">
+                <span class="text-sm font-medium text-gray-600">Organization</span>
+                <span class="text-sm text-gray-900">{{ payroll.organizationName }}</span>
+              </div>
+              <div class="flex justify-between py-2 border-b border-gray-200">
+                <span class="text-sm font-medium text-gray-600">Payroll Period</span>
+                <span class="text-sm text-gray-900">{{ getMonthName(payroll.payrollMonth) }} {{ payroll.payrollYear }}</span>
+              </div>
+              <div class="flex justify-between py-2 border-b border-gray-200">
+                <span class="text-sm font-medium text-gray-600">Submitted By</span>
+                <span class="text-sm text-gray-900">{{ payroll.submittedBy }}</span>
+              </div>
+              <div class="flex justify-between py-2 border-b border-gray-200">
+                <span class="text-sm font-medium text-gray-600">Submitted On</span>
+                <span class="text-sm text-gray-900">{{ payroll.createdAt | date:'medium' }}</span>
+              </div>
+              <div class="flex justify-between py-2 border-b border-gray-200">
+                <span class="text-sm font-medium text-gray-600">Status</span>
+                <span [class]="'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ' + getStatusColor(payroll.status)">
+                  <ion-icon [name]="getStatusIcon(payroll.status)" class="mr-1"></ion-icon>
+                  {{ payroll.status.replace('_', ' ') }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Financial Summary -->
+          <div class="space-y-4">
+            <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+              <ion-icon name="cash-outline" class="mr-2 text-indigo-600"></ion-icon>
+              Financial Summary
+            </h3>
+            <div class="space-y-3">
+              <div class="flex justify-between py-2 border-b border-gray-200">
+                <span class="text-sm font-medium text-gray-600">Total Earnings</span>
+                <span class="text-sm font-semibold text-green-600">{{ formatCurrency(getTotalEarnings()) }}</span>
+              </div>
+              <div class="flex justify-between py-2 border-b border-gray-200">
+                <span class="text-sm font-medium text-gray-600">Total Deductions</span>
+                <span class="text-sm font-semibold text-red-600">{{ formatCurrency(getTotalDeductions()) }}</span>
+              </div>
+              <div class="flex justify-between py-2 border-b border-gray-200">
+                <span class="text-sm font-medium text-gray-600">Net Salary Paid</span>
+                <span class="text-sm font-semibold text-blue-600">{{ formatCurrency(getTotalNetSalary()) }}</span>
+              </div>
+              <div class="flex justify-between py-2 border-b border-gray-200">
+                <span class="text-sm font-medium text-gray-600">Average Salary</span>
+                <span class="text-sm text-gray-900">{{ formatCurrency(payroll.totalAmount / payroll.totalEmployees) }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Payments Tab -->
+      <div *ngIf="activeTab === 'payments'" class="space-y-4">
+        <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+          <ion-icon name="cash-outline" class="mr-2 text-indigo-600"></ion-icon>
+          Employee Payments ({{ (payroll.payments && payroll.payments.length) || 0 }})
+        </h3>
+
+        <div *ngIf="payroll.payments && payroll.payments.length > 0; else noPayments" class="space-y-3">
+          <div
+            *ngFor="let payment of payroll.payments"
+            class="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:border-indigo-200 transition-colors"
+          >
+            <div class="flex items-center space-x-4 flex-1">
+              <div class="h-10 w-10 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full flex items-center justify-center">
+                <span class="text-white text-sm font-medium">
+                  {{ getEmployeeInitials(payment.employeeName) }}
+                </span>
+              </div>
+              <div class="flex-1">
+                <p class="font-medium text-gray-900">{{ payment.employeeName }}</p>
+                <p class="text-sm text-gray-600">{{ payment.employeeCode }}</p>
+              </div>
+              <div class="text-right">
+                <p class="font-semibold text-gray-900">{{ formatCurrency(payment.netSalaryPaid) }}</p>
+                <p class="text-xs text-gray-600">Net Salary</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <ng-template #noPayments>
+          <div class="text-center py-8">
+            <ion-icon name="cash-outline" class="text-4xl text-gray-400 mb-3"></ion-icon>
+            <p class="text-gray-600">No payment details available</p>
+          </div>
+        </ng-template>
+      </div>
+
+      <!-- Breakdown Tab -->
+      <div *ngIf="activeTab === 'breakdown'" class="space-y-4">
+        <h3 class="text-lg font-semibold text-gray-900 flex items-center">
+          <ion-icon name="pie-chart-outline" class="mr-2 text-indigo-600"></ion-icon>
+          Salary Breakdown
+        </h3>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="space-y-4">
+            <h4 class="font-medium text-gray-900">Earnings Distribution</h4>
+            <div class="space-y-2">
+              <div class="flex justify-between text-sm">
+                <span class="text-gray-600">Basic Salary</span>
+                <span class="font-medium text-gray-900">
+                  {{ formatCurrency(getBasicSalaryTotal()) }}
+                </span>
+              </div>
+              <div class="flex justify-between text-sm">
+                <span class="text-gray-600">HRA</span>
+                <span class="font-medium text-gray-900">
+                  {{ formatCurrency(getHraTotal()) }}
+                </span>
+              </div>
+              <div class="flex justify-between text-sm">
+                <span class="text-gray-600">DA</span>
+                <span class="font-medium text-gray-900">
+                  {{ formatCurrency(getDaTotal()) }}
+                </span>
+              </div>
+              <div class="flex justify-between text-sm">
+                <span class="text-gray-600">Other Allowances</span>
+                <span class="font-medium text-gray-900">
+                  {{ formatCurrency(getOtherAllowancesTotal()) }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="space-y-4">
+            <h4 class="font-medium text-gray-900">Deductions</h4>
+            <div class="space-y-2">
+              <div class="flex justify-between text-sm">
+                <span class="text-gray-600">PF Contribution</span>
+                <span class="font-medium text-gray-900">
+                  {{ formatCurrency(getPfContributionTotal()) }}
+                </span>
+              </div>
+              <div class="flex justify-between text-sm">
+                <span class="text-gray-600">Total Deductions</span>
+                <span class="font-medium text-red-600">
+                  {{ formatCurrency(getTotalDeductions()) }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Loading State -->
+<div *ngIf="isLoading" class="flex items-center justify-center py-12">
+  <div class="text-center">
+    <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+    <p class="mt-4 text-gray-600">Loading payroll details...</p>
+  </div>
+</div>
+
+<!-- Error State -->
+<div *ngIf="error && !isLoading" class="bg-red-50 border border-red-200 rounded-lg p-6">
+  <div class="flex items-center">
+    <ion-icon name="alert-circle-outline" class="text-red-500 text-xl mr-3"></ion-icon>
+    <div>
+      <h3 class="text-red-800 font-medium">Error Loading Payroll</h3>
+      <p class="text-red-600 text-sm mt-1">{{ error }}</p>
+    </div>
+  </div>
+</div>

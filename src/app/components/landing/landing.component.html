@@ -1,0 +1,99 @@
+<!-- src/app/components/landing/landing.component.html -->
+
+<div class="landing-dark">
+  <!-- Header -->
+  <header class="relative z-10 container mx-auto px-6 py-6 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="h-8 w-8 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-lg flex items-center justify-center">
+        <ion-icon name="wallet-outline" class="text-white text-lg"></ion-icon>
+      </div>
+      <h2 class="text-xl font-bold text-white">PayFlow</h2>
+    </div>
+    <button (click)="navigateToLogin()" class="btn-secondary-outline">Login</button>
+  </header>
+
+  <main class="container mx-auto px-6">
+    <!-- Hero Section -->
+    <section class="hero-section text-center py-24 md:py-32">
+      <div class="relative z-10">
+        <h1 appFadeIn class="text-4xl md:text-6xl font-extrabold tracking-tight bg-gradient-to-br from-white to-slate-400 bg-clip-text text-transparent mb-6">
+          Payroll, Perfected.
+        </h1>
+        <p appFadeIn class="delay-1 max-w-2xl mx-auto text-lg md:text-xl text-slate-400 mb-10">
+          An all-in-one platform to automate payroll, manage payments, and ensure compliance with unshakable security.
+        </p>
+        <div appFadeIn class="delay-2">
+          <button (click)="navigateToRegister()" class="btn-primary-glow">Get Started for Free</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Feature 1: Automated Payroll -->
+    <section class="py-20 flex flex-col md:flex-row items-center gap-12">
+      <div class="md:w-1/2" appFadeIn>
+        <h2 class="text-3xl font-bold text-white mb-4">Run Payroll in Minutes, Not Days</h2>
+        <p class="mb-6">Our automated system handles complex calculations, tax deductions, and direct deposits with precision. Set it up once and let PayFlow handle the rest, error-free.</p>
+        <ul class="space-y-3 text-slate-300">
+          <li class="flex items-center gap-3"><ion-icon name="checkmark-circle-outline" class="text-cyan-400 text-xl"></ion-icon> Automated Tax & Compliance</li>
+          <li class="flex items-center gap-3"><ion-icon name="checkmark-circle-outline" class="text-cyan-400 text-xl"></ion-icon> Direct Deposit to Any Bank</li>
+          <li class="flex items-center gap-3"><ion-icon name="checkmark-circle-outline" class="text-cyan-400 text-xl"></ion-icon> Detailed Payslip Generation</li>
+        </ul>
+      </div>
+      <div class="md:w-1/2" appFadeIn>
+        <div class="mock-ui">
+          <p class="text-sm font-medium text-slate-400 mb-4">Payroll Run: July 2024</p>
+          <div class="space-y-3">
+            <div class="flex justify-between items-center bg-slate-800 p-3 rounded-md">
+              <span class="text-white">John Doe</span><span class="text-xs font-mono px-2 py-1 bg-green-500/20 text-green-400 rounded">PAID</span>
+            </div>
+            <div class="flex justify-between items-center bg-slate-800 p-3 rounded-md">
+              <span class="text-white">Jane Smith</span><span class="text-xs font-mono px-2 py-1 bg-green-500/20 text-green-400 rounded">PAID</span>
+            </div>
+            <div class="flex justify-between items-center bg-slate-800 p-3 rounded-md animate-pulse">
+              <span class="text-white">Peter Jones</span><span class="text-xs font-mono px-2 py-1 bg-yellow-500/20 text-yellow-400 rounded">PROCESSING...</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Feature 2: Effortless Payments -->
+    <section class="py-20 flex flex-col md:flex-row-reverse items-center gap-12">
+      <div class="md:w-1/2" appFadeIn>
+        <h2 class="text-3xl font-bold text-white mb-4">Centralized Vendor & Client Payments</h2>
+        <p class="mb-6">Manage all your payables and receivables from a single, intuitive dashboard. Create invoices, pay vendors, and track your organization's cash flow in real-time.</p>
+        <ul class="space-y-3 text-slate-300">
+          <li class="flex items-center gap-3"><ion-icon name="checkmark-circle-outline" class="text-cyan-400 text-xl"></ion-icon> Invoice Generation & Tracking</li>
+          <li class="flex items-center gap-3"><ion-icon name="checkmark-circle-outline" class="text-cyan-400 text-xl"></ion-icon> One-Click Vendor Payments</li>
+          <li class="flex items-center gap-3"><ion-icon name="checkmark-circle-outline" class="text-cyan-400 text-xl"></ion-icon> Real-time Financial Dashboard</li>
+        </ul>
+      </div>
+      <div class="md:w-1/2" appFadeIn>
+        <div class="mock-ui rotate-[-3deg] hover:rotate-0 transition-transform">
+          <div class="flex justify-between items-start">
+            <div>
+              <p class="text-sm text-slate-400">Invoice #INV-2024-007</p>
+              <p class="text-2xl font-bold text-white mt-2">$1,250.00</p>
+            </div>
+            <p class="text-xs font-mono px-2 py-1 bg-orange-500/20 text-orange-400 rounded">DUE</p>
+          </div>
+          <button class="mt-6 w-full text-center py-2 bg-cyan-500 text-slate-900 font-bold rounded-md hover:bg-cyan-400 transition">Pay Now</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Final CTA -->
+    <section class="text-center py-24" appFadeIn>
+      <h2 class="text-3xl font-bold text-white mb-4">Ready to Transform Your Finances?</h2>
+      <p class="max-w-xl mx-auto text-slate-400 mb-8">Join dozens of organizations streamlining their financial operations with PayFlow.</p>
+      <button (click)="navigateToRegister()" class="btn-primary-glow">Sign Up & Get Started</button>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="container mx-auto px-6 py-8 mt-12 border-t border-slate-800">
+    <div class="text-center text-sm text-slate-500">
+      © 2024 PayFlow. All rights reserved.
+    </div>
+  </footer>
+</div>

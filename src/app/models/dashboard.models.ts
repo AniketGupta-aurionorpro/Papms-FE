@@ -56,10 +56,14 @@ export interface DashboardStatsDto {
 
 export interface BankAdminDashboardStatsDto {
   totalOrganizations: number;
+  organizationGrowthPercentage: number;
   activeOrganizations: number;
   pendingOrganizations: number;
   suspendedOrganizations: number;
   organizationGrowth: OrganizationGrowthDataPoint[];
+  transactionVolume: OrganizationGrowthDataPoint[];
+  monthlyOrganizationGrowthPercentage: number;
+  monthlyTransactionVolumePercentage: number;
 }
 
 export interface OrganizationGrowthDataPoint {

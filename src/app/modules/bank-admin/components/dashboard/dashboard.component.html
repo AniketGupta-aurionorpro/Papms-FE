@@ -1,210 +1,192 @@
-<div>
-  <h2 class="text-3xl font-bold text-white mb-6">Dashboard</h2>
+<!-- src/app/modules/bank-admin/components/dashboard/dashboard.component.html -->
 
-  <!-- Loading and Error States -->
-  <div *ngIf="isLoading" class="flex justify-center items-center h-96">
-    <div class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
-  </div>
-  <div *ngIf="error && !isLoading" class="bg-red-900/50 border border-red-700 text-red-300 rounded-lg p-4">
-    <p><strong>Error:</strong> {{ error }}</p>
-  </div>
+<h2 class="text-3xl font-bold text-white mb-6">Bank Admin Dashboard</h2>
 
-  <div *ngIf="!isLoading && !error" class="space-y-8">
-    <!-- Stats Grid (Fully Dynamic) -->
-    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-      <div *ngFor="let stat of stats" class="bg-slate-800 p-6 rounded-lg shadow-lg transition-all hover:shadow-blue-500/10 hover:-translate-y-1">
-        <p class="text-sm font-medium text-slate-400">{{ stat.label }}</p>
-        <p class="text-4xl font-bold text-white mt-2">{{ stat.value | number }}</p>
-        <p class="text-sm font-medium mt-1" [ngClass]="{
-          'text-green-400': stat.changeType === 'positive',
-          'text-red-400': stat.changeType === 'negative',
-          'opacity-0': stat.changeType === 'neutral'
-        }">
-          {{ stat.change }}
-        </p>
+<div *ngIf="isLoading" class="flex justify-center items-center h-96">
+  <div class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
+</div>
+<div *ngIf="error && !isLoading" class="bg-red-900/50 border border-red-700 text-red-300 rounded-lg p-4">
+  <p><strong>Error:</strong> {{ error }}</p>
+</div>
+
+<!-- Main content wrapper -->
+<div *ngIf="!isLoading && !error" class="space-y-8">
+
+  <!-- Stats Grid -->
+  <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+    <!-- MODIFIED STAT CARD LAYOUT -->
+    <div *ngFor="let stat of stats" class="bg-slate-800 p-6 rounded-lg shadow-lg transition-all hover:shadow-blue-500/10 hover:-translate-y-1">
+      <p class="text-sm font-medium text-slate-400">{{ stat.label }}</p>
+      <div class="flex items-baseline justify-between mt-2">
+        <p class="text-4xl font-bold text-white">{{ stat.value | number }}</p>
+        <div class="text-right">
+          <p class="text-sm font-medium" [ngClass]="stat.change >= 0 ? 'text-green-400' : 'text-red-400'">
+            {{ stat.change | number:'1.1-1' }}%
+          </p>
+          <p class="text-xs text-slate-500">{{ stat.changeLabel }}</p>
+        </div>
       </div>
     </div>
+    <!-- END MODIFICATION -->
+  </div>
 
-    <!-- Platform Analytics (Layout and Logic Fixed) -->
-    <div class="bg-slate-800 p-6 rounded-lg shadow-lg">
-      <h3 class="text-xl font-bold text-white mb-1">Platform Analytics & Visualization</h3>
-      <div class="border-b border-slate-700">
-        <nav class="-mb-px flex space-x-8" aria-label="Tabs">
-          <button (click)="setActiveChart('growth')" [ngClass]="{'border-blue-500 text-blue-400': activeChart === 'growth', 'border-transparent text-slate-400 hover:text-slate-300': activeChart !== 'growth'}" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">New Organization Growth</button>
-          <button (click)="setActiveChart('volume')" [ngClass]="{'border-teal-500 text-teal-400': activeChart === 'volume', 'border-transparent text-slate-400 hover:text-slate-300': activeChart !== 'volume'}" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Monthly Transaction Volume</button>
-        </nav>
-      </div>
+  <!-- Two-Column Layout for Charts and Actions -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
 
-      <!-- Chart Container for Organization Growth (FIXED) -->
-      <div [hidden]="activeChart !== 'growth'" class="pt-6 space-y-4">
-        <div class="flex items-baseline gap-4">
-          <p class="text-4xl font-bold text-white">{{ formatPercentage(growthSummary.value) }}</p>
-          <p class="text-sm font-medium" [ngClass]="growthSummary.changeType === 'positive' ? 'text-green-400' : 'text-red-400'">
-            This Month
-          </p>
+    <!-- Left Column: Platform Analytics (Charts) -->
+    <div class="lg:col-span-2">
+      <div class="bg-slate-800 p-6 rounded-lg shadow-lg h-full">
+        <h3 class="text-xl font-bold text-white mb-1">Platform Analytics</h3>
+        <p class="text-sm text-slate-400 mb-4">Visualize key metrics over the last 12 months.</p>
+        <div class="border-b border-slate-700">
+          <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+            <button (click)="setActiveChart('growth')" [ngClass]="{'border-blue-500 text-blue-400': activeChart === 'growth', 'border-transparent text-slate-400 hover:text-slate-300': activeChart !== 'growth'}" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">New Organization Growth</button>
+            <button (click)="setActiveChart('volume')" [ngClass]="{'border-teal-500 text-teal-400': activeChart === 'volume', 'border-transparent text-slate-400 hover:text-slate-300': activeChart !== 'volume'}" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Monthly Transaction Volume</button>
+          </nav>
         </div>
-        <div class="h-80 w-full">
-          <!-- Show chart only if data exists -->
-          <ngx-charts-line-chart *ngIf="growthChartData[0]?.series.length > 0"
-            [view]="[1000, 320]"
-            [scheme]="colorScheme"
-            [results]="growthChartData"
-            [gradient]="true"
-            [xAxis]="true"
-            [yAxis]="true"
-            [legend]="false"
-            [autoScale]="true">
-          </ngx-charts-line-chart>
-          <!-- Show empty state if no data exists (FIXED) -->
-          <div *ngIf="!growthChartData[0]?.series.length" class="flex items-center justify-center h-full text-center text-slate-500">
-            <div>
-              <ion-icon name="analytics-outline" class="text-5xl"></ion-icon>
-              <p class="mt-2">No organization growth data available for this period.</p>
+
+        <!-- Chart Container for Organization Growth -->
+        <div [hidden]="activeChart !== 'growth'" class="pt-6 space-y-4">
+          <div class="flex items-baseline gap-4">
+            <p class="text-4xl font-bold text-white">{{ formatPercentage(growthSummary.value) }}</p>
+            <!-- MODIFIED LABEL -->
+            <p class="text-sm font-medium" [ngClass]="growthSummary.changeType === 'positive' ? 'text-green-400' : 'text-red-400'">
+              vs Previous Month
+            </p>
+            <!-- END MODIFICATION -->
+          </div>
+          <div class="h-80 w-full">
+            <ngx-charts-line-chart *ngIf="growthChartData[0]?.series.length > 0"
+              [scheme]="colorScheme"
+              [results]="growthChartData"
+              [gradient]="true"
+              [xAxis]="true"
+              [yAxis]="true"
+              [legend]="false"
+              [autoScale]="true">
+            </ngx-charts-line-chart>
+            <div *ngIf="!growthChartData[0]?.series.length" class="flex items-center justify-center h-full text-center text-slate-500">
+              <div>
+                <ion-icon name="analytics-outline" class="text-5xl"></ion-icon>
+                <p class="mt-2">No organization growth data available.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chart Container for Transaction Volume -->
+        <div [hidden]="activeChart !== 'volume'" class="pt-6 space-y-4">
+          <div class="flex items-baseline gap-4">
+            <p class="text-4xl font-bold text-white">{{ formatPercentage(volumeSummary.value) }}</p>
+            <!-- MODIFIED LABEL -->
+            <p class="text-sm font-medium" [ngClass]="volumeSummary.changeType === 'positive' ? 'text-green-400' : 'text-red-400'">
+              vs Previous Month
+            </p>
+            <!-- END MODIFICATION -->
+          </div>
+          <div class="h-80 w-full">
+            <ngx-charts-line-chart *ngIf="volumeChartData[0]?.series.length > 0"
+              [scheme]="volumeColorScheme"
+              [results]="volumeChartData"
+              [gradient]="true"
+              [xAxis]="true"
+              [yAxis]="true"
+              [legend]="false"
+              [autoScale]="true"
+              [yAxisTickFormatting]="formatCurrency">
+            </ngx-charts-line-chart>
+            <div *ngIf="!volumeChartData[0]?.series.length" class="flex items-center justify-center h-full text-center text-slate-500">
+              <div>
+                <ion-icon name="wallet-outline" class="text-5xl"></ion-icon>
+                <p class="mt-2">No transaction data available.</p>
+              </div>
             </div>
           </div>
         </div>
       </div>
-
-      <!-- Chart Container for Transaction Volume (FIXED) -->
-      <div [hidden]="activeChart !== 'volume'" class="pt-6 space-y-4">
-        <div class="flex items-baseline gap-4">
-          <p class="text-4xl font-bold text-white">{{ formatPercentage(volumeSummary.value) }}</p>
-          <p class="text-sm font-medium" [ngClass]="volumeSummary.changeType === 'positive' ? 'text-green-400' : 'text-red-400'">
-            This Month
-          </p>
-        </div>
-        <div class="h-80 w-full">
-          <!-- Show chart only if data exists -->
-          <ngx-charts-line-chart *ngIf="volumeChartData[0]?.series.length > 0"
-            [view]="[1000, 320]"
-            [scheme]="volumeColorScheme"
-            [results]="volumeChartData"
-            [gradient]="true"
-            [xAxis]="true"
-            [yAxis]="true"
-            [legend]="false"
-            [autoScale]="true"
-            [yAxisTickFormatting]="formatCurrency">
-          </ngx-charts-line-chart>
-          <!-- Show empty state if no data exists (FIXED) -->
-          <div *ngIf="!volumeChartData[0]?.series.length" class="flex items-center justify-center h-full text-center text-slate-500">
-            <div>
-              <ion-icon name="wallet-outline" class="text-5xl"></ion-icon>
-              <p class="mt-2">No transaction data available for this period.</p>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
 
-    <!-- Action Center -->
-    <div class="bg-slate-800 rounded-lg shadow-lg">
-      <h3 class="text-xl font-bold text-white p-6 pb-2">Action Center</h3>
-      <div class="border-b border-slate-700 px-6">
-        <nav class="-mb-px flex space-x-8" aria-label="Tabs">
-          <button (click)="activeActionCenterTab = 'org'" [ngClass]="{'border-blue-500 text-blue-400': activeActionCenterTab === 'org', 'border-transparent text-slate-400 hover:text-slate-300': activeActionCenterTab !== 'org'}" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Organization Approvals</button>
-          <button (click)="activeActionCenterTab = 'payroll'" [ngClass]="{'border-blue-500 text-blue-400': activeActionCenterTab === 'payroll', 'border-transparent text-slate-400 hover:text-slate-300': activeActionCenterTab !== 'payroll'}" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Payroll Approvals</button>
-        </nav>
-      </div>
-      <div class="overflow-x-auto">
-        <div *ngIf="activeActionCenterTab === 'org'">
-          <table class="w-full text-sm text-left text-slate-400">
-            <thead class="text-xs text-slate-400 uppercase bg-slate-800">
-              <tr>
-                <th scope="col" class="px-6 py-3">Organization Name</th>
-                <th scope="col" class="px-6 py-3">Email</th>
-                <th scope="col" class="px-6 py-3">Status</th>
-                <th scope="col" class="px-6 py-3 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let org of pendingOrganizations" class="border-b bg-slate-800 border-slate-700 hover:bg-slate-700/50">
-                <td class="px-6 py-4 font-medium text-white whitespace-nowrap">{{ org.companyName }}</td>
-                <td class="px-6 py-4">{{ org.contactEmail }}</td>
-                <td class="px-6 py-4"><span class="px-2 py-1 text-xs font-medium rounded-full bg-yellow-900 text-yellow-300">Pending</span></td>
-                <td class="px-6 py-4 text-right space-x-4">
-                  <a (click)="approveOrganization(org.id, $event)" href="javascript:void(0)" class="font-medium text-blue-400 hover:underline">Approve</a>
-                  <a (click)="rejectOrganization(org.id, $event)" href="javascript:void(0)" class="font-medium text-red-400 hover:underline">Reject</a>
-                </td>
-              </tr>
-              <tr *ngIf="pendingOrganizations.length === 0">
-                <td colspan="4" class="text-center py-8 text-slate-500">No pending organization approvals.</td>
-              </tr>
-            </tbody>
-          </table>
+    <!-- Right Column: Action Center -->
+    <div class="lg:col-span-1">
+        <!-- (This section remains unchanged) -->
+        <div class="bg-slate-800 rounded-lg shadow-lg h-full">
+        <h3 class="text-xl font-bold text-white p-6 pb-2">Action Center</h3>
+        <div class="border-b border-slate-700 px-6">
+            <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+            <button (click)="activeActionCenterTab = 'org'" [ngClass]="{'border-blue-500 text-blue-400': activeActionCenterTab === 'org', 'border-transparent text-slate-400 hover:text-slate-300': activeActionCenterTab !== 'org'}" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Organizations</button>
+            <button (click)="activeActionCenterTab = 'payroll'" [ngClass]="{'border-blue-500 text-blue-400': activeActionCenterTab === 'payroll', 'border-transparent text-slate-400 hover:text-slate-300': activeActionCenterTab !== 'payroll'}" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Payrolls</button>
+            </nav>
         </div>
-        <div *ngIf="activeActionCenterTab === 'payroll'">
-           <table class="w-full text-sm text-left text-slate-400">
-            <thead class="text-xs text-slate-400 uppercase bg-slate-800">
-              <tr>
-                <th scope="col" class="px-6 py-3">Organization Name</th>
-                <th scope="col" class="px-6 py-3">Period</th>
-                <th scope="col" class="px-6 py-3">Amount</th>
-                <th scope="col" class="px-6 py-3 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let payroll of pendingPayrolls" class="border-b bg-slate-800 border-slate-700 hover:bg-slate-700/50">
-                <td class="px-6 py-4 font-medium text-white">{{ payroll.organizationName }}</td>
-                <td class="px-6 py-4">{{ payroll.payrollMonth }}/{{ payroll.payrollYear }}</td>
-                <td class="px-6 py-4">{{ formatCurrency(payroll.totalAmount) }}</td>
-                <td class="px-6 py-4 text-right space-x-4">
-                  <a href="#" class="font-medium text-blue-400 hover:underline">Approve</a>
-                  <a href="#" class="font-medium text-red-400 hover:underline">Reject</a>
-                </td>
-              </tr>
-              <tr *ngIf="pendingPayrolls.length === 0">
-                <td colspan="4" class="text-center py-8 text-slate-500">No pending payroll approvals.</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- All Organizations Management -->
-    <div class="bg-slate-800 rounded-lg shadow-lg">
-      <div class="p-6">
-        <h3 class="text-xl font-bold text-white mb-4">All Organizations Management</h3>
-        <div class="flex items-center justify-between">
-            <input type="text" class="bg-slate-700 border border-slate-600 text-white text-sm rounded-lg w-1/2 pl-10 p-2.5 focus:ring-blue-500 focus:border-blue-500" placeholder="Search organizations...">
-            <div class="flex space-x-2">
-                <button class="px-4 py-2 text-sm font-medium text-white bg-slate-700 rounded-lg hover:bg-slate-600">Active</button>
-                <button class="px-4 py-2 text-sm font-medium text-white bg-slate-700 rounded-lg hover:bg-slate-600">Suspended</button>
-                <button class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg">All</button>
+        <div class="overflow-x-auto p-2">
+            <div *ngIf="activeActionCenterTab === 'org'">
+            <ul class="divide-y divide-slate-700">
+                <li *ngFor="let org of pendingOrganizations" class="p-4 hover:bg-slate-700/50 rounded-md">
+                <div class="flex items-center justify-between">
+                    <div>
+                    <p class="font-medium text-white">{{ org.companyName }}</p>
+                    <p class="text-xs text-slate-400">{{ org.contactEmail }}</p>
+                    </div>
+                    <button (click)="viewOrganizationDetails(org.id)" class="text-blue-400 hover:text-blue-300 text-sm font-medium">Review</button>
+                </div>
+                </li>
+                <li *ngIf="pendingOrganizations.length === 0" class="text-center py-8 text-slate-500 text-sm">No pending approvals.</li>
+            </ul>
+            </div>
+            <div *ngIf="activeActionCenterTab === 'payroll'">
+                <ul class="divide-y divide-slate-700">
+                <li *ngFor="let payroll of pendingPayrolls" class="p-4 hover:bg-slate-700/50 rounded-md">
+                    <div class="flex items-center justify-between">
+                    <div>
+                        <p class="font-medium text-white">{{ payroll.organizationName }}</p>
+                        <p class="text-xs text-slate-400">{{ payroll.payrollMonth }}/{{ payroll.payrollYear }} - {{ payroll.totalAmount | currency:'INR' }}</p>
+                    </div>
+                    <button (click)="viewPayrollDetails(payroll.id)" class="text-blue-400 hover:text-blue-300 text-sm font-medium">Review</button>
+                    </div>
+                </li>
+                <li *ngIf="pendingPayrolls.length === 0" class="text-center py-8 text-slate-500 text-sm">No pending payrolls.</li>
+                </ul>
             </div>
         </div>
-      </div>
-      <div class="overflow-x-auto">
-        <table class="w-full text-sm text-left text-slate-400">
-          <thead class="text-xs text-slate-400 uppercase bg-slate-800">
-            <tr>
-              <th scope="col" class="px-6 py-3">Organization Name</th>
-              <th scope="col" class="px-6 py-3">Email</th>
-              <th scope="col" class="px-6 py-3">Status</th>
-              <th scope="col" class="px-6 py-3 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr *ngFor="let org of allOrganizations" class="border-b bg-slate-800 border-slate-700 hover:bg-slate-700/50 cursor-pointer" (click)="viewProfile(org.id)">
-              <td class="px-6 py-4 font-medium text-white whitespace-nowrap">{{ org.companyName }}</td>
-              <td class="px-6 py-4">{{ org.contactEmail }}</td>
-              <td class="px-6 py-4">
-                <span *ngIf="org.status === 'ACTIVE'" class="px-2 py-1 text-xs font-medium rounded-full bg-green-900 text-green-300">Active</span>
-                <span *ngIf="org.status === 'SUSPENDED'" class="px-2 py-1 text-xs font-medium rounded-full bg-red-900 text-red-300">Suspended</span>
-                <span *ngIf="org.status === 'PENDING_APPROVAL'" class="px-2 py-1 text-xs font-medium rounded-full bg-yellow-900 text-yellow-300">Pending</span>
-              </td>
-              <td class="px-6 py-4 text-right space-x-4">
-                <a (click)="viewProfile(org.id); $event.stopPropagation()" class="font-medium text-blue-400 hover:underline">View Profile</a>
-                <a href="#" (click)="$event.stopPropagation()" class="font-medium text-red-400 hover:underline">Suspend</a>
-              </td>
-            </tr>
-             <tr *ngIf="allOrganizations.length === 0">
-                <td colspan="4" class="text-center py-8 text-slate-500">No organizations to display.</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+        </div>
+    </div>
+
+  </div>
+
+  <!-- All Organizations Management (This section remains unchanged) -->
+  <div class="bg-slate-800 rounded-lg shadow-lg">
+    <div class="p-6 flex justify-between items-center">
+      <h3 class="text-xl font-bold text-white">All Organizations</h3>
+      <a routerLink="/bank-admin/organizations" class="text-sm font-medium text-blue-400 hover:underline">View All</a>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm text-left text-slate-400">
+        <thead class="text-xs text-slate-400 uppercase bg-slate-800">
+          <tr>
+            <th scope="col" class="px-6 py-3">Organization Name</th>
+            <th scope="col" class="px-6 py-3">Email</th>
+            <th scope="col" class="px-6 py-3">Status</th>
+            <th scope="col" class="px-6 py-3 text-right">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let org of allOrganizations" class="border-b bg-slate-800 border-slate-700 hover:bg-slate-700/50 cursor-pointer" (click)="viewOrganizationDetails(org.id)">
+            <td class="px-6 py-4 font-medium text-white whitespace-nowrap">{{ org.companyName }}</td>
+            <td class="px-6 py-4">{{ org.contactEmail }}</td>
+            <td class="px-6 py-4">
+              <span *ngIf="org.status === 'ACTIVE'" class="px-2 py-1 text-xs font-medium rounded-full bg-green-900 text-green-300">Active</span>
+              <span *ngIf="org.status === 'SUSPENDED'" class="px-2 py-1 text-xs font-medium rounded-full bg-red-900 text-red-300">Suspended</span>
+              <span *ngIf="org.status === 'PENDING_APPROVAL'" class="px-2 py-1 text-xs font-medium rounded-full bg-yellow-900 text-yellow-300">Pending</span>
+            </td>
+            <td class="px-6 py-4 text-right">
+              <button (click)="viewOrganizationDetails(org.id); $event.stopPropagation()" class="font-medium text-blue-400 hover:underline">View Details</button>
+            </td>
+          </tr>
+           <tr *ngIf="allOrganizations.length === 0">
+              <td colspan="4" class="text-center py-8 text-slate-500">No organizations to display.</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
+
 </div>

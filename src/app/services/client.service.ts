@@ -15,7 +15,7 @@ import {
 export class ClientService {
   constructor(private http: HttpClient) { }
 
-  private url = environment.apiUrl;
+  private url = environment.apiUrl + '/api';
 
   createClient(request: ClientRequestDto): Observable<ClientResponseDto> {
     return this.http.post<ClientResponseDto>(`${this.url}/clients`, request);

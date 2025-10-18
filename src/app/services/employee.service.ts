@@ -21,7 +21,7 @@ import {
 export class EmployeeService {
   constructor(private http: HttpClient) { }
 
-  private baseUrl = environment.apiUrl + '/organizations';
+  private baseUrl = environment.apiUrl + '/api/organizations';
 
   addEmployee(organizationId: number, request: AddEmployeeRequest): Observable<string> {
     return this.http.post<string>(`${this.baseUrl}/${organizationId}/employees`, request);

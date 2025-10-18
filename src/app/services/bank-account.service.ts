@@ -14,7 +14,7 @@ import {
 export class BankAccountService {
   constructor(private http: HttpClient) { }
 
-  private baseUrl = environment.apiUrl + '/organizations';
+  private baseUrl = environment.apiUrl + '/api/organizations';
 
   /**
    * Get all bank accounts for organization

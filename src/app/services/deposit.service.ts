@@ -13,7 +13,7 @@ import {
 export class DepositService {
   constructor(private http: HttpClient) { }
 
-  private url = environment.apiUrl + '/deposits';
+  private url = environment.apiUrl + '/api/deposits';
 
   makeSelfDeposit(request: DepositRequest): Observable<DepositResponse> {
     return this.http.post<DepositResponse>(`${this.url}/self`, request);

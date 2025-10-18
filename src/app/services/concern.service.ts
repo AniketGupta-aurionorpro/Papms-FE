@@ -14,7 +14,7 @@ import {
 export class ConcernService {
   constructor(private http: HttpClient) { }
 
-  private url = environment.apiUrl;
+  private url = environment.apiUrl + '/api';
 
   raiseConcern(request: RaiseConcernRequest): Observable<ConcernResponseDto> {
     return this.http.post<ConcernResponseDto>(`${this.url}/concerns`, request);

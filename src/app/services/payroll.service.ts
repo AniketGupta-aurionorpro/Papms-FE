@@ -13,7 +13,7 @@ import {
 export class PayrollService {
   constructor(private http: HttpClient) { }
 
-  private url = environment.apiUrl;
+ private url = environment.apiUrl + '/api';
 
   createPayroll(organizationId: number, request: CreatePayrollRequest): Observable<PayrollBatchResponse> {
     return this.http.post<PayrollBatchResponse>(

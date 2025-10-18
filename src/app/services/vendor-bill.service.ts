@@ -10,7 +10,7 @@ import { VendorBillDto } from "../models/vendor-bill.models";
 export class VendorBillService {
   constructor(private http: HttpClient) { }
 
-  private url = environment.apiUrl + '/bills/vendors';
+  private url = environment.apiUrl + '/api/bills/vendors';
 
   getAllBills(): Observable<VendorBillDto[]> {
     return this.http.get<VendorBillDto[]>(this.url);

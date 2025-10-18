@@ -1,12 +1,18 @@
 import { HttpInterceptorFn } from "@angular/common/http";
 import { inject } from "@angular/core";
-import { PersistenceService } from "../services/persistence.service";
+import { AuthService } from "../core/services/auth.service";
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  const persistenceService = inject(PersistenceService);
-  const token = persistenceService.get('accessToken');
+  const authService = inject(AuthService);
+  const token = authService.getToken();
 
-  if (token) {
+  // Define public routes that should NOT receive an Authorization header
+  const isPublicRoute = req.url.includes('/auth/login') ||
+                        req.url.includes('/auth/register') ||
+                        req.url.includes('/organizations/register');
+
+  // Only attach the token if it exists AND it's not a public auth route
+  if (token && !isPublicRoute) {
     const cloned = req.clone({
       setHeaders: {
         Authorization: `Bearer ${token}`
@@ -15,5 +21,6 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     return next(cloned);
   }
 
+  // For public routes or if no token exists, pass the request as-is
   return next(req);
 };

@@ -10,7 +10,7 @@ import { EmployeeDashboardDto } from "../models/employee-dashboard.models";
 export class EmployeeDashboardService {
   constructor(private http: HttpClient) { }
 
-  private url = environment.apiUrl + '/employees/dashboard';
+  private url = environment.apiUrl + '/api/employees/dashboard';
 
   getMyDashboard(): Observable<EmployeeDashboardDto> {
     return this.http.get<EmployeeDashboardDto>(`${this.url}/me`);

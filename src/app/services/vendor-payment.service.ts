@@ -10,7 +10,7 @@ import { VendorPaymentRequest } from "../models/vendor-payment.models";
 export class VendorPaymentService {
   constructor(private http: HttpClient) { }
 
-  private url = environment.apiUrl + '/payments/vendors';
+  private url = environment.apiUrl + '/api/payments/vendors';
 
   makePaymentToVendor(request: VendorPaymentRequest): Observable<string> {
     return this.http.post<string>(this.url, request);

@@ -19,6 +19,7 @@ export interface LoginResponseDto {
   fullName: string;
   email: string;
   role: Role;
+  requiresPasswordChange?: boolean;
   organizationId?: number;
   organizationName?: string;
   employeeProfile?: CompleteEmployeeResponse;
@@ -52,6 +53,7 @@ export interface CompleteEmployeeResponse {
   fullName: string;
   email: string;
   role: string;
+  requiresPasswordChange?: boolean;
   isUserEnabled: boolean;
   profilePictureUrl?: string;
   organizationId: number;

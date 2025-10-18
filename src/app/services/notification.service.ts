@@ -13,7 +13,7 @@ import {
 export class NotificationService {
   constructor(private http: HttpClient) { }
 
-  private url = environment.apiUrl + '/notifications';
+  private url = environment.apiUrl + '/api/notifications';
 
   getMyNotifications(page: number = 0, size: number = 10): Observable<any> {
     const params = new HttpParams()

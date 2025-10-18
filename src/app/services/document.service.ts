@@ -10,7 +10,7 @@ import { DocumentResponseDto } from "../models/document.models";
 export class DocumentService {
   constructor(private http: HttpClient) { }
 
-  private baseUrl = environment.apiUrl + '/organizations';
+  private baseUrl = environment.apiUrl + '/api/organizations';
 
   approveDocument(organizationId: number, documentId: number): Observable<DocumentResponseDto> {
     return this.http.put<DocumentResponseDto>(

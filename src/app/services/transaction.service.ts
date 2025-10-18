@@ -10,7 +10,7 @@ import { TransactionDto } from "../models/transaction.models";
 export class TransactionService {
   constructor(private http: HttpClient) { }
 
-  private baseUrl = environment.apiUrl + '/organizations';
+  private baseUrl = environment.apiUrl + '/api/organizations';
 
   getTransactions(organizationId: number, page: number = 0, size: number = 10): Observable<any> {
     const params = new HttpParams()

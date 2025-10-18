@@ -13,7 +13,7 @@ import {
 export class VendorService {
   constructor(private http: HttpClient) { }
 
-  private url = environment.apiUrl + '/vendors';
+  private url = environment.apiUrl + '/api/vendors';
 
   createVendor(request: VendorRequest): Observable<VendorResponse> {
     return this.http.post<VendorResponse>(this.url, request);

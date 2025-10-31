@@ -1,9 +1,9 @@
-import { Component, CUSTOM_ELEMENTS_SCHEMA, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
+import { forkJoin, map } from 'rxjs';
 import { OrganizationResponseDto } from '../../../../../models/organization.models';
-import { LoadingService } from '../../../../../services/loading.service';
 import { OrganizationService } from '../../../../../services/organization.service';
+import { PayrollService } from '../../../../../services/payroll.service';
 
 
 @Component({
@@ -18,36 +18,49 @@ export class OrganizationListComponent implements OnInit {
   isLoading = true;
   error = '';
   searchTerm = '';
-  statusFilter = 'ALL';
 
-  statusOptions = [
-    { value: 'ALL', label: 'All Status', color: 'gray' },
-    { value: 'PENDING_APPROVAL', label: 'Pending', color: 'amber' },
-    { value: 'ACTIVE', label: 'Active', color: 'green' },
-    { value: 'SUSPENDED', label: 'Suspended', color: 'red' },
-    { value: 'REJECTED', label: 'Rejected', color: 'red' }
-  ];
+  // Store pending payroll counts with organization ID as the key
+  pendingPayrollCounts: Map<number, number> = new Map();
 
   constructor(
     private organizationService: OrganizationService,
-    private loadingService: LoadingService,
+    private payrollService: PayrollService, // Injected PayrollService
     private router: Router
   ) {}
 
   ngOnInit(): void {
-    this.loadOrganizations();
+    this.loadData();
   }
 
-  loadOrganizations(): void {
+  loadData(): void {
     this.isLoading = true;
-    this.organizationService.getAllOrganizations().subscribe({
-      next: (organizations) => {
+    this.error = '';
+
+    // Use forkJoin to fetch organizations and payroll counts in parallel
+    forkJoin({
+      orgsPage: this.organizationService.getAllOrganizations(0, 1000), // Fetch a large number to get all orgs
+      pendingCounts: this.payrollService.getPendingPayrollCounts()
+    }).pipe(
+      map(({ orgsPage, pendingCounts }) => {
+        // Convert the pendingCounts object to a Map
+        const countsMap = new Map<number, number>();
+        for (const key in pendingCounts) {
+          if (Object.prototype.hasOwnProperty.call(pendingCounts, key)) {
+            countsMap.set(Number(key), pendingCounts[key]);
+          }
+        }
+        return { organizations: orgsPage.content, pendingCounts: countsMap };
+      })
+    ).subscribe({
+      next: ({ organizations, pendingCounts }) => {
         this.organizations = organizations;
         this.filteredOrganizations = organizations;
+        this.pendingPayrollCounts = pendingCounts;
         this.isLoading = false;
       },
-      error: (error) => {
-        this.error = error.error?.message || 'Failed to load organizations';
+      error: (err) => {
+        this.error = 'Failed to load organization data. Please try again later.';
+        console.error(err);
         this.isLoading = false;
       }
     });
@@ -57,86 +70,46 @@ export class OrganizationListComponent implements OnInit {
     this.applyFilters();
   }
 
-  onStatusFilterChange(): void {
-    this.applyFilters();
-  }
-
   applyFilters(): void {
-    this.filteredOrganizations = this.organizations.filter(org => {
-      const matchesSearch = org.companyName.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-                           org.contactEmail.toLowerCase().includes(this.searchTerm.toLowerCase());
-
-      const matchesStatus = this.statusFilter === 'ALL' || org.status === this.statusFilter;
-
-      return matchesSearch && matchesStatus;
-    });
-  }
-
-  getStatusColor(status: string): string {
-    switch (status) {
-      case 'ACTIVE':
-        return 'bg-green-100 text-green-800';
-      case 'PENDING_APPROVAL':
-        return 'bg-amber-100 text-amber-800';
-      case 'SUSPENDED':
-        return 'bg-red-100 text-red-800';
-      case 'REJECTED':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
+    if (!this.searchTerm) {
+      this.filteredOrganizations = this.organizations;
+      return;
     }
-  }
-
-  getStatusIcon(status: string): string {
-    switch (status) {
-      case 'ACTIVE':
-        return 'checkmark-circle-outline';
-      case 'PENDING_APPROVAL':
-        return 'time-outline';
-      case 'SUSPENDED':
-        return 'pause-circle-outline';
-      case 'REJECTED':
-        return 'close-circle-outline';
-      default:
-        return 'help-circle-outline';
-    }
+    this.filteredOrganizations = this.organizations.filter(org =>
+      org.companyName.toLowerCase().includes(this.searchTerm.toLowerCase())
+    );
   }
 
   viewOrganization(organizationId: number): void {
     this.router.navigate(['/bank-admin/organizations', organizationId]);
   }
 
-  approveOrganization(organizationId: number): void {
-    this.organizationService.updateOrganizationStatus(organizationId, 'ACTIVE').subscribe({
-      next: () => {
-        this.loadOrganizations();
-      },
-      error: (error) => {
-        this.error = error.error?.message || 'Failed to approve organization';
-      }
-    });
+  // Helper to get pending count for a specific organization
+  getPendingCountForOrg(orgId: number): number {
+    return this.pendingPayrollCounts.get(orgId) || 0;
   }
 
-  rejectOrganization(organizationId: number): void {
-    this.organizationService.updateOrganizationStatus(organizationId, 'REJECTED', 'Manual rejection by admin').subscribe({
-      next: () => {
-        this.loadOrganizations();
-      },
-      error: (error) => {
-        this.error = error.error?.message || 'Failed to reject organization';
-      }
-    });
+  // Helper to get initials from a company name
+  getInitials(name: string): string {
+    if (!name) return '??';
+    const words = name.split(' ').filter(Boolean);
+    if (words.length > 1) {
+      return (words[0][0] + words[words.length - 1][0]).toUpperCase();
+    }
+    return name.substring(0, 2).toUpperCase();
   }
 
-  getTotalCount(): number {
-    return this.organizations.length;
-  }
-
-  getActiveCount(): number {
-    return this.organizations.filter(org => org.status === 'ACTIVE').length;
-  }
-
-  getPendingCount(): number {
-    return this.organizations.filter(org => org.status === 'PENDING_APPROVAL').length;
+  getStatusBadgeClass(status: string): string {
+    switch (status) {
+      case 'ACTIVE':
+        return 'bg-green-500/20 text-green-400';
+      case 'PENDING_APPROVAL':
+        return 'bg-amber-500/20 text-amber-400';
+      case 'SUSPENDED':
+      case 'REJECTED':
+        return 'bg-red-500/20 text-red-400';
+      default:
+        return 'bg-slate-600 text-slate-300';
+    }
   }
 }

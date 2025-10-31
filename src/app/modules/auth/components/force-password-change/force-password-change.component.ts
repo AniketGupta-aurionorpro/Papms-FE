@@ -1,10 +1,8 @@
-import { Component, CUSTOM_ELEMENTS_SCHEMA, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { Router, ActivatedRoute } from '@angular/router';
-import { LoadingService } from '../../../../services/loading.service';
+import { Component, OnInit } from '@angular/core';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
 import { AuthService } from '../../../../core/services/auth.service';
-
+import { NotificationService } from '../../../../core/services/notification.service'; // <-- IMPORT NOTIFICATION SERVICE
 
 @Component({
   selector: 'app-force-password-change',
@@ -16,14 +14,12 @@ export class ForcePasswordChangeComponent implements OnInit {
   forcePasswordForm: FormGroup;
   isLoading = false;
   error = '';
-  returnUrl = '';
 
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
-    private loadingService: LoadingService,
     private router: Router,
-    private route: ActivatedRoute
+    private notificationService: NotificationService // <-- INJECT NOTIFICATION SERVICE
   ) {
     this.forcePasswordForm = this.fb.group({
       newPassword: ['', [Validators.required, Validators.minLength(6)]],
@@ -32,7 +28,7 @@ export class ForcePasswordChangeComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/';
+    // No longer need returnUrl
   }
 
   passwordMatchValidator(form: FormGroup) {
@@ -59,8 +55,17 @@ export class ForcePasswordChangeComponent implements OnInit {
       this.authService.forceChangePassword(forceChangeData).subscribe({
         next: (response) => {
           this.isLoading = false;
-          // Redirect to the intended URL
-          this.router.navigateByUrl(this.returnUrl);
+
+          // --- NEW LOGIC ---
+          // 1. Log the user out to clear the old token
+          this.authService.logout();
+
+          // 2. Show a success message
+          this.notificationService.showSuccess('Password updated successfully. Please log in with your new password.');
+
+          // 3. Redirect to the login page
+          this.router.navigate(['/auth/login']);
+          // --- END NEW LOGIC ---
         },
         error: (error) => {
           this.isLoading = false;

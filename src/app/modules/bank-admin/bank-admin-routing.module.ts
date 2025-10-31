@@ -13,6 +13,7 @@ import { TransactionAuditComponent } from './components/financial-audit/transact
 import { ReportsComponent } from './components/reports/reports.component';
 import { DocumentVerificationComponent } from './components/organization-management/document-verification/document-verification.component';
 import { MainLayoutComponent } from './components/main-layout/main-layout.component';
+import { TransactionsComponent } from './components/transactions/transactions.component';
 
 const routes: Routes = [
   {
@@ -35,7 +36,7 @@ const routes: Routes = [
       // Financial Audit
       { path: 'financial-audit', component: OrganizationFinancialsComponent },
       { path: 'financial-audit/transactions/:id', component: TransactionAuditComponent },
-
+      { path: 'transactions', component: TransactionsComponent },
       // Document Verification
       { path: 'document-verification', component: DocumentVerificationComponent },
 

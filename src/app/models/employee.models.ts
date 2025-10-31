@@ -267,3 +267,30 @@ export interface PayrollPaymentResponse {
   netSalaryPaid: number;
   status: string;
 }
+
+export interface UpdateCompleteEmployeeRequest {
+  user?: {
+    fullName: string;
+    email: string;
+  };
+  employee?: {
+    department: string;
+    jobTitle: string;
+    isActive: boolean;
+  };
+  bankAccount?: {
+    accountHolderName: string;
+    accountNumber: string;
+    bankName: string;
+    ifscCode: string;
+  };
+  salary?: {
+    basicSalary: number;
+    hra: number;
+    da: number;
+    pfContribution: number;
+    otherAllowances: number;
+    effectiveFromDate: string;
+    changeReason: string;
+  };
+}

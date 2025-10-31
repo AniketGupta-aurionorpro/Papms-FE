@@ -12,8 +12,17 @@ import {
   UpdateSalaryRequest,
   BulkEmployeeUploadResponse,
   MyPayslipHistoryDto,
-  PayrollPaymentResponse
+  PayrollPaymentResponse,
+  UpdateCompleteEmployeeRequest
 } from "../models/employee.models";
+
+export interface Page<T> {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  number: number;
+  size: number;
+}
 
 @Injectable({
   providedIn: 'root',
@@ -23,6 +32,33 @@ export class EmployeeService {
 
   private baseUrl = environment.apiUrl + '/api/organizations';
 
+  getEmployeesByOrganization(
+    organizationId: number,
+    page: number = 0,
+    size: number = 10,
+    searchTerm?: string | null,
+    department?: string | null,
+    active?: boolean | null
+  ): Observable<Page<CompleteEmployeeResponse>> {
+    let params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString());
+
+    if (searchTerm) {
+      params = params.set('searchTerm', searchTerm);
+    }
+    if (department && department !== 'ALL') {
+      params = params.set('department', department);
+    }
+    // if (status && status !== 'ALL') {
+    //   params = params.set('active', status === 'ACTIVE' ? 'true' : 'false');
+    // }
+    if (active !== null && active !== undefined) {
+      params = params.set('active', active);
+    }
+
+    return this.http.get<any>(`${this.baseUrl}/${organizationId}/employees`, { params });
+  }
   addEmployee(organizationId: number, request: AddEmployeeRequest): Observable<string> {
     return this.http.post<string>(`${this.baseUrl}/${organizationId}/employees`, request);
   }
@@ -36,13 +72,13 @@ export class EmployeeService {
     );
   }
 
-  getEmployeesByOrganization(organizationId: number, page: number = 0, size: number = 10): Observable<any> {
-    const params = new HttpParams()
-      .set('page', page.toString())
-      .set('size', size.toString());
+  // getEmployeesByOrganization(organizationId: number, page: number = 0, size: number = 10): Observable<any> {
+  //   const params = new HttpParams()
+  //     .set('page', page.toString())
+  //     .set('size', size.toString());
 
-    return this.http.get<any>(`${this.baseUrl}/${organizationId}/employees`, { params });
-  }
+  //   return this.http.get<any>(`${this.baseUrl}/${organizationId}/employees`, { params });
+  // }
 
   getEmployeeById(employeeId: number): Observable<EmployeeResponseDto> {
     return this.http.get<EmployeeResponseDto>(`${this.baseUrl}/employees/${employeeId}`);
@@ -169,5 +205,23 @@ export class EmployeeService {
     return this.http.get(`${this.baseUrl}/${organizationId}/employees/bulk-upload-template`, {
       responseType: 'blob'
     });
+  }
+
+  updateCompleteEmployee(organizationId: number, employeeId: number, request: UpdateCompleteEmployeeRequest): Observable<CompleteEmployeeResponse> {
+    return this.http.put<CompleteEmployeeResponse>(
+      `${this.baseUrl}/${organizationId}/employees/${employeeId}/complete`,
+      request
+    );
+  }
+
+  checkUsernameAvailability(organizationId: number, username: string): Observable<{ isAvailable: boolean }> {
+    const params = new HttpParams().set('username', username);
+    return this.http.get<{ isAvailable: boolean }>(`${this.baseUrl}/${organizationId}/employees/check-username`, { params });
+  }
+
+  // NEW: Method to check email availability
+  checkEmailAvailability(organizationId: number, email: string): Observable<{ isAvailable: boolean }> {
+    const params = new HttpParams().set('email', email);
+    return this.http.get<{ isAvailable: boolean }>(`${this.baseUrl}/${organizationId}/employees/check-email`, { params });
   }
 }

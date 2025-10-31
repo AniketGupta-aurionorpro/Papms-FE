@@ -1,0 +1,367 @@
+<div class="space-y-6">
+  <!-- Header -->
+  <div class="bg-slate-800 rounded-xl shadow-sm border border-slate-700 p-6">
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl font-bold text-white">All Transactions</h1>
+        <p class="text-slate-400 mt-1">
+          Monitor transactions across all organizations
+        </p>
+      </div>
+      <div class="flex items-center space-x-4">
+        <!-- <button
+          (click)="downloadReport()"
+          class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-500 transition-colors"
+        >
+          <ion-icon name="download-outline" class="mr-2"></ion-icon>
+          Export Report
+        </button> -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Transaction Stats -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+    <!-- Card 1: Total Credits -->
+    <div class="bg-slate-800 rounded-xl shadow-sm border border-slate-700 p-6">
+        <p class="text-sm font-medium text-slate-400">Total Credits</p>
+        <div class="mt-2 flex items-baseline justify-between">
+            <p class="text-2xl font-bold text-green-400">{{ formatCurrency(getTotalCredits()) }}</p>
+            <div class="h-8 w-8 bg-green-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                <ion-icon name="arrow-down-outline" class="text-white text-lg"></ion-icon>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card 2: Total Debits -->
+    <div class="bg-slate-800 rounded-xl shadow-sm border border-slate-700 p-6">
+        <p class="text-sm font-medium text-slate-400">Total Debits</p>
+        <div class="mt-2 flex items-baseline justify-between">
+            <p class="text-2xl font-bold text-red-400">{{ formatCurrency(getTotalDebits()) }}</p>
+            <div class="h-8 w-8 bg-red-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                <ion-icon name="arrow-up-outline" class="text-white text-lg"></ion-icon>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card 3: Net Flow -->
+    <div class="bg-slate-800 rounded-xl shadow-sm border border-slate-700 p-6">
+        <p class="text-sm font-medium text-slate-400">Net Flow</p>
+        <div class="mt-2 flex items-baseline justify-between">
+            <p class="text-2xl font-bold" [class]="getNetFlow() >= 0 ? 'text-blue-400' : 'text-red-400'">{{ formatCurrency(getNetFlow()) }}</p>
+            <div class="h-8 w-8 bg-blue-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                <ion-icon name="swap-horizontal-outline" class="text-white text-lg"></ion-icon>
+            </div>
+        </div>
+    </div>
+
+    <!-- Card 4: Total Transactions -->
+    <div class="bg-slate-800 rounded-xl shadow-sm border border-slate-700 p-6">
+        <p class="text-sm font-medium text-slate-400">Total Transactions</p>
+        <div class="mt-2 flex items-baseline justify-between">
+            <p class="text-2xl font-bold text-white">{{ getTransactionCount() | number }}</p>
+            <div class="h-8 w-8 bg-purple-600 rounded-lg flex items-center justify-center flex-shrink-0">
+                <ion-icon name="list-outline" class="text-white text-lg"></ion-icon>
+            </div>
+        </div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="bg-slate-800 rounded-xl shadow-sm border border-slate-700 p-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+      <!-- Search -->
+      <div class="md:col-span-2">
+        <div class="relative">
+          <div
+            class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
+          >
+            <ion-icon name="search-outline" class="text-slate-400"></ion-icon>
+          </div>
+          <input
+            type="text"
+            [(ngModel)]="searchTerm"
+            (ngModelChange)="onSearchChange()"
+            class="block w-full pl-10 pr-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+            placeholder="Search transactions..."
+          />
+        </div>
+      </div>
+
+      <!-- Organization Filter -->
+      <div>
+        <select
+          [(ngModel)]="organizationFilter"
+          (ngModelChange)="onFilterChange()"
+          class="block w-full bg-slate-700 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 py-2 px-3 transition"
+        >
+          <option value="ALL">All Organizations</option>
+          <option *ngFor="let org of organizations" [value]="org.id">
+            {{ org.companyName }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Type Filter -->
+      <div>
+        <select
+          [(ngModel)]="typeFilter"
+          (ngModelChange)="onFilterChange()"
+          class="block w-full bg-slate-700 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 py-2 px-3 transition"
+        >
+          <option *ngFor="let option of typeOptions" [value]="option.value">
+            {{ option.label }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Source Type Filter -->
+      <div>
+        <select
+          [(ngModel)]="sourceTypeFilter"
+          (ngModelChange)="onFilterChange()"
+          class="block w-full bg-slate-700 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 py-2 px-3 transition"
+        >
+          <option
+            *ngFor="let option of sourceTypeOptions"
+            [value]="option.value"
+          >
+            {{ option.label }}
+          </option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Date Range -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+      <div class="md:col-span-3 flex items-center gap-2">
+        <span class="text-sm font-medium text-slate-300">Date Range:</span>
+        <input
+          type="date"
+          [(ngModel)]="startDate"
+          (ngModelChange)="onFilterChange()"
+          class="bg-slate-700 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 py-2 px-3 transition"
+        />
+        <span class="text-slate-400">to</span>
+        <input
+          type="date"
+          [(ngModel)]="endDate"
+          (ngModelChange)="onFilterChange()"
+          class="bg-slate-700 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 py-2 px-3 transition"
+        />
+        <button
+          (click)="startDate = null; endDate = null; onFilterChange()"
+          class="text-sm text-slate-400 hover:text-slate-200 ml-2 transition-colors"
+        >
+          Clear
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Transactions Table -->
+  <div
+    class="bg-slate-800 rounded-xl shadow-sm border border-slate-700 overflow-hidden"
+  >
+    <div
+      class="px-6 py-5 border-b border-slate-700 bg-gradient-to-r from-slate-700 to-slate-800"
+    >
+      <h3 class="text-lg font-semibold text-white flex items-center">
+        <ion-icon name="list-outline" class="mr-2 text-blue-400"></ion-icon>
+        Transaction History ({{ totalRecords }})
+      </h3>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="p-12 text-center">
+      <div
+        class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"
+      ></div>
+      <p class="mt-2 text-slate-400">Loading transactions...</p>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="error && !isLoading" class="p-6">
+      <div class="bg-red-900/50 border border-red-700 rounded-lg p-4">
+        <div class="flex items-center">
+          <ion-icon
+            name="alert-circle-outline"
+            class="text-red-400 text-xl mr-3"
+          ></ion-icon>
+          <div>
+            <h3 class="text-red-300 font-medium">Error Loading Transactions</h3>
+            <p class="text-red-400 text-sm mt-1">{{ error }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Transactions List -->
+    <div *ngIf="!isLoading && !error" class="divide-y divide-slate-700">
+      <div
+        *ngFor="let transaction of getPagedTransactions()"
+        class="p-6 hover:bg-slate-700/50 transition-colors duration-150"
+      >
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-4 flex-1 min-w-0">
+            <!-- Transaction Icon -->
+            <div class="flex-shrink-0">
+              <div
+                [class]="
+                  'h-12 w-12 rounded-xl flex items-center justify-center ' +
+                  (transaction.type === 'CREDIT'
+                    ? 'bg-gradient-to-r from-green-500 to-emerald-600'
+                    : 'bg-gradient-to-r from-red-500 to-red-600')
+                "
+              >
+                <ion-icon
+                  [name]="getTransactionTypeIcon(transaction.type)"
+                  class="text-white text-xl"
+                ></ion-icon>
+              </div>
+            </div>
+
+            <!-- Transaction Details -->
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center space-x-3">
+                <h4 class="text-lg font-semibold text-white">
+                  {{ transaction.description }}
+                </h4>
+                <span
+                  [class]="
+                    'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ' +
+                    getTransactionTypeClass(transaction.type)
+                  "
+                >
+                  <ion-icon
+                    [name]="getTransactionTypeIcon(transaction.type)"
+                    class="mr-1"
+                  ></ion-icon>
+                  {{ transaction.type }}
+                </span>
+                <span
+                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-600 text-slate-300"
+                >
+                  <ion-icon
+                    [name]="getSourceTypeIcon(transaction.sourceType)"
+                    [class]="
+                      'mr-1 ' + getSourceTypeColor(transaction.sourceType)
+                    "
+                  ></ion-icon>
+                  {{ transaction.sourceType.replace("_", " ") }}
+                </span>
+              </div>
+              <div
+                class="flex items-center space-x-4 mt-2 text-sm text-slate-400"
+              >
+                <span class="flex items-center">
+                  <ion-icon name="calendar-outline" class="mr-1"></ion-icon>
+                  {{ transaction.transactionDate | date : "medium" }}
+                </span>
+                <span class="flex items-center">
+                  <ion-icon
+                    name="business-outline"
+                    class="mr-1 text-gray-400"
+                  ></ion-icon>
+                  <button
+                    *ngIf="transaction.organizationId"
+                    (click)="
+                      viewOrganizationDetails(transaction.organizationId);
+                      $event.stopPropagation()
+                    "
+                    class="hover:text-blue-400 hover:underline"
+                  >
+                    {{ transaction.organizationName }}
+                  </button>
+                  <span
+                    *ngIf="!transaction.organizationId"
+                    class="text-gray-500"
+                  >
+                    {{ transaction.organizationName || "Unknown Organization" }}
+                  </span>
+                </span>
+                <span class="flex items-center">
+                  <ion-icon name="card-outline" class="mr-1"></ion-icon>
+                  Balance:
+                  {{ formatCurrency(transaction.balanceAfterTransaction) }}
+                </span>
+                <span class="flex items-center">
+                  <ion-icon
+                    name="information-circle-outline"
+                    class="mr-1"
+                  ></ion-icon>
+                  ID: {{ transaction.sourceId }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Amount -->
+          <div class="text-right ml-4">
+            <div
+              [class]="
+                'text-xl font-bold ' +
+                (transaction.type === 'CREDIT'
+                  ? 'text-green-400'
+                  : 'text-red-400')
+              "
+            >
+              {{ transaction.type === "CREDIT" ? "+" : "-"
+              }}{{ formatCurrency(transaction.amount) }}
+            </div>
+            <div class="text-sm text-slate-500 mt-1">
+              {{ transaction.type === "CREDIT" ? "Credit" : "Debit" }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div
+        *ngIf="filteredTransactions.length === 0 && !isLoading"
+        class="p-12 text-center"
+      >
+        <ion-icon
+          name="receipt-outline"
+          class="text-4xl text-slate-500 mb-3"
+        ></ion-icon>
+        <h3 class="text-lg font-medium text-slate-300">
+          No transactions found
+        </h3>
+        <p class="text-slate-500 mt-1">
+          Try adjusting your search or filter criteria
+        </p>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div
+      *ngIf="totalRecords > pageSize"
+      class="px-6 py-4 border-t border-slate-700"
+    >
+      <div class="flex items-center justify-between">
+        <p class="text-sm text-slate-400">
+          Showing {{ currentPage * pageSize + 1 }} to
+          {{ Math.min((currentPage + 1) * pageSize, totalRecords) }} of
+          {{ totalRecords }} results
+        </p>
+        <div class="flex space-x-2">
+          <button
+            (click)="currentPage = currentPage - 1"
+            [disabled]="currentPage === 0"
+            class="px-3 py-1 text-sm border border-slate-600 rounded-md hover:bg-slate-700 text-slate-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            Previous
+          </button>
+          <button
+            (click)="currentPage = currentPage + 1"
+            [disabled]="(currentPage + 1) * pageSize >= totalRecords"
+            class="px-3 py-1 text-sm border border-slate-600 rounded-md hover:bg-slate-700 text-slate-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            Next
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

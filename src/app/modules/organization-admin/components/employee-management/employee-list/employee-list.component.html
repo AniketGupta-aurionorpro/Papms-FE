@@ -1,1 +1,131 @@
-<p>employee-list works!</p>
+<div class="space-y-6">
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <h1 class="text-3xl font-bold text-white">Employee</h1>
+      <p class="text-slate-400 mt-1">Manage all employees in your organization.</p>
+    </div>
+    <div class="flex gap-2">
+       <a routerLink="/org-admin/employees/bulk-upload" class="flex items-center gap-2 px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-600 transition-colors">
+        <ion-icon name="cloud-upload-outline"></ion-icon>
+        <span class="text-sm font-medium">Bulk Upload</span>
+      </a>
+      <a routerLink="/org-admin/employees/add" class="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-500 transition-colors">
+        <ion-icon name="add-outline"></ion-icon>
+        <span class="text-sm font-medium">Add Employee</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- MODIFIED: Filters styling updated for consistency -->
+  <div class="bg-slate-800 p-4 rounded-xl border border-slate-700">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <!-- Search Input -->
+      <div class="relative">
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <ion-icon name="search-outline" class="text-slate-400"></ion-icon>
+        </div>
+        <input type="text" [(ngModel)]="searchTerm" (ngModelChange)="onFilterChange()"
+               class="block w-full pl-10 pr-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+               placeholder="Search by name or email...">
+      </div>
+      <!-- Department Filter -->
+      <div>
+        <select [(ngModel)]="departmentFilter" (ngModelChange)="onFilterChange()"
+                class="block w-full py-2 px-3 bg-slate-700 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+          <option *ngFor="let dept of uniqueDepartments" [value]="dept">
+            {{ dept === 'ALL' ? 'All Departments' : dept }}
+          </option>
+        </select>
+      </div>
+      <!-- Status Filter -->
+      <div>
+        <select [(ngModel)]="statusFilter" (ngModelChange)="onFilterChange()"
+                class="block w-full py-2 px-3 bg-slate-700 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+          <option value="ACTIVE">Active Employees</option>
+          <option value="INACTIVE">Inactive Employees</option>
+          <option value="ALL">All Employees</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <!-- Table Area -->
+  <div class="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
+    <!-- ... existing loading/error states ... -->
+
+    <div *ngIf="!isLoading && !error && employees.length > 0" class="overflow-x-auto">
+      <table class="w-full text-sm text-left text-slate-400">
+        <thead class="text-xs text-slate-400 uppercase bg-slate-900/50">
+          <tr>
+            <th scope="col" class="px-6 py-3">Employee</th>
+            <th scope="col" class="px-6 py-3">Job Details</th>
+            <th scope="col" class="px-6 py-3">Net Salary</th>
+            <th scope="col" class="px-6 py-3">Bank Account</th>
+            <th scope="col" class="px-6 py-3 text-center">Status</th>
+            <th scope="col" class="px-6 py-3 text-center">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let emp of employees" class="border-b border-slate-700 hover:bg-slate-700/50">
+            <td class="px-6 py-4">
+              <div class="flex items-center gap-3">
+                <div class="h-10 w-10 bg-slate-700 rounded-full flex-shrink-0 overflow-hidden">
+                   <img *ngIf="emp.profilePictureUrl" [src]="emp.profilePictureUrl" [alt]="emp.fullName" class="h-full w-full object-cover">
+                   <span *ngIf="!emp.profilePictureUrl" class="w-full h-full flex items-center justify-center font-bold text-white">{{ getInitials(emp.fullName) }}</span>
+                </div>
+                <div>
+                   <div class="font-medium text-white">{{ emp.fullName }}</div>
+                   <div class="text-slate-500">{{ emp.email }}</div>
+                </div>
+              </div>
+            </td>
+            <td class="px-6 py-4">
+              <div>{{ emp.jobTitle }}</div>
+              <div class="text-slate-500">{{ emp.department }}</div>
+            </td>
+            <td class="px-6 py-4 font-mono">
+              {{ emp.currentSalary ? (emp.currentSalary.totalSalary | currency:'INR') : 'N/A' }}
+            </td>
+            <td class="px-6 py-4">
+              <div *ngIf="emp.bankAccount; else noBank">
+                <div>{{ emp.bankAccount.bankName }}</div>
+                <div class="text-slate-500 font-mono">{{ emp.bankAccount.accountNumber | maskAccount }}</div>
+              </div>
+              <ng-template #noBank><span class="text-slate-500">Not Added</span></ng-template>
+            </td>
+            <td class="px-6 py-4 text-center">
+              <span class="px-2.5 py-1 text-xs font-semibold rounded-full" [ngClass]="emp.isEmployeeActive ? 'bg-green-500/20 text-green-400' : 'bg-slate-600 text-slate-300'">
+                {{ emp.isEmployeeActive ? 'Active' : 'Inactive' }}
+              </span>
+            </td>
+            <td class="px-6 py-4 text-center">
+              <div class="flex items-center justify-center gap-2">
+                <button (click)="openViewModal(emp)" class="p-2 rounded-md text-slate-400 hover:bg-slate-700 hover:text-white transition">
+                  <ion-icon name="eye-outline" class="text-lg"></ion-icon>
+                </button>
+                <button (click)="openEditModal(emp)" class="p-2 rounded-md text-slate-400 hover:bg-slate-700 hover:text-white transition">
+                  <ion-icon name="create-outline" class="text-lg"></ion-icon>
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- ... existing empty states ... -->
+
+    <app-pagination
+      *ngIf="totalRecords > 0 && !isLoading"
+      [totalRecords]="totalRecords"
+      [rows]="pageSize"
+      [currentPage]="currentPage"
+      (onPageChange)="onPageChange($event)">
+    </app-pagination>
+  </div>
+</div>
+
+<!-- Modals -->
+<app-employee-view-modal [isVisible]="isViewModalVisible" [employee]="selectedEmployee" (close)="closeViewModal()"></app-employee-view-modal>
+<app-employee-edit-modal [isVisible]="isEditModalVisible" [employee]="selectedEmployee" (close)="closeEditModal()" (save)="handleSaveEmployee($event)"></app-employee-edit-modal>

@@ -1,0 +1,74 @@
+<!-- MODIFIED: Restructured for scrolling and consistent styling -->
+<div *ngIf="isVisible" class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm" (click)="close.emit()">
+  <div *ngIf="employee" class="bg-slate-800 rounded-xl shadow-xl w-full max-w-3xl border border-slate-700 m-4 flex flex-col max-h-[90vh]" (click)="$event.stopPropagation()">
+    <!-- Header (Fixed) -->
+    <div class="flex-shrink-0 flex items-center justify-between p-4 border-b border-slate-700">
+      <h3 class="text-xl font-bold text-white flex items-center gap-2">
+        <ion-icon name="create-outline"></ion-icon>
+        Edit {{ employee.fullName }}
+      </h3>
+      <button (click)="close.emit()" class="p-2 rounded-full text-slate-400 hover:bg-slate-700 transition-colors">
+        <ion-icon name="close-outline" class="text-2xl"></ion-icon>
+      </button>
+    </div>
+
+    <!-- Form (Scrollable) -->
+    <!-- MODIFICATION: Added invisible scrollbar classes -->
+    <form [formGroup]="editForm" (ngSubmit)="onSubmit()" class="flex-grow overflow-y-auto p-6 space-y-6 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+      <!-- Section 1: User & Employee Details -->
+      <section>
+        <h4 class="font-semibold text-slate-300 border-b border-slate-700 pb-2 mb-4">Personal & Job Information</h4>
+        <div formGroupName="user" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-slate-300 mb-1">Full Name</label>
+            <input type="text" formControlName="fullName" class="block w-full py-2 px-3 bg-slate-700 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-400 mb-1">Email</label>
+            <input type="email" formControlName="email" class="block w-full py-2 px-3 bg-slate-900 border border-slate-700 rounded-lg text-slate-400 cursor-not-allowed" readonly>
+          </div>
+        </div>
+        <!-- MODIFICATION: Added formGroupName="employee" -->
+        <div formGroupName="employee" class="grid grid-cols-1 md:grid-cols-3 gap-4 mt-4">
+          <div>
+            <label class="block text-sm font-medium text-slate-300 mb-1">Department</label>
+            <input type="text" formControlName="department" class="block w-full py-2 px-3 bg-slate-700 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-300 mb-1">Job Title</label>
+            <input type="text" formControlName="jobTitle" class="block w-full py-2 px-3 bg-slate-700 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-300 mb-1">Status</label>
+            <select formControlName="isActive" class="block w-full py-2 px-3 bg-slate-700 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
+              <option [ngValue]="true">Active</option>
+              <option [ngValue]="false">Inactive</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <!-- Section 2: Bank Account -->
+      <section>
+        <h4 class="font-semibold text-slate-300 border-b border-slate-700 pb-2 mb-4">Bank Account Details</h4>
+        <app-bank-account-form [parentForm]="bankAccountForm"></app-bank-account-form>
+      </section>
+
+      <!-- Section 3: Salary Structure -->
+      <section>
+        <h4 class="font-semibold text-slate-300 border-b border-slate-700 pb-2 mb-4">Update Salary Structure</h4>
+        <app-salary-form [parentForm]="salaryForm"></app-salary-form>
+      </section>
+
+    </form>
+    <!-- Actions (Fixed) -->
+    <div class="flex-shrink-0 flex justify-end gap-3 p-4 border-t border-slate-700">
+      <button type="button" (click)="close.emit()" class="px-4 py-2 text-sm font-semibold rounded-lg text-slate-300 bg-slate-700 hover:bg-slate-600 transition">
+        Cancel
+      </button>
+      <button type="button" (click)="onSubmit()" [disabled]="editForm.invalid || !editForm.dirty" class="px-4 py-2 text-sm font-semibold rounded-lg text-white bg-blue-600 hover:bg-blue-500 transition disabled:opacity-50 disabled:cursor-not-allowed">
+        Save Changes
+      </button>
+    </div>
+  </div>
+</div>

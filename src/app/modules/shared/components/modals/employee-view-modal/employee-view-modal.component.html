@@ -1,0 +1,75 @@
+<div *ngIf="isVisible" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm" (click)="close.emit()">
+  <div *ngIf="employee" class="bg-slate-800 rounded-xl shadow-xl w-full max-w-2xl border border-slate-700 m-4" (click)="$event.stopPropagation()">
+    <!-- Header -->
+    <div class="flex items-center justify-between p-4 border-b border-slate-700">
+      <h3 class="text-xl font-bold text-white flex items-center gap-3">
+        <div class="h-10 w-10 bg-slate-700 rounded-full flex items-center justify-center text-white font-bold text-sm overflow-hidden">
+          <img *ngIf="employee.profilePictureUrl" [src]="employee.profilePictureUrl" [alt]="employee.fullName" class="h-full w-full object-cover">
+          <span *ngIf="!employee.profilePictureUrl">{{ getInitials(employee.fullName) }}</span>
+        </div>
+        <div>
+          {{ employee.fullName }}
+          <span class="block text-xs text-slate-400 font-mono">{{ employee.employeeCode }}</span>
+        </div>
+      </h3>
+      <button (click)="close.emit()" class="p-2 rounded-full text-slate-400 hover:bg-slate-700 transition-colors">
+        <ion-icon name="close-outline" class="text-2xl"></ion-icon>
+      </button>
+    </div>
+
+    <!-- Content -->
+    <div class="p-6 max-h-[70vh] overflow-y-auto space-y-6">
+      <!-- Job & Personal Details -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Job Details -->
+        <div class="space-y-3">
+          <h4 class="font-semibold text-slate-300 border-b border-slate-700 pb-2">Job Details</h4>
+          <div class="text-sm"><strong class="text-slate-400 w-28 inline-block">Department:</strong> {{ employee.department }}</div>
+          <div class="text-sm"><strong class="text-slate-400 w-28 inline-block">Job Title:</strong> {{ employee.jobTitle }}</div>
+          <div class="text-sm"><strong class="text-slate-400 w-28 inline-block">Joining Date:</strong> {{ employee.dateOfJoining | date:'longDate' }}</div>
+          <div class="text-sm"><strong class="text-slate-400 w-28 inline-block">Status:</strong>
+            <span [ngClass]="employee.isEmployeeActive ? 'text-green-400' : 'text-red-400'">{{ employee.isEmployeeActive ? 'Active' : 'Inactive' }}</span>
+          </div>
+        </div>
+        <!-- Personal Details -->
+        <div class="space-y-3">
+          <h4 class="font-semibold text-slate-300 border-b border-slate-700 pb-2">Personal Details</h4>
+          <div class="text-sm"><strong class="text-slate-400 w-28 inline-block">Full Name:</strong> {{ employee.fullName }}</div>
+          <div class="text-sm"><strong class="text-slate-400 w-28 inline-block">Email:</strong> {{ employee.email }}</div>
+          <div class="text-sm"><strong class="text-slate-400 w-28 inline-block">Username:</strong> {{ employee.username }}</div>
+        </div>
+      </div>
+
+      <!-- Salary & Bank Details -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- Salary Details -->
+        <div class="space-y-3">
+          <h4 class="font-semibold text-slate-300 border-b border-slate-700 pb-2">Current Salary</h4>
+          <ng-container *ngIf="employee.currentSalary; else noSalary">
+            <div class="text-sm"><strong class="text-slate-400 w-32 inline-block">Net Salary:</strong> {{ employee.currentSalary.totalSalary | currency:'INR' }} / month</div>
+            <div class="text-sm"><strong class="text-slate-400 w-32 inline-block">Basic Salary:</strong> {{ employee.currentSalary.basicSalary | currency:'INR' }}</div>
+            <div class="text-sm"><strong class="text-slate-400 w-32 inline-block">Allowances (HRA+DA):</strong> {{ (employee.currentSalary.hra || 0) + (employee.currentSalary.da || 0) | currency:'INR' }}</div>
+            <div class="text-sm"><strong class="text-slate-400 w-32 inline-block">PF Contribution:</strong> {{ employee.currentSalary.pfContribution | currency:'INR' }}</div>
+            <div class="text-sm"><strong class="text-slate-400 w-32 inline-block">Effective Date:</strong> {{ employee.currentSalary.effectiveFromDate | date:'longDate' }}</div>
+          </ng-container>
+          <ng-template #noSalary>
+            <p class="text-sm text-slate-500">No active salary structure found.</p>
+          </ng-template>
+        </div>
+        <!-- VERIFIED: Bank Details Section -->
+        <div class="space-y-3">
+          <h4 class="font-semibold text-slate-300 border-b border-slate-700 pb-2">Bank Account</h4>
+          <ng-container *ngIf="employee.bankAccount; else noBank">
+            <div class="text-sm"><strong class="text-slate-400 w-32 inline-block">Account Holder:</strong> {{ employee.bankAccount.accountHolderName }}</div>
+            <div class="text-sm"><strong class="text-slate-400 w-32 inline-block">Account Number:</strong> {{ employee.bankAccount.accountNumber | maskAccount }}</div>
+            <div class="text-sm"><strong class="text-slate-400 w-32 inline-block">Bank Name:</strong> {{ employee.bankAccount.bankName }}</div>
+            <div class="text-sm"><strong class="text-slate-400 w-32 inline-block">IFSC Code:</strong> {{ employee.bankAccount.ifscCode }}</div>
+          </ng-container>
+          <ng-template #noBank>
+            <p class="text-sm text-slate-500">No bank account details found.</p>
+          </ng-template>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

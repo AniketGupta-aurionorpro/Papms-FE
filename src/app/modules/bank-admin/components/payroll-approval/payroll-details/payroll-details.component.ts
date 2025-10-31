@@ -57,15 +57,15 @@ export class PayrollDetailsComponent implements OnInit {
   getStatusColor(status: string): string {
     switch (status) {
       case 'PENDING_APPROVAL':
-        return 'bg-amber-100 text-amber-800';
+        return 'bg-amber-500/20 text-amber-400';
       case 'APPROVED':
-        return 'bg-green-100 text-green-800';
+        return 'bg-green-500/20 text-green-400';
       case 'REJECTED':
-        return 'bg-red-100 text-red-800';
+        return 'bg-red-500/20 text-red-400';
       case 'PROCESSED':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-blue-500/20 text-blue-400';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-slate-600 text-slate-300';
     }
   }
 
@@ -122,9 +122,9 @@ export class PayrollDetailsComponent implements OnInit {
   }
 
   formatCurrency(amount: number): string {
-    return new Intl.NumberFormat('en-US', {
+    return new Intl.NumberFormat('en-IN', {
       style: 'currency',
-      currency: 'USD',
+      currency: 'INR',
       minimumFractionDigits: 0
     }).format(amount);
   }

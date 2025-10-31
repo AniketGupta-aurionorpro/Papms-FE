@@ -9,13 +9,14 @@ import { ForcePasswordChangeComponent } from './components/force-password-change
 import { FadeInDirective } from '../../modules/shared/directives/fade-in.directive';
 import { ForgotPasswordComponent } from './components/forgot-password/forgot-password.component';
 import { ResetPasswordComponent } from './components/reset-password/reset-password.component';
+
 @NgModule({
   declarations: [
     LoginComponent,
     RegisterComponent,
     ForgotPasswordComponent,
     ResetPasswordComponent,
-    ForcePasswordChangeComponent
+    ForcePasswordChangeComponent // <-- It should be declared here
   ],
   imports: [
     CommonModule,

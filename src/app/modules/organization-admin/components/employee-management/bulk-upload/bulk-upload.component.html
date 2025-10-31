@@ -1,1 +1,74 @@
-<p>bulk-upload works!</p>
+<div class="space-y-6">
+  <!-- Header -->
+  <div class="flex items-start justify-between">
+    <div>
+      <h1 class="text-3xl font-bold text-white">Bulk Employee Upload</h1>
+      <p class="text-slate-400 mt-1">Add multiple employees at once using a CSV file.</p>
+    </div>
+    <a routerLink="/org-admin/employees/list" class="flex items-center gap-2 px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-600 transition-colors text-sm font-medium">
+      <ion-icon name="arrow-back-outline"></ion-icon>
+      <span>Back to List</span>
+    </a>
+  </div>
+
+  <!-- Step 1: Download Template -->
+  <div class="bg-slate-800 rounded-xl border border-slate-700 p-6">
+    <div class="flex items-start gap-4">
+      <div class="flex-shrink-0 h-10 w-10 bg-blue-600/20 text-blue-400 rounded-full flex items-center justify-center font-bold text-lg">1</div>
+      <div>
+        <h2 class="text-lg font-semibold text-white">Download the CSV Template</h2>
+        <p class="text-slate-400 mt-1 text-sm">Start by downloading our pre-formatted CSV template. This ensures your data matches our system's requirements and reduces upload errors.</p>
+        <button (click)="downloadTemplate()" [disabled]="isDownloading" class="mt-4 flex items-center gap-2 px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-600 transition-colors text-sm font-medium disabled:opacity-50">
+          <ion-icon [name]="isDownloading ? 'sync-outline' : 'download-outline'" [class.animate-spin]="isDownloading"></ion-icon>
+          <span>{{ isDownloading ? 'Downloading...' : 'Download Template.csv' }}</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 2: Upload File -->
+  <div class="bg-slate-800 rounded-xl border border-slate-700 p-6">
+    <div class="flex items-start gap-4">
+      <div class="flex-shrink-0 h-10 w-10 bg-blue-600/20 text-blue-400 rounded-full flex items-center justify-center font-bold text-lg">2</div>
+      <div>
+        <h2 class="text-lg font-semibold text-white">Upload Your Completed CSV File</h2>
+        <p class="text-slate-400 mt-1 text-sm">Once you've filled out the template, upload it here. The system will process it in the background.</p>
+
+        <!-- File Upload Area -->
+        <div class="mt-4 max-w-lg">
+          <label for="file-upload" class="flex flex-col items-center justify-center w-full h-32 border-2 border-slate-600 border-dashed rounded-lg cursor-pointer bg-slate-900/50 hover:bg-slate-700/50 transition-colors">
+            <div class="flex flex-col items-center justify-center pt-5 pb-6">
+              <ion-icon name="cloud-upload-outline" class="text-3xl text-slate-400"></ion-icon>
+              <p *ngIf="!selectedFile" class="mb-2 text-sm text-slate-400"><span class="font-semibold">Click to upload</span> or drag and drop</p>
+              <p *ngIf="selectedFile" class="mb-2 text-sm text-green-400 font-semibold">{{ selectedFile.name }}</p>
+              <p class="text-xs text-slate-500">CSV file only</p>
+            </div>
+            <input id="file-upload" type="file" class="hidden" (change)="onFileSelected($event)" accept=".csv">
+          </label>
+        </div>
+
+        <!-- Upload Button -->
+        <div class="mt-6">
+          <button (click)="uploadFile()" [disabled]="isLoading || !selectedFile" class="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-500 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed">
+            <ion-icon [name]="isLoading ? 'sync-outline' : 'rocket-outline'" [class.animate-spin]="isLoading"></ion-icon>
+            <span>{{ isLoading ? 'Uploading & Processing...' : 'Start Asynchronous Import' }}</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 3: Notification Info -->
+  <div class="bg-slate-800 rounded-xl border border-slate-700 p-6">
+    <div class="flex items-start gap-4">
+      <div class="flex-shrink-0 h-10 w-10 bg-blue-600/20 text-blue-400 rounded-full flex items-center justify-center font-bold text-lg">3</div>
+      <div>
+        <h2 class="text-lg font-semibold text-white">Processing & Notification</h2>
+        <p class="text-slate-400 mt-1 text-sm">
+          The file will be processed in the background. This is safe for large files and you can navigate away from this page.
+          You will receive a notification in the top right corner once the import is complete with a summary of successful and failed records.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>

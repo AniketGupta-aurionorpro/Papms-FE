@@ -54,4 +54,11 @@ export class ClientService {
       responseType: 'blob'
     });
   }
+
+   getClientsForOrganization(organizationId: number, page: number = 0, size: number = 10): Observable<any> {
+    const params = new HttpParams()
+      .set('page', page.toString())
+      .set('size', size.toString());
+    return this.http.get<any>(`${this.url}/organizations/${organizationId}/clients`, { params });
+  }
 }

@@ -1,7 +1,7 @@
 import { NgModule, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NgxChartsModule } from '@swimlane/ngx-charts';
 
 import { BankAdminRoutingModule } from './bank-admin-routing.module';
@@ -17,6 +17,9 @@ import { TransactionAuditComponent } from './components/financial-audit/transact
 import { ReportsComponent } from './components/reports/reports.component';
 import { DocumentVerificationComponent } from './components/organization-management/document-verification/document-verification.component';
 import { MainLayoutComponent } from './components/main-layout/main-layout.component';
+import { SharedModule } from '../shared/shared.module';
+import { TransactionsComponent } from './components/transactions/transactions.component';
+
 
 @NgModule({
   declarations: [
@@ -31,16 +34,21 @@ import { MainLayoutComponent } from './components/main-layout/main-layout.compon
     OrganizationFinancialsComponent,
     TransactionAuditComponent,
     DocumentVerificationComponent,
-    ReportsComponent
+    ReportsComponent,
+    TransactionAuditComponent,
+    DocumentVerificationComponent,
+    ReportsComponent,
+    TransactionsComponent,
   ],
   imports: [
     CommonModule,
     BankAdminRoutingModule,
     RouterModule,
     FormsModule,
+    FormsModule,
     NgxChartsModule,
-
+    SharedModule,
   ],
-  schemas: [CUSTOM_ELEMENTS_SCHEMA]
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
 })
-export class BankAdminModule { }
+export class BankAdminModule {}

@@ -1,210 +1,86 @@
-<div class="space-y-6">
-  <!-- Page Header -->
-  <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-    <div class="flex items-center justify-between">
-      <div>
-        <h1 class="text-2xl font-bold text-gray-900">Organization Management</h1>
-        <p class="text-gray-600 mt-1">Manage and review all registered organizations</p>
-      </div>
-      <div class="flex items-center space-x-4">
-        <div class="text-right">
-          <p class="text-sm text-gray-500">Total Organizations</p>
-          <p class="text-2xl font-bold text-gray-900">{{ getTotalCount() | number }}</p>
-        </div>
-        <div class="h-12 w-12 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
-          <ion-icon name="business-outline" class="text-white text-xl"></ion-icon>
-        </div>
-      </div>
-    </div>
-  </div>
+<!-- src/app/modules/bank-admin/components/organization-management/organization-list/organization-list.component.html -->
 
-  <!-- Stats Cards -->
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-      <div class="flex items-center">
-        <div class="flex-shrink-0">
-          <div class="h-12 w-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-xl flex items-center justify-center">
-            <ion-icon name="business-outline" class="text-white text-xl"></ion-icon>
-          </div>
+<div class="space-y-8">
+  <!-- Header -->
+  <div class="flex items-center justify-between">
+    <h1 class="text-3xl font-bold text-white">Organizations</h1>
+    <div class="w-full max-w-xs">
+      <div class="relative">
+        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <ion-icon name="search-outline" class="text-slate-400"></ion-icon>
         </div>
-        <div class="ml-4">
-          <p class="text-sm font-medium text-gray-600">Total Organizations</p>
-          <p class="text-2xl font-bold text-gray-900">{{ getTotalCount() | number }}</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-      <div class="flex items-center">
-        <div class="flex-shrink-0">
-          <div class="h-12 w-12 bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl flex items-center justify-center">
-            <ion-icon name="checkmark-circle-outline" class="text-white text-xl"></ion-icon>
-          </div>
-        </div>
-        <div class="ml-4">
-          <p class="text-sm font-medium text-gray-600">Active</p>
-          <p class="text-2xl font-bold text-gray-900">{{ getActiveCount() | number }}</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-      <div class="flex items-center">
-        <div class="flex-shrink-0">
-          <div class="h-12 w-12 bg-gradient-to-r from-amber-500 to-orange-600 rounded-xl flex items-center justify-center">
-            <ion-icon name="time-outline" class="text-white text-xl"></ion-icon>
-          </div>
-        </div>
-        <div class="ml-4">
-          <p class="text-sm font-medium text-gray-600">Pending Approval</p>
-          <p class="text-2xl font-bold text-gray-900">{{ getPendingCount() | number }}</p>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Filters and Search -->
-  <div class="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-    <div class="flex flex-col sm:flex-row gap-4">
-      <!-- Search -->
-      <div class="flex-1">
-        <div class="relative">
-          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <ion-icon name="search-outline" class="text-gray-400"></ion-icon>
-          </div>
-          <input
-            type="text"
-            [(ngModel)]="searchTerm"
-            (ngModelChange)="onSearchChange()"
-            class="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-            placeholder="Search organizations..."
-          >
-        </div>
-      </div>
-
-      <!-- Status Filter -->
-      <div class="w-full sm:w-48">
-        <select
-          [(ngModel)]="statusFilter"
-          (ngModelChange)="onStatusFilterChange()"
-          class="block w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 py-2 px-3"
+        <input
+          type="text"
+          [(ngModel)]="searchTerm"
+          (ngModelChange)="onSearchChange()"
+          class="block w-full pl-10 pr-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
+          placeholder="Search organizations..."
         >
-          <option *ngFor="let option of statusOptions" [value]="option.value">
-            {{ option.label }}
-          </option>
-        </select>
       </div>
     </div>
   </div>
 
-  <!-- Organizations Table -->
-  <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-    <div class="px-6 py-5 border-b border-gray-200 bg-gradient-to-r from-gray-50 to-white">
-      <h3 class="text-lg font-semibold text-gray-900 flex items-center">
-        <ion-icon name="list-outline" class="mr-2 text-indigo-600"></ion-icon>
-        Organizations ({{ filteredOrganizations.length }})
-      </h3>
-    </div>
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="flex justify-center items-center h-96">
+    <div class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
+  </div>
 
-    <!-- Loading State -->
-    <div *ngIf="isLoading" class="p-12 text-center">
-      <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-      <p class="mt-2 text-gray-600">Loading organizations...</p>
-    </div>
+  <!-- Error State -->
+  <div *ngIf="error && !isLoading" class="bg-red-900/50 border border-red-700 text-red-300 rounded-lg p-4">
+    <p><strong>Error:</strong> {{ error }}</p>
+  </div>
 
-    <!-- Error State -->
-    <div *ngIf="error && !isLoading" class="p-6">
-      <div class="bg-red-50 border border-red-200 rounded-lg p-4">
-        <div class="flex items-center">
-          <ion-icon name="alert-circle-outline" class="text-red-500 text-xl mr-3"></ion-icon>
-          <div>
-            <h3 class="text-red-800 font-medium">Error Loading Organizations</h3>
-            <p class="text-red-600 text-sm mt-1">{{ error }}</p>
-          </div>
-        </div>
-      </div>
-    </div>
+  <!-- Organizations Grid -->
+  <div *ngIf="!isLoading && !error && filteredOrganizations.length > 0" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+    <div *ngFor="let org of filteredOrganizations; let i = index"
+         (click)="viewOrganization(org.id)"
+         class="org-card bg-slate-800 rounded-2xl p-6 flex flex-col justify-between items-center text-center aspect-square cursor-pointer transition-all duration-300 hover:-translate-y-2 hover:bg-slate-700/50 hover:shadow-2xl hover:shadow-blue-900/20 relative"
+         [style.animation-delay]="i * 0.05 + 's'">
 
-    <!-- Organizations List -->
-    <div *ngIf="!isLoading && !error" class="divide-y divide-gray-200">
-      <div
-        *ngFor="let org of filteredOrganizations"
-        class="p-6 hover:bg-gray-50 transition-colors duration-150 cursor-pointer group"
-        (click)="viewOrganization(org.id)"
-      >
-        <div class="flex items-center justify-between">
-          <div class="flex items-center space-x-4 flex-1 min-w-0">
-            <!-- Organization Logo/Avatar -->
-            <div class="flex-shrink-0">
-              <div class="h-12 w-12 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center">
-                <ion-icon name="business-outline" class="text-white text-xl"></ion-icon>
-              </div>
-            </div>
-
-            <!-- Organization Details -->
-            <div class="flex-1 min-w-0">
-              <div class="flex items-center space-x-2">
-                <h4 class="text-lg font-semibold text-gray-900 truncate">
-                  {{ org.companyName }}
-                </h4>
-                <span
-                  [class]="'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ' + getStatusColor(org.status)"
-                >
-                  <ion-icon [name]="getStatusIcon(org.status)" class="mr-1"></ion-icon>
-                  {{ org.status.replace('_', ' ') }}
-                </span>
-              </div>
-              <div class="flex items-center space-x-4 mt-2 text-sm text-gray-600">
-                <span class="flex items-center">
-                  <ion-icon name="mail-outline" class="mr-1 text-gray-400"></ion-icon>
-                  {{ org.contactEmail }}
-                </span>
-                <span class="flex items-center">
-                  <ion-icon name="calendar-outline" class="mr-1 text-gray-400"></ion-icon>
-                  {{ org.createdAt | date:'mediumDate' }}
-                </span>
-                <span class="flex items-center">
-                  <ion-icon name="cash-outline" class="mr-1 text-gray-400"></ion-icon>
-                  {{ org.internalBalance | currency }}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Actions -->
-          <div class="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
-            <button
-              *ngIf="org.status === 'PENDING_APPROVAL'"
-              (click)="approveOrganization(org.id); $event.stopPropagation()"
-              class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-green-600 rounded-lg hover:bg-green-700 transition-colors"
-            >
-              <ion-icon name="checkmark-outline" class="mr-1"></ion-icon>
-              Approve
-            </button>
-            <button
-              *ngIf="org.status === 'PENDING_APPROVAL'"
-              (click)="rejectOrganization(org.id); $event.stopPropagation()"
-              class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors"
-            >
-              <ion-icon name="close-outline" class="mr-1"></ion-icon>
-              Reject
-            </button>
-            <button
-              class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-            >
-              <ion-icon name="eye-outline" class="mr-1"></ion-icon>
-              View
-            </button>
-          </div>
-        </div>
+      <!-- Notification Badge for Pending Payrolls -->
+      <div *ngIf="getPendingCountForOrg(org.id) > 0"
+           class="absolute top-4 right-4 h-6 w-6 text-slate-900 text-xs font-bold rounded-full flex items-center justify-center shadow-lg bg-cyan-400 shadow-cyan-500/30">
+        {{ getPendingCountForOrg(org.id) }}
       </div>
 
-      <!-- Empty State -->
-      <div *ngIf="filteredOrganizations.length === 0 && !isLoading" class="p-12 text-center">
-        <ion-icon name="business-outline" class="text-4xl text-gray-400 mb-3"></ion-icon>
-        <h3 class="text-lg font-medium text-gray-900">No organizations found</h3>
-        <p class="text-gray-600 mt-1">Try adjusting your search or filter criteria</p>
+      <!-- Container for Logo and Name -->
+      <div class="flex flex-col items-center">
+        <!-- Logo or Fallback Initials -->
+        <div class="w-20 h-20 mb-4 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0" [ngClass]="org.logoUrl ? 'bg-slate-700' : 'bg-gradient-to-br from-blue-600 to-cyan-500'">
+          <img *ngIf="org.logoUrl" [src]="org.logoUrl" alt="{{ org.companyName }} Logo" class="w-full h-full object-cover">
+          <span *ngIf="!org.logoUrl" class="text-2xl font-bold text-white">
+            {{ getInitials(org.companyName) }}
+          </span>
+        </div>
+
+        <!-- Company Name -->
+        <h3 class="text-lg font-bold text-white leading-tight">
+          {{ org.companyName }}
+        </h3>
+      </div>
+
+      <!-- ** NEW: Status Badge ** -->
+      <div class="mt-2">
+        <span
+          class="text-xs font-semibold px-2.5 py-1 rounded-full capitalize"
+          [ngClass]="getStatusBadgeClass(org.status)"
+        >
+          {{ org.status.replace('_', ' ') | lowercase }}
+        </span>
       </div>
     </div>
   </div>
+
+  <!-- Empty State for Search -->
+  <div *ngIf="filteredOrganizations.length === 0 && organizations.length > 0 && !isLoading" class="col-span-full text-center py-16 text-slate-500">
+    <ion-icon name="search-circle-outline" class="text-6xl"></ion-icon>
+    <p class="mt-4">No organizations found for "{{ searchTerm }}"</p>
+  </div>
+
+  <!-- Empty State for Initial Load -->
+  <div *ngIf="organizations.length === 0 && !isLoading && !error" class="col-span-full text-center py-16 text-slate-500">
+    <ion-icon name="business-outline" class="text-6xl"></ion-icon>
+    <p class="mt-4">There are no organizations to display yet.</p>
+  </div>
+
 </div>

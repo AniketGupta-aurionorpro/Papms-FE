@@ -13,13 +13,13 @@ export class MainLayoutComponent {
   isSidebarOpen = false;
 
   // Updated navigation items to match the image
-  navigationItems = [
+   navigationItems = [
     { label: 'Dashboard', route: '/bank-admin/dashboard', icon: 'speedometer-outline' },
     { label: 'Organizations', route: '/bank-admin/organizations', icon: 'business-outline' },
-    { label: 'Transactions', route: '/bank-admin/financial-audit', icon: 'swap-horizontal-outline' },
+    // { label: 'Transactions', route: '/bank-admin/financial-audit', icon: 'swap-horizontal-outline' },
+    { label: 'Transactions', route: '/bank-admin/transactions', icon: 'swap-horizontal-outline' },
     { label: 'Reports', route: '/bank-admin/reports', icon: 'bar-chart-outline' },
-    { label: 'Settings', route: '#', icon: 'settings-outline' }, // Placeholder route
-    { label: 'Support', route: '#', icon: 'help-circle-outline' } // Placeholder route
+    { label: 'Payroll', route: '/bank-admin/payroll-approval', icon: 'cash' },
   ];
 
   constructor(

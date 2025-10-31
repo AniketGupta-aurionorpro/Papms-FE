@@ -66,6 +66,22 @@ export interface BankAdminDashboardStatsDto {
   monthlyTransactionVolumePercentage: number;
 }
 
+export interface ExtendedTransactionDto extends TransactionDto {
+  organizationId: number;
+  organizationName: string;
+}
+
+export interface TransactionFilters {
+  searchTerm?: string;
+  organizationId?: number;
+  type?: string;
+  sourceType?: string;
+  startDate?: string;
+  endDate?: string;
+  page?: number;
+  size?: number;
+}
+
 export interface OrganizationGrowthDataPoint {
   name: string; // "Jan 2023"
   value: number; // count

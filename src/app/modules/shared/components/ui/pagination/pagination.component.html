@@ -1,1 +1,29 @@
-<p>pagination works!</p>
+<div *ngIf="totalPages > 1" class="flex items-center justify-between bg-slate-800 px-6 py-3 border-t border-slate-700">
+  <!-- Showing X to Y of Z -->
+  <div class="text-sm text-slate-400">
+    Showing {{ firstRecordOnPage }} to {{ lastRecordOnPage }} of {{ totalRecords }} results
+  </div>
+
+  <!-- Pagination Controls -->
+  <nav class="flex items-center gap-2">
+    <button (click)="changePage(currentPage - 1)" [disabled]="isFirstPage()"
+            class="px-3 py-1.5 text-sm font-semibold rounded-md text-slate-300 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed transition">
+      Prev
+    </button>
+
+    <ng-container *ngFor="let page of pages">
+      <!-- FIX: Handle '...' separator -->
+      <span *ngIf="page === -1" class="px-2 text-slate-500">...</span>
+      <button *ngIf="page !== -1" (click)="changePage(page)"
+              [ngClass]="{'bg-blue-600 text-white': page === currentPage, 'bg-slate-700 text-slate-300 hover:bg-slate-600': page !== currentPage}"
+              class="w-8 h-8 text-sm font-semibold rounded-md transition">
+        {{ page + 1 }}
+      </button>
+    </ng-container>
+
+    <button (click)="changePage(currentPage + 1)" [disabled]="isLastPage()"
+            class="px-3 py-1.5 text-sm font-semibold rounded-md text-slate-300 bg-slate-700 hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed transition">
+      Next
+    </button>
+  </nav>
+</div>

@@ -24,9 +24,9 @@ export class authGuard implements CanActivate {
 
       // Check if password change is required
       if (userInfo && this.authService.requiresPasswordChange()) {
-        this.router.navigate(['/auth/force-password-change'], {
-          queryParams: { returnUrl: state.url }
-        });
+        // --- MODIFICATION: REMOVED queryParams ---
+        // Redirect without returnUrl as it's no longer needed.
+        this.router.navigate(['/auth/force-password-change']);
         return false;
       }
 

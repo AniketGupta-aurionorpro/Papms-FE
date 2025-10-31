@@ -1,1 +1,131 @@
-<p>add-employee works!</p>
+<div class="space-y-6">
+  <!-- Header -->
+  <div class="flex items-start justify-between">
+    <div>
+      <h1 class="text-3xl font-bold text-white">Add New Employee</h1>
+      <p class="text-slate-400 mt-1">Enter all details to onboard a new team member.</p>
+    </div>
+    <a routerLink="/org-admin/employees/list" class="flex items-center gap-2 px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-600 transition-colors text-sm font-medium">
+      <ion-icon name="arrow-back-outline"></ion-icon>
+      <span>Back to List</span>
+    </a>
+  </div>
+
+  <!-- Form Container -->
+  <div class="bg-slate-800 rounded-xl border border-slate-700">
+    <form [formGroup]="addEmployeeForm" (ngSubmit)="onSubmit()" class="divide-y divide-slate-700">
+      <!-- Section 1: User Credentials & Personal Info -->
+      <div class="p-6 space-y-4">
+        <h2 class="text-lg font-semibold text-white">Account & Personal Details</h2>
+        <div formGroupName="user">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-slate-300 mb-1">Full Name</label>
+              <input type="text" formControlName="fullName" class="form-input-dark w-full">
+              <div *ngIf="userForm.get('fullName')?.invalid && userForm.get('fullName')?.touched" class="text-xs text-red-400 mt-1">
+                <span *ngIf="userForm.get('fullName')?.hasError('required')">Full name is required.</span>
+                <span *ngIf="userForm.get('fullName')?.hasError('pattern')">Name can only contain letters, spaces, and hyphens.</span>
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-300 mb-1">Email Address</label>
+               <div class="relative">
+                <input type="email" formControlName="email" class="form-input-dark w-full">
+                <div *ngIf="userForm.get('email')?.pending" class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                  <ion-icon name="sync-outline" class="animate-spin text-slate-400"></ion-icon>
+                </div>
+              </div>
+              <div *ngIf="userForm.get('email')?.invalid && userForm.get('email')?.touched && !userForm.get('email')?.pending" class="text-xs text-red-400 mt-1">
+                <span *ngIf="userForm.get('email')?.hasError('required')">Email is required.</span>
+                <span *ngIf="userForm.get('email')?.hasError('email')">Please enter a valid email.</span>
+                <span *ngIf="userForm.get('email')?.hasError('notAvailable')">This email address is already taken.</span>
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-300 mb-1">Username</label>
+              <div class="relative">
+                <input type="text" formControlName="username" class="form-input-dark w-full">
+                <div *ngIf="userForm.get('username')?.pending" class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                  <ion-icon name="sync-outline" class="animate-spin text-slate-400"></ion-icon>
+                </div>
+              </div>
+              <div *ngIf="userForm.get('username')?.invalid && userForm.get('username')?.touched && !userForm.get('username')?.pending" class="text-xs text-red-400 mt-1">
+                <span *ngIf="userForm.get('username')?.hasError('required')">Username is required.</span>
+                <span *ngIf="userForm.get('username')?.hasError('minlength')">Must be at least 3 characters.</span>
+                <span *ngIf="userForm.get('username')?.hasError('pattern')">Invalid characters (use a-z, 0-9, _, ., -).</span>
+                <span *ngIf="userForm.get('username')?.hasError('notAvailable')">This username is already taken.</span>
+              </div>
+            </div>
+            <div></div> <!-- Spacer -->
+            <div>
+              <label class="block text-sm font-medium text-slate-300 mb-1">Password</label>
+              <input type="password" formControlName="password" class="form-input-dark w-full">
+               <div *ngIf="userForm.get('password')?.invalid && userForm.get('password')?.touched" class="text-xs text-red-400 mt-1">
+                <span *ngIf="userForm.get('password')?.hasError('required')">Password is required.</span>
+                <span *ngIf="userForm.get('password')?.hasError('minlength')">Must be at least 8 characters.</span>
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-slate-300 mb-1">Confirm Password</label>
+              <input type="password" formControlName="confirmPassword" class="form-input-dark w-full">
+              <div *ngIf="userForm.get('confirmPassword')?.touched && userForm.hasError('passwordMismatch')" class="text-xs text-red-400 mt-1">Passwords do not match.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 2: Employment Details -->
+      <div class="p-6 space-y-4">
+        <h2 class="text-lg font-semibold text-white">Employment Details</h2>
+        <div formGroupName="employee" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-slate-300 mb-1">Employee Code</label>
+            <input type="text" formControlName="employeeCode" class="form-input-dark w-full">
+            <div *ngIf="employeeForm.get('employeeCode')?.invalid && employeeForm.get('employeeCode')?.touched" class="text-xs text-red-400 mt-1">
+              Code is required (letters, numbers, hyphens).
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-300 mb-1">Department</label>
+            <input type="text" formControlName="department" class="form-input-dark w-full">
+             <div *ngIf="employeeForm.get('department')?.invalid && employeeForm.get('department')?.touched" class="text-xs text-red-400 mt-1">
+              Department is required.
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-300 mb-1">Job Title</label>
+            <input type="text" formControlName="jobTitle" class="form-input-dark w-full">
+            <div *ngIf="employeeForm.get('jobTitle')?.invalid && employeeForm.get('jobTitle')?.touched" class="text-xs text-red-400 mt-1">
+              Job title is required.
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-slate-300 mb-1">Date of Joining</label>
+            <input type="date" formControlName="dateOfJoining" class="form-input-dark w-full">
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 3: Bank Account -->
+      <div class="p-6 space-y-4">
+        <h2 class="text-lg font-semibold text-white">Bank Account Details</h2>
+        <app-bank-account-form [parentForm]="bankAccountForm"></app-bank-account-form>
+      </div>
+
+      <!-- Section 4: Salary Structure -->
+      <div class="p-6 space-y-4">
+        <h2 class="text-lg font-semibold text-white">Initial Salary Structure</h2>
+        <app-salary-form [parentForm]="salaryStructureForm"></app-salary-form>
+      </div>
+
+      <!-- Footer & Actions -->
+      <div class="p-6 flex justify-end">
+        <!-- FIXED: Removed [disabled] check for addEmployeeForm.invalid -->
+        <button type="submit" [disabled]="isLoading" class="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-500 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed">
+          <ion-icon [name]="isLoading ? 'sync-outline' : 'person-add-outline'" [class.animate-spin]="isLoading"></ion-icon>
+          <span>{{ isLoading ? 'Adding Employee...' : 'Add Employee' }}</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

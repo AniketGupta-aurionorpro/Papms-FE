@@ -34,7 +34,11 @@ export class OrganizationService {
   //   return this.http.get<OrganizationResponseDto[]>(this.url);
   // }
 
-    getAllOrganizations(page: number = 0, size: number = 10, status?: string): Observable<any> {
+  getAllOrganizations(
+    page: number = 0,
+    size: number = 10,
+    status?: string
+  ): Observable<any> {
     let params = new HttpParams()
       .set('page', page.toString())
       .set('size', size.toString());
@@ -77,10 +81,29 @@ export class OrganizationService {
       `${this.url}/${organizationId}/financial-summary`
     );
   }
-
+  reactivateOrganization(id: number): Observable<any> {
+    return this.http.put(`${this.url}/${id}/reactivate`, {});
+  }
   uploadLogo(logoFile: File): Observable<any> {
     const formData = new FormData();
     formData.append('logo', logoFile);
     return this.http.post(`${this.url}/upload-logo`, formData);
   }
+
+   approveOrganization(id: number): Observable<OrganizationResponseDto> {
+    return this.http.put<OrganizationResponseDto>(`${this.url}/${id}/approve`, {});
+  }
+
+   suspendOrganization(id: number): Observable<any> {
+    return this.http.put(`${this.url}/${id}/suspend`, {});
+  }
+
+  // --- NEW: Specific method for rejecting an organization with a reason ---
+  rejectOrganization(id: number, reason: string): Observable<any> {
+    return this.http.put(`${this.url}/${id}/reject`, reason, {
+      headers: { 'Content-Type': 'text/plain' }
+    });
+  }
+
+
 }

@@ -1,1 +1,96 @@
-<p>dashboard works!</p>
+<div class="space-y-8">
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div>
+      <h1 class="text-3xl font-bold text-white">Dashboard</h1>
+      <p class="text-slate-400 mt-1">An overview of your organization's activity.</p>
+    </div>
+    <button (click)="loadDashboardStats()" [disabled]="isLoading" class="flex items-center gap-2 px-3 py-2 text-slate-300 bg-slate-800 border border-slate-700 hover:bg-slate-700 rounded-lg transition-colors disabled:opacity-50">
+      <ion-icon name="refresh-outline" class="text-lg" [class.animate-spin]="isLoading"></ion-icon>
+      <span class="text-sm font-medium">Refresh</span>
+    </button>
+  </div>
+
+  <!-- Loading & Error States -->
+  <app-loading-spinner *ngIf="isLoading"></app-loading-spinner>
+  <div *ngIf="error && !isLoading" class="bg-red-900/50 border border-red-700 text-red-300 rounded-lg p-4">
+    <p><strong>Error:</strong> {{ error }}</p>
+  </div>
+
+  <!-- Dashboard Content -->
+  <div *ngIf="dashboardStats && !isLoading" class="space-y-8">
+    <!-- Stats Grid (3x2 Layout) -->
+    <div class="space-y-6">
+      <!-- First Row: 3 Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Custom Account Balance Card -->
+        <div class="md:col-span-1 lg:col-span-1 bg-slate-800 rounded-xl p-6 border border-slate-700/50 shadow-lg">
+          <p class="text-sm font-medium text-slate-400">Account Balance</p>
+          <p class="text-4xl font-bold text-white mt-4">{{ formatCurrency(dashboardStats.internalBalance) }}</p>
+        </div>
+        <!-- Reusable Stats Cards -->
+        <app-stats-card title="Total Employees" [value]="dashboardStats.totalEmployees.toString()" icon="people-outline" iconBgClass="bg-blue-600" [trend]="formatPercentage(dashboardStats.employeeChangePercentage)" [trendColor]="getPercentageColor(dashboardStats.employeeChangePercentage)"></app-stats-card>
+        <app-stats-card title="Pending Invoices" [value]="dashboardStats.pendingInvoicesCount.toString()" icon="document-text-outline" iconBgClass="bg-orange-600" [trend]="formatPercentage(dashboardStats.pendingInvoicesChangePercentage)" [trendColor]="getPercentageColor(dashboardStats.pendingInvoicesChangePercentage)"></app-stats-card>
+      </div>
+
+      <!-- Second Row: 2 Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <app-stats-card title="Client Amount Due" [value]="formatCurrency(dashboardStats.totalAmountDueFromClients)" icon="hourglass-outline" iconBgClass="bg-yellow-500"></app-stats-card>
+        <app-stats-card title="Active Vendors" [value]="dashboardStats.totalVendors.toString()" icon="business-outline" iconBgClass="bg-purple-600" [trend]="formatPercentage(dashboardStats.vendorChangePercentage)" [trendColor]="getPercentageColor(dashboardStats.vendorChangePercentage)"></app-stats-card>
+      </div>
+    </div>
+
+    <!-- Quick Actions & Recent Transactions -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <!-- Quick Actions -->
+      <div class="lg:col-span-1 bg-slate-800 rounded-xl border border-slate-700 p-6">
+        <h2 class="text-lg font-semibold text-white mb-6">Quick Actions</h2>
+        <div class="space-y-4">
+          <a *ngFor="let action of quickActions" [routerLink]="action.route" class="w-full flex items-center gap-4 p-4 rounded-lg bg-slate-700/50 hover:bg-slate-700 transition-all duration-200 group">
+            <div [class]="action.color" class="h-10 w-10 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+              <ion-icon [name]="action.icon" class="text-white text-xl"></ion-icon>
+            </div>
+            <div class="flex-1 text-left">
+              <h3 class="font-semibold text-white">{{ action.label }}</h3>
+              <p class="text-sm text-slate-400">{{ action.description }}</p>
+            </div>
+            <ion-icon name="chevron-forward-outline" class="text-slate-500 group-hover:text-slate-300"></ion-icon>
+          </a>
+        </div>
+      </div>
+
+      <!-- Recent Transactions -->
+      <div class="lg:col-span-2 bg-slate-800 rounded-xl border border-slate-700 p-6">
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-lg font-semibold text-white">Recent Transactions</h2>
+          <a [routerLink]="['/org-admin/financial/transactions']" class="text-blue-400 hover:text-blue-300 text-sm font-medium flex items-center gap-1">
+            View All <ion-icon name="arrow-forward-outline"></ion-icon>
+          </a>
+        </div>
+        <div *ngIf="dashboardStats.recentTransactions.length > 0" class="space-y-4">
+          <div *ngFor="let tx of dashboardStats.recentTransactions" class="flex items-center justify-between p-4 rounded-lg bg-slate-900/50">
+            <div class="flex items-center gap-4">
+              <div [class]="tx.type === 'CREDIT' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'" class="h-10 w-10 rounded-lg flex items-center justify-center">
+                <ion-icon [name]="tx.type === 'CREDIT' ? 'arrow-down-outline' : 'arrow-up-outline'" class="text-lg"></ion-icon>
+              </div>
+              <div>
+                <h3 class="font-medium text-white">{{ tx.description }}</h3>
+                <p class="text-sm text-slate-400 mt-1">{{ tx.transactionDate | date:'MMM d, y, h:mm a' }}</p>
+              </div>
+            </div>
+            <div class="text-right">
+              <p [class]="tx.type === 'CREDIT' ? 'text-green-400' : 'text-red-400'" class="font-semibold">
+                {{ tx.type === 'CREDIT' ? '+' : '-' }}{{ formatCurrency(tx.amount) }}
+              </p>
+              <p class="text-sm text-slate-500 mt-1">Balance: {{ formatCurrency(tx.balanceAfterTransaction) }}</p>
+            </div>
+          </div>
+        </div>
+        <div *ngIf="dashboardStats.recentTransactions.length === 0" class="text-center py-10 text-slate-500">
+            <ion-icon name="receipt-outline" class="text-4xl"></ion-icon>
+            <p class="mt-2">No recent transactions to display.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

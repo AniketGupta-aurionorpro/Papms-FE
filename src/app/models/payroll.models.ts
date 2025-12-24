@@ -1,6 +1,33 @@
 export interface CreatePayrollRequest {
   payrollMonth: number;
   payrollYear: number;
+  salaryOverrides?: SalaryOverride[];
+}
+
+export interface SalaryOverride {
+  employeeId: number;
+  basicSalary: number;
+  hra: number;
+  da: number;
+  otherAllowances: number;
+  pfContribution: number;
+}
+
+export interface PayrollPreviewItem {
+  employeeId: number;
+  employeeName: string;
+  employeeCode: string;
+  department: string;
+  basicSalary: number;
+  hra: number;
+  da: number;
+  otherAllowances: number;
+  pfContribution: number;
+  totalEarnings: number;
+  totalDeductions: number;
+  netSalary: number;
+  // UI-only fields
+  isModified?: boolean;
 }
 
 export interface PayrollBatchResponse {
@@ -33,13 +60,16 @@ export interface PayrollPaymentResponse {
   totalDeductions: number;
   netSalaryPaid: number;
   status: PaymentStatus;
+  salaryModified?: boolean;
 }
 
 export enum PayrollStatus {
   PENDING_APPROVAL = 'PENDING_APPROVAL',
   APPROVED = 'APPROVED',
   REJECTED = 'REJECTED',
-  PROCESSED = 'PROCESSED'
+  PROCESSING = 'PROCESSING',
+  PROCESSED = 'PROCESSED',
+  COMPLETED = 'COMPLETED'
 }
 
 export enum PaymentStatus {
@@ -47,3 +77,4 @@ export enum PaymentStatus {
   PAID = 'PAID',
   FAILED = 'FAILED'
 }
+

@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { OrganizationResponseDto } from '../../../../../models/organization.models';
 import { LoadingService } from '../../../../../services/loading.service';
 import { OrganizationService } from '../../../../../services/organization.service';
+import { NotificationService } from '../../../../../core/services/notification.service';
 
 @Component({
   selector: 'app-organization-approval',
@@ -20,8 +21,9 @@ export class OrganizationApprovalComponent implements OnInit {
   constructor(
     private organizationService: OrganizationService,
     private loadingService: LoadingService,
-    private router: Router
-  ) {}
+    private router: Router,
+    private notificationService: NotificationService
+  ) { }
 
   ngOnInit(): void {
     this.loadPendingOrganizations();
@@ -35,10 +37,13 @@ export class OrganizationApprovalComponent implements OnInit {
         next: (response: { content: OrganizationResponseDto[] }) => {
           this.pendingOrganizations = response.content;
           this.isLoading = false;
+          if (this.pendingOrganizations.length === 0) {
+            this.notificationService.showInfo('No pending organization approvals.');
+          }
         },
         error: (error) => {
-          this.error =
-            error.error?.message || 'Failed to load pending organizations';
+          this.error = this.extractErrorMessage(error);
+          this.notificationService.showError(this.error);
           this.isLoading = false;
         },
       });
@@ -61,14 +66,16 @@ export class OrganizationApprovalComponent implements OnInit {
   }
 
   approveOrganization(organizationId: number): void {
+    this.notificationService.showInfo('Processing approval...');
     this.organizationService
       .updateOrganizationStatus(organizationId, 'ACTIVE')
       .subscribe({
         next: () => {
+          this.notificationService.showSuccess('Organization approved successfully!');
           this.loadPendingOrganizations();
         },
         error: (error) => {
-          this.error = error.error?.message || 'Failed to approve organization';
+          this.notificationService.showError(error.error?.message || 'Failed to approve organization');
         },
       });
   }
@@ -80,11 +87,11 @@ export class OrganizationApprovalComponent implements OnInit {
         .updateOrganizationStatus(organizationId, 'REJECTED', reason)
         .subscribe({
           next: () => {
+            this.notificationService.showSuccess('Organization rejected.');
             this.loadPendingOrganizations();
           },
           error: (error) => {
-            this.error =
-              error.error?.message || 'Failed to reject organization';
+            this.notificationService.showError(error.error?.message || 'Failed to reject organization');
           },
         });
     }
@@ -107,5 +114,13 @@ export class OrganizationApprovalComponent implements OnInit {
       (sum, org) => sum + (org.internalBalance || 0),
       0
     );
+  }
+
+  private extractErrorMessage(err: any): string {
+    if (err.error?.message) return err.error.message;
+    if (err.status === 401) return 'Session expired. Please login again.';
+    if (err.status === 403) return 'You do not have permission to view pending organizations.';
+    if (err.status === 500) return 'Server error. Please try again later.';
+    return 'Failed to load pending organizations. Please try again.';
   }
 }

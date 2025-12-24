@@ -10,8 +10,6 @@ import { OrgAdminDashboardComponent } from './components/dashboard/dashboard.com
 import { AddClientComponent } from './components/client-management/add-client/add-client.component';
 import { ClientDetailsComponent } from './components/client-management/client-details/client-details.component';
 import { ClientListComponent } from './components/client-management/client-list/client-list.component';
-import { ConcernDetailsComponent as OrgConcernDetailsComponent } from './components/concerns-management/concern-details/concern-details.component';
-import { ConcernsListComponent } from './components/concerns-management/concerns-list/concerns-list.component';
 import { AddEmployeeComponent } from './components/employee-management/add-employee/add-employee.component';
 import { BankAccountsComponent } from './components/employee-management/bank-accounts/bank-accounts.component';
 import { BulkUploadComponent } from './components/employee-management/bulk-upload/bulk-upload.component';
@@ -35,22 +33,24 @@ import { VendorDetailsComponent } from './components/vendor-management/vendor-de
 import { VendorListComponent } from './components/vendor-management/vendor-list/vendor-list.component';
 import { BulkUploadHistoryComponent } from './components/employee-management/bulk-upload-history/bulk-upload-history.component';
 import { BulkUploadReportComponent } from './components/employee-management/bulk-upload-report/bulk-upload-report.component';
+import { VendorBillsComponent } from './components/vendor-management/vendor-bills/vendor-bills.component';
+import { DepositHistoryComponent } from './components/client-management/deposit-history/deposit-history.component';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+
 @NgModule({
-  // --- FIX: REMOVE ALL COMPONENTS FROM declarations ---
   declarations: [],
   imports: [
     CommonModule,
     RouterModule,
     OrganizationAdminRoutingModule,
     SharedModule,
-    // --- FIX: IMPORT ALL STANDALONE COMPONENTS USED BY THIS MODULE ---
+    FormsModule,
+    ReactiveFormsModule,
     OrgAdminMainLayoutComponent,
     OrgAdminDashboardComponent,
     AddClientComponent,
     ClientDetailsComponent,
     ClientListComponent,
-    OrgConcernDetailsComponent,
-    ConcernsListComponent,
     AddEmployeeComponent,
     BankAccountsComponent,
     BulkUploadComponent,
@@ -72,9 +72,11 @@ import { BulkUploadReportComponent } from './components/employee-management/bulk
     AddVendorComponent,
     VendorDetailsComponent,
     VendorListComponent,
-    AddEmployeeComponent,
     BulkUploadHistoryComponent,
-    BulkUploadReportComponent
+    BulkUploadReportComponent,
+    VendorBillsComponent,
+    DepositHistoryComponent,
   ]
 })
-export class OrganizationAdminModule {  }
+export class OrganizationAdminModule { }
+

@@ -30,7 +30,7 @@ export class BulkUploadHistoryComponent implements OnInit {
     private authService: AuthService,
     private notificationService: NotificationService,
     private router: Router
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     const userInfo = this.authService.getUserInfo();
@@ -74,5 +74,13 @@ export class BulkUploadHistoryComponent implements OnInit {
     if (status === 'COMPLETED') return 'bg-green-500/20 text-green-400';
     if (status === 'FAILED') return 'bg-red-500/20 text-red-400';
     return 'bg-slate-600 text-slate-300';
+  }
+
+  private extractErrorMessage(err: any): string {
+    if (err.error?.message) return err.error.message;
+    if (err.status === 401) return 'Session expired. Please login again.';
+    if (err.status === 403) return 'You do not have permission to view upload history.';
+    if (err.status === 500) return 'Server error. Please try again later.';
+    return 'Failed to load upload history. Please try again.';
   }
 }

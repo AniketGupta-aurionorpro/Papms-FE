@@ -1,1 +1,166 @@
-<p>edit-profile works!</p>
+<!-- Edit Profile Page -->
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex items-center gap-4">
+        <button (click)="cancel()"
+            class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors">
+            <ion-icon name="arrow-back-outline" class="text-xl"></ion-icon>
+        </button>
+        <div>
+            <h1 class="text-2xl md:text-3xl font-bold text-white">Edit Profile</h1>
+            <p class="text-slate-400 mt-1">Update your personal information</p>
+        </div>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="flex items-center justify-center min-h-[300px]">
+        <div class="text-center">
+            <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-cyan-500 border-t-transparent">
+            </div>
+            <p class="mt-4 text-slate-400">Loading profile...</p>
+        </div>
+    </div>
+
+    <!-- Content -->
+    <div *ngIf="!isLoading && profile" class="max-w-2xl">
+        <!-- Tabs -->
+        <div class="flex gap-2 mb-6">
+            <button (click)="setActiveTab('profile')"
+                [class]="'px-4 py-2 rounded-lg font-medium transition-all ' + (activeTab === 'profile' ? 'bg-cyan-600 text-white' : 'bg-slate-800 text-slate-300 hover:bg-slate-700')">
+                <ion-icon name="person-outline" class="mr-2"></ion-icon>
+                Profile Info
+            </button>
+            <button (click)="setActiveTab('password')"
+                [class]="'px-4 py-2 rounded-lg font-medium transition-all ' + (activeTab === 'password' ? 'bg-cyan-600 text-white' : 'bg-slate-800 text-slate-300 hover:bg-slate-700')">
+                <ion-icon name="lock-closed-outline" class="mr-2"></ion-icon>
+                Change Password
+            </button>
+        </div>
+
+        <!-- Profile Info Form -->
+        <div *ngIf="activeTab === 'profile'"
+            class="bg-gradient-to-br from-slate-800 to-slate-800/50 rounded-2xl p-6 border border-slate-700/50">
+            <h3 class="text-lg font-semibold text-white mb-6 flex items-center gap-2">
+                <ion-icon name="person-circle-outline" class="text-cyan-400"></ion-icon>
+                Personal Information
+            </h3>
+
+            <form [formGroup]="profileForm" (ngSubmit)="saveProfile()" class="space-y-6">
+                <!-- Full Name -->
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Full Name</label>
+                    <input type="text" formControlName="fullName"
+                        class="w-full px-4 py-3 bg-slate-900/50 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-colors"
+                        placeholder="Enter your full name">
+                    <div *ngIf="profileForm.get('fullName')?.invalid && profileForm.get('fullName')?.touched"
+                        class="mt-2 text-sm text-red-400">
+                        <span *ngIf="profileForm.get('fullName')?.errors?.['required']">Full name is required</span>
+                        <span *ngIf="profileForm.get('fullName')?.errors?.['minlength']">Name must be at least 2
+                            characters</span>
+                    </div>
+                </div>
+
+                <!-- Email -->
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Email Address</label>
+                    <input type="email" formControlName="email"
+                        class="w-full px-4 py-3 bg-slate-900/50 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-colors"
+                        placeholder="Enter your email">
+                    <div *ngIf="profileForm.get('email')?.invalid && profileForm.get('email')?.touched"
+                        class="mt-2 text-sm text-red-400">
+                        <span *ngIf="profileForm.get('email')?.errors?.['required']">Email is required</span>
+                        <span *ngIf="profileForm.get('email')?.errors?.['email']">Please enter a valid email</span>
+                    </div>
+                </div>
+
+                <!-- Read-only fields -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-400 mb-2">Department</label>
+                        <input type="text" [value]="profile.department" disabled
+                            class="w-full px-4 py-3 bg-slate-900/30 border border-slate-700/50 rounded-lg text-slate-400 cursor-not-allowed">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-400 mb-2">Job Title</label>
+                        <input type="text" [value]="profile.jobTitle" disabled
+                            class="w-full px-4 py-3 bg-slate-900/30 border border-slate-700/50 rounded-lg text-slate-400 cursor-not-allowed">
+                    </div>
+                </div>
+                <p class="text-xs text-slate-500">* Department and Job Title can only be changed by your organization
+                    admin.</p>
+
+                <!-- Buttons -->
+                <div class="flex gap-4 pt-4">
+                    <button type="submit" [disabled]="profileForm.invalid || isSaving"
+                        class="flex-1 py-3 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 rounded-lg text-white font-medium transition-all shadow-lg shadow-cyan-500/20 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <span *ngIf="!isSaving">Save Changes</span>
+                        <span *ngIf="isSaving">Saving...</span>
+                    </button>
+                    <button type="button" (click)="cancel()"
+                        class="px-6 py-3 bg-slate-700 hover:bg-slate-600 rounded-lg text-white font-medium transition-colors">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Password Change Form -->
+        <div *ngIf="activeTab === 'password'"
+            class="bg-gradient-to-br from-slate-800 to-slate-800/50 rounded-2xl p-6 border border-slate-700/50">
+            <h3 class="text-lg font-semibold text-white mb-6 flex items-center gap-2">
+                <ion-icon name="lock-closed-outline" class="text-purple-400"></ion-icon>
+                Change Password
+            </h3>
+
+            <form [formGroup]="passwordForm" (ngSubmit)="changePassword()" class="space-y-6">
+                <!-- Current Password -->
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Current Password</label>
+                    <input type="password" formControlName="currentPassword"
+                        class="w-full px-4 py-3 bg-slate-900/50 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-colors"
+                        placeholder="Enter current password">
+                    <div *ngIf="passwordForm.get('currentPassword')?.invalid && passwordForm.get('currentPassword')?.touched"
+                        class="mt-2 text-sm text-red-400">
+                        Current password is required
+                    </div>
+                </div>
+
+                <!-- New Password -->
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-2">New Password</label>
+                    <input type="password" formControlName="newPassword"
+                        class="w-full px-4 py-3 bg-slate-900/50 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-colors"
+                        placeholder="Enter new password">
+                    <div *ngIf="passwordForm.get('newPassword')?.invalid && passwordForm.get('newPassword')?.touched"
+                        class="mt-2 text-sm text-red-400">
+                        <span *ngIf="passwordForm.get('newPassword')?.errors?.['required']">New password is
+                            required</span>
+                        <span *ngIf="passwordForm.get('newPassword')?.errors?.['minlength']">Password must be at least 6
+                            characters</span>
+                    </div>
+                </div>
+
+                <!-- Confirm Password -->
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Confirm New Password</label>
+                    <input type="password" formControlName="confirmPassword"
+                        class="w-full px-4 py-3 bg-slate-900/50 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-colors"
+                        placeholder="Confirm new password">
+                    <div *ngIf="passwordForm.errors?.['mismatch'] && passwordForm.get('confirmPassword')?.touched"
+                        class="mt-2 text-sm text-red-400">
+                        Passwords do not match
+                    </div>
+                </div>
+
+                <!-- Button -->
+                <div class="pt-4">
+                    <button type="submit" [disabled]="passwordForm.invalid || isChangingPassword"
+                        class="w-full py-3 bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-400 hover:to-pink-500 rounded-lg text-white font-medium transition-all shadow-lg shadow-purple-500/20 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <span *ngIf="!isChangingPassword">Change Password</span>
+                        <span *ngIf="isChangingPassword">Changing...</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

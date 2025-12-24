@@ -4,6 +4,7 @@ import { forkJoin, map } from 'rxjs';
 import { OrganizationResponseDto } from '../../../../../models/organization.models';
 import { OrganizationService } from '../../../../../services/organization.service';
 import { PayrollService } from '../../../../../services/payroll.service';
+import { NotificationService } from '../../../../../core/services/notification.service';
 
 
 @Component({
@@ -21,12 +22,17 @@ export class OrganizationListComponent implements OnInit {
 
   // Store pending payroll counts with organization ID as the key
   pendingPayrollCounts: Map<number, number> = new Map();
+  // Pagination
+  currentPage = 0;
+  pageSize = 10;
+  totalRecords = 0;
 
   constructor(
     private organizationService: OrganizationService,
-    private payrollService: PayrollService, // Injected PayrollService
-    private router: Router
-  ) {}
+    private payrollService: PayrollService,
+    private router: Router,
+    private notificationService: NotificationService
+  ) { }
 
   ngOnInit(): void {
     this.loadData();
@@ -55,11 +61,16 @@ export class OrganizationListComponent implements OnInit {
       next: ({ organizations, pendingCounts }) => {
         this.organizations = organizations;
         this.filteredOrganizations = organizations;
+        this.totalRecords = organizations.length; // Set initial total records
         this.pendingPayrollCounts = pendingCounts;
         this.isLoading = false;
+        if (organizations.length === 0) {
+          this.notificationService.showInfo('No organizations found in the system.');
+        }
       },
       error: (err) => {
-        this.error = 'Failed to load organization data. Please try again later.';
+        this.error = this.extractErrorMessage(err);
+        this.notificationService.showError(this.error);
         console.error(err);
         this.isLoading = false;
       }
@@ -73,11 +84,24 @@ export class OrganizationListComponent implements OnInit {
   applyFilters(): void {
     if (!this.searchTerm) {
       this.filteredOrganizations = this.organizations;
-      return;
+    } else {
+      this.filteredOrganizations = this.organizations.filter(org =>
+        org.companyName.toLowerCase().includes(this.searchTerm.toLowerCase())
+      );
     }
-    this.filteredOrganizations = this.organizations.filter(org =>
-      org.companyName.toLowerCase().includes(this.searchTerm.toLowerCase())
-    );
+    this.totalRecords = this.filteredOrganizations.length;
+    this.currentPage = 0; // Reset to first page on filter change
+  }
+
+  onPageChange(event: any): void {
+    this.currentPage = event.page;
+    this.pageSize = event.rows;
+  }
+
+  get paginatedOrganizations(): OrganizationResponseDto[] {
+    const start = this.currentPage * this.pageSize;
+    const end = start + this.pageSize;
+    return this.filteredOrganizations.slice(start, end);
   }
 
   viewOrganization(organizationId: number): void {
@@ -111,5 +135,13 @@ export class OrganizationListComponent implements OnInit {
       default:
         return 'bg-slate-600 text-slate-300';
     }
+  }
+
+  private extractErrorMessage(err: any): string {
+    if (err.error?.message) return err.error.message;
+    if (err.status === 401) return 'Session expired. Please login again.';
+    if (err.status === 403) return 'You do not have permission to view organizations.';
+    if (err.status === 500) return 'Server error. Please try again later.';
+    return 'Failed to load organizations. Please try again.';
   }
 }

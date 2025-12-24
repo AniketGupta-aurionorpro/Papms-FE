@@ -1,10 +1,12 @@
 import { Component, OnDestroy, OnInit } from '@angular/core';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
 import { OrganizationResponseDtowithEmployee } from '../../../../../models/organization.models';
 import { DocumentResponseDto } from '../../../../../models/document.models';
 import { OrganizationService } from '../../../../../services/organization.service';
 import { DocumentService } from '../../../../../services/document.service';
-import { TransactionDto } from '../../../../../models/transaction.models';
+// MODIFICATION: Import the enums
+import { TransactionDto, TransactionSourceType, TransactionType } from '../../../../../models/transaction.models';
 import { TransactionService } from '../../../../../services/transaction.service';
 import { Subject, Subscription } from 'rxjs';
 import { debounceTime } from 'rxjs/operators';
@@ -18,15 +20,6 @@ import { ClientResponseDto } from '../../../../../models/client.models';
 import { VendorResponse } from '../../../../../models/vendor.models';
 import { ClientService } from '../../../../../services/client.service';
 import { VendorService } from '../../../../../services/vendor.service';
-// --- FIX START: Define the PageEvent interface here ---
-// This provides the strict type information that the template needs.
-// export interface PageEvent {
-//   first: number;
-//   rows: number;
-//   page: number;
-//   pageCount: number;
-// }
-// --- FIX END ---
 
 @Component({
   selector: 'app-organization-details',
@@ -43,6 +36,12 @@ export class OrganizationDetailsComponent implements OnInit, OnDestroy {
 
   isOrgRejectionDialogVisible = false;
 
+  // PDF Viewer Modal State
+  isPdfViewerOpen = false;
+  currentPdfUrl: SafeResourceUrl | null = null;
+  currentPdfUrlRaw: string | null = null;
+  currentPdfName: string = '';
+
   // Transaction Properties
   transactions: TransactionDto[] = [];
   isLoadingTransactions = false;
@@ -53,12 +52,15 @@ export class OrganizationDetailsComponent implements OnInit, OnDestroy {
   searchTerm = '';
   startDate: string | null = null;
   endDate: string | null = null;
-  typeFilter: 'ALL' | 'CREDIT' | 'DEBIT' = 'ALL';
+
+  // FIX: Use the imported enum for type safety
+  typeFilter: TransactionType | 'ALL' = 'ALL';
+
   private filterChanges = new Subject<void>();
   private filterSubscription!: Subscription;
 
-  // Employee Roster Properties
-  // employees: EmployeeResponseDto[] = [];
+  // ... other properties remain unchanged ...
+
   employees: CompleteEmployeeResponse[] = [];
   isLoadingEmployees = false;
   employeesError = '';
@@ -72,7 +74,7 @@ export class OrganizationDetailsComponent implements OnInit, OnDestroy {
   private employeeFilterChanges = new Subject<void>();
   private employeeFilterSubscription!: Subscription;
 
-   payrolls: PayrollBatchResponse[] = [];
+  payrolls: PayrollBatchResponse[] = [];
   isLoadingPayrolls = false;
   payrollsError = '';
   payrollCurrentPage = 0;
@@ -85,7 +87,7 @@ export class OrganizationDetailsComponent implements OnInit, OnDestroy {
   private payrollFilterChanges = new Subject<void>();
   private payrollFilterSubscription!: Subscription;
 
-   vendors: VendorResponse[] = [];
+  vendors: VendorResponse[] = [];
   isLoadingVendors = false;
   vendorsError = '';
   vendorCurrentPage = 0;
@@ -105,7 +107,6 @@ export class OrganizationDetailsComponent implements OnInit, OnDestroy {
     { id: 'payroll', label: 'Payrolls Requests', icon: 'calendar-outline' },
     { id: 'vendors_clients', label: 'Vendors & Clients', icon: 'people-circle-outline' },
   ];
-
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -115,9 +116,10 @@ export class OrganizationDetailsComponent implements OnInit, OnDestroy {
     private employeeService: EmployeeService,
     private payrollService: PayrollService,
     private notificationService: NotificationService,
-     private vendorService: VendorService,
+    private vendorService: VendorService,
     private clientService: ClientService,
-  ) {}
+    private sanitizer: DomSanitizer, // NEW: For PDF iframe URL
+  ) { }
 
   ngOnInit(): void {
     const organizationId = this.route.snapshot.paramMap.get('id');
@@ -152,31 +154,41 @@ export class OrganizationDetailsComponent implements OnInit, OnDestroy {
     this.payrollFilterSubscription?.unsubscribe();
   }
 
-  // loadOrganizationDetails(organizationId: number): void {
-  //   this.isLoading = true;
-  //   this.error = '';
-  //   this.organizationService.getOrganizationWithEmployees(organizationId).subscribe({
-  //     next: (organization) => {
-  //       this.organization = organization;
-  //       this.checkAllDocumentsApproved();
-  //       this.isLoading = false;
-  //       if (this.activeTab !== 'profile') {
-  //         this.handleTabSwitch(this.activeTab);
-  //       }
-  //     },
-  //     error: (err: any) => {
-  //       this.error = err.error?.message || 'Failed to load organization details';
-  //       this.isLoading = false;
-  //     },
-  //   });
-  // }
+  // ... other methods up to loadTransactions() remain unchanged ...
 
-  // setActiveTab(tabId: string): void {
-  //   this.activeTab = tabId;
-  //   this.handleTabSwitch(tabId);
-  // }
+  loadTransactions(): void {
+    if (!this.organization) return;
+    this.isLoadingTransactions = true;
+    this.transactionsError = '';
 
-    loadOrganizationDetails(organizationId: number): void {
+    // FIX: The service call now passes `null` for the sourceType,
+    // as this specific component doesn't filter by source.
+    this.transactionService.getTransactions(
+      this.organization.id,
+      this.currentPage,
+      this.pageSize,
+      this.searchTerm,
+      this.startDate,
+      this.endDate,
+      this.typeFilter,
+      null // Pass null for sourceType
+    ).subscribe({
+      next: (response) => {
+        this.transactions = response.content || [];
+        this.totalRecords = response.totalElements || 0;
+        this.isLoadingTransactions = false;
+      },
+      error: (err) => {
+        this.transactionsError = 'Failed to load transactions. Please try again later.';
+        console.error(err);
+        this.isLoadingTransactions = false;
+      },
+    });
+  }
+
+  // ... all other methods from onFilterChange() downwards remain unchanged ...
+
+  loadOrganizationDetails(organizationId: number): void {
     this.isLoading = true;
     this.error = '';
     this.organizationService.getOrganizationWithEmployees(organizationId).subscribe({
@@ -199,7 +211,7 @@ export class OrganizationDetailsComponent implements OnInit, OnDestroy {
     if (!this.organization) return;
     this.isLoadingPayrolls = true;
     this.payrollsError = '';
-    this.payrollService.getPayrollsForOrganization(this.organization.id, this.payrollCurrentPage, this.payrollPageSize)
+    this.payrollService.getPayrollsForOrganization(this.organization.id, this.payrollCurrentPage, this.payrollPageSize, null, null)
       .subscribe({
         next: (response) => {
           this.payrolls = response.content || [];
@@ -293,7 +305,7 @@ export class OrganizationDetailsComponent implements OnInit, OnDestroy {
     this.handleTabSwitch(tabId);
   }
 
-   private handleTabSwitch(tabId: string): void {
+  private handleTabSwitch(tabId: string): void {
     if (tabId === 'financials') {
       this.loadTransactions();
     }
@@ -305,13 +317,13 @@ export class OrganizationDetailsComponent implements OnInit, OnDestroy {
     if (tabId === 'payroll') {
       this.loadPayrolls();
     }
-     if (tabId === 'vendors_clients') {
+    if (tabId === 'vendors_clients') {
       this.loadVendors();
       this.loadClients();
     }
   }
 
-   onVendorPageChange(event: PageEvent): void {
+  onVendorPageChange(event: PageEvent): void {
     this.vendorCurrentPage = event.page;
     this.vendorPageSize = event.rows;
     this.loadVendors();
@@ -374,46 +386,46 @@ export class OrganizationDetailsComponent implements OnInit, OnDestroy {
     });
   }
 
- loadEmployees(): void {
-  if (!this.organization) return;
-  this.isLoadingEmployees = true;
-  this.employeesError = '';
+  loadEmployees(): void {
+    if (!this.organization) return;
+    this.isLoadingEmployees = true;
+    this.employeesError = '';
 
-  const isActiveStatus: boolean | null = this.statusFilter === 'ALL'
-    ? null
-    : this.statusFilter === 'ACTIVE';
+    const isActiveStatus: boolean | null = this.statusFilter === 'ALL'
+      ? null
+      : this.statusFilter === 'ACTIVE';
 
-  this.employeeService.getEmployeesByOrganization(
-    this.organization.id,
-    this.employeeCurrentPage,
-    this.employeePageSize,
-    this.employeeSearchTerm,
-    this.departmentFilter,
-    isActiveStatus
-  ).subscribe({
-    next: (response: any) => {
-      this.employees = response.content || [];
-      this.employeeTotalRecords = response.totalElements || 0;
-      this.isLoadingEmployees = false;
+    this.employeeService.getEmployeesByOrganization(
+      this.organization.id,
+      this.employeeCurrentPage,
+      this.employeePageSize,
+      this.employeeSearchTerm,
+      this.departmentFilter,
+      isActiveStatus
+    ).subscribe({
+      next: (response: any) => {
+        this.employees = response.content || [];
+        this.employeeTotalRecords = response.totalElements || 0;
+        this.isLoadingEmployees = false;
 
-      // Debug logging
-      if (this.employees.length > 0) {
-        console.log('First employee status:', {
-          name: this.employees[0].fullName,
-          isEmployeeActive: this.employees[0].isEmployeeActive,
-          type: typeof this.employees[0].isEmployeeActive
-        });
-      }
-    },
-    error: (err) => {
-      this.employeesError = 'Failed to load employees. Please try again.';
-      console.error('Employee loading error:', err);
-      this.isLoadingEmployees = false;
-    },
-  });
-}
+        // Debug logging
+        if (this.employees.length > 0) {
+          console.log('First employee status:', {
+            name: this.employees[0].fullName,
+            isEmployeeActive: this.employees[0].isEmployeeActive,
+            type: typeof this.employees[0].isEmployeeActive
+          });
+        }
+      },
+      error: (err) => {
+        this.employeesError = 'Failed to load employees. Please try again.';
+        console.error('Employee loading error:', err);
+        this.isLoadingEmployees = false;
+      },
+    });
+  }
 
-    onEmployeeFilterChange(): void {
+  onEmployeeFilterChange(): void {
     this.employeeFilterChanges.next();
   }
 
@@ -427,33 +439,6 @@ export class OrganizationDetailsComponent implements OnInit, OnDestroy {
     return isActive ? 'bg-green-500/20 text-green-400' : 'bg-slate-600 text-slate-300';
   }
 
-  loadTransactions(): void {
-    if (!this.organization) return;
-    this.isLoadingTransactions = true;
-    this.transactionsError = '';
-    this.transactionService.getTransactions(
-      this.organization.id,
-      this.currentPage,
-      this.pageSize,
-      this.searchTerm,
-      this.startDate,
-      this.endDate,
-      this.typeFilter
-    ).subscribe({
-      next: (response) => {
-        this.transactions = response.content || [];
-        this.totalRecords = response.totalElements || 0;
-        this.isLoadingTransactions = false;
-      },
-      error: (err) => {
-        this.transactionsError = 'Failed to load transactions. Please try again later.';
-        console.error(err);
-        this.isLoadingTransactions = false;
-      },
-    });
-  }
-
-
   onFilterChange(): void {
     this.filterChanges.next();
   }
@@ -463,9 +448,7 @@ export class OrganizationDetailsComponent implements OnInit, OnDestroy {
     this.pageSize = event.rows;
     this.loadTransactions();
   }
-  // --- FIX END ---
 
-  // ... The rest of your methods remain unchanged ...
   checkAllDocumentsApproved(): void {
     if (this.organization?.documents && this.organization.documents.length > 0) {
       this.areAllDocumentsApproved = this.organization.documents.every(
@@ -540,8 +523,26 @@ export class OrganizationDetailsComponent implements OnInit, OnDestroy {
   }
 
   viewDocument(doc: DocumentResponseDto): void {
+    // Quick fix: Open PDF directly in new tab
     if (doc?.url) {
       window.open(doc.url, '_blank');
+    } else if (doc?.id && this.organization) {
+      // Fallback: Try proxy URL if direct URL fails
+      const proxyUrl = this.documentService.getDocumentContentUrl(this.organization.id, doc.id);
+      window.open(proxyUrl, '_blank');
+    }
+  }
+
+  closePdfViewer(): void {
+    this.isPdfViewerOpen = false;
+    this.currentPdfUrl = null;
+    this.currentPdfUrlRaw = null;
+    this.currentPdfName = '';
+  }
+
+  downloadDocument(): void {
+    if (this.currentPdfUrlRaw) {
+      window.open(this.currentPdfUrlRaw, '_blank');
     }
   }
 
@@ -586,7 +587,7 @@ export class OrganizationDetailsComponent implements OnInit, OnDestroy {
       : 'bg-red-500/20 text-red-400';
   }
 
-    getStatusClass(isActive: boolean): string {
+  getStatusClass(isActive: boolean): string {
     return isActive ? 'bg-green-500/20 text-green-400' : 'bg-slate-600 text-slate-300';
   }
 

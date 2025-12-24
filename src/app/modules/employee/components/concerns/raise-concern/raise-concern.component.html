@@ -1,1 +1,81 @@
-<p>raise-concern works!</p>
+<!-- Raise Concern Page -->
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex items-center gap-4">
+        <button (click)="cancel()"
+            class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors">
+            <ion-icon name="arrow-back-outline" class="text-xl"></ion-icon>
+        </button>
+        <div>
+            <h1 class="text-2xl md:text-3xl font-bold text-white">Raise a Concern</h1>
+            <p class="text-slate-400 mt-1">Submit your concern to the organization admin</p>
+        </div>
+    </div>
+
+    <!-- Form -->
+    <div class="max-w-2xl">
+        <div class="bg-gradient-to-br from-slate-800 to-slate-800/50 rounded-2xl p-6 border border-slate-700/50">
+            <form [formGroup]="concernForm" (ngSubmit)="submitConcern()" class="space-y-6">
+                <!-- Subject -->
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Subject *</label>
+                    <input type="text" formControlName="subject"
+                        class="w-full px-4 py-3 bg-slate-900/50 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-colors"
+                        placeholder="Brief summary of your concern">
+                    <div *ngIf="concernForm.get('subject')?.invalid && concernForm.get('subject')?.touched"
+                        class="mt-2 text-sm text-red-400">
+                        <span *ngIf="concernForm.get('subject')?.errors?.['required']">Subject is required</span>
+                        <span *ngIf="concernForm.get('subject')?.errors?.['minlength']">Subject must be at least 5
+                            characters</span>
+                        <span *ngIf="concernForm.get('subject')?.errors?.['maxlength']">Subject cannot exceed 100
+                            characters</span>
+                    </div>
+                </div>
+
+                <!-- Description -->
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-2">Description *</label>
+                    <textarea formControlName="description" rows="6"
+                        class="w-full px-4 py-3 bg-slate-900/50 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-colors resize-none"
+                        placeholder="Provide detailed information about your concern..."></textarea>
+                    <div class="flex justify-between items-center mt-2">
+                        <div *ngIf="concernForm.get('description')?.invalid && concernForm.get('description')?.touched"
+                            class="text-sm text-red-400">
+                            <span *ngIf="concernForm.get('description')?.errors?.['required']">Description is
+                                required</span>
+                            <span *ngIf="concernForm.get('description')?.errors?.['minlength']">Description must be at
+                                least 20 characters</span>
+                        </div>
+                        <span class="text-xs text-slate-500">{{ concernForm.get('description')?.value?.length || 0 }} /
+                            1000</span>
+                    </div>
+                </div>
+
+                <!-- Info Note -->
+                <div class="p-4 bg-blue-900/20 border border-blue-700/30 rounded-lg">
+                    <div class="flex items-start gap-3">
+                        <ion-icon name="information-circle-outline" class="text-blue-400 text-xl mt-0.5"></ion-icon>
+                        <div>
+                            <p class="text-blue-300 text-sm font-medium">What happens next?</p>
+                            <p class="text-slate-400 text-sm mt-1">Your concern will be reviewed by your organization
+                                admin. You'll receive updates on the status and resolution.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Buttons -->
+                <div class="flex gap-4 pt-4">
+                    <button type="submit" [disabled]="concernForm.invalid || isSubmitting"
+                        class="flex-1 py-3 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 rounded-lg text-white font-medium transition-all shadow-lg shadow-cyan-500/20 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <span *ngIf="!isSubmitting">Submit Concern</span>
+                        <span *ngIf="isSubmitting">Submitting...</span>
+                    </button>
+                    <button type="button" (click)="cancel()"
+                        class="px-6 py-3 bg-slate-700 hover:bg-slate-600 rounded-lg text-white font-medium transition-colors">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

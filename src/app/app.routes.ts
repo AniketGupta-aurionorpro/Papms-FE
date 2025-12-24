@@ -36,7 +36,14 @@ const routes: Routes = [
     data: { roles: [Role.CLIENT] },
     loadChildren: () => import('./modules/client/client.module').then(m => m.ClientModule)
   },
+  {
+    path: 'vendor',
+    canActivate: [authGuard, roleGuard],
+    data: { roles: [Role.VENDOR] },
+    loadChildren: () => import('./modules/vendor/vendor.module').then(m => m.VendorModule)
+  },
   { path: '**', component: NotFoundComponent }
 ];
 
 export { routes };
+

@@ -1,0 +1,112 @@
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+            <h1 class="text-3xl font-bold text-white">Transaction History</h1>
+            <p class="text-slate-400 mt-1">View your deposits and payments</p>
+        </div>
+        <button (click)="loadTransactions()" [disabled]="isLoading"
+            class="flex items-center gap-2 px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors disabled:opacity-50">
+            <ion-icon name="refresh-outline" [class.animate-spin]="isLoading"></ion-icon>
+            Refresh
+        </button>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="bg-gradient-to-br from-green-600/20 to-green-700/20 rounded-xl border border-green-500/30 p-5">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-slate-400">Current Balance</p>
+                    <p class="text-3xl font-bold text-green-400 mt-2">{{ formatCurrency(currentBalance) }}</p>
+                </div>
+                <div class="h-12 w-12 bg-green-500/20 rounded-xl flex items-center justify-center">
+                    <ion-icon name="wallet-outline" class="text-green-400 text-2xl"></ion-icon>
+                </div>
+            </div>
+        </div>
+        <div class="bg-slate-800 rounded-xl border border-slate-700 p-5">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-slate-400">Total Deposited</p>
+                    <p class="text-2xl font-bold text-blue-400 mt-2">{{ formatCurrency(totalDeposited) }}</p>
+                </div>
+                <div class="h-12 w-12 bg-blue-500/20 rounded-xl flex items-center justify-center">
+                    <ion-icon name="arrow-down-circle-outline" class="text-blue-400 text-2xl"></ion-icon>
+                </div>
+            </div>
+        </div>
+        <div class="bg-slate-800 rounded-xl border border-slate-700 p-5">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-slate-400">Total Spent</p>
+                    <p class="text-2xl font-bold text-red-400 mt-2">{{ formatCurrency(totalSpent) }}</p>
+                </div>
+                <div class="h-12 w-12 bg-red-500/20 rounded-xl flex items-center justify-center">
+                    <ion-icon name="arrow-up-circle-outline" class="text-red-400 text-2xl"></ion-icon>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading -->
+    <app-loading-spinner *ngIf="isLoading"></app-loading-spinner>
+
+    <!-- Error -->
+    <div *ngIf="error && !isLoading" class="bg-red-900/50 border border-red-700 text-red-300 rounded-lg p-4">
+        <p><strong>Error:</strong> {{ error }}</p>
+    </div>
+
+    <!-- Transactions Table -->
+    <div *ngIf="!isLoading && !error" class="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-slate-900/50">
+                    <tr>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-slate-400 uppercase">Type</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-slate-400 uppercase">Description</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-slate-400 uppercase">Reference</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-slate-400 uppercase">Date</th>
+                        <th class="px-6 py-4 text-right text-xs font-semibold text-slate-400 uppercase">Amount</th>
+                        <th class="px-6 py-4 text-center text-xs font-semibold text-slate-400 uppercase">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-700">
+                    <tr *ngFor="let tx of transactions" class="hover:bg-slate-700/30 transition-colors">
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-2">
+                                <ion-icon [name]="getTypeIcon(tx.type)" [class]="getTypeColor(tx.type)"
+                                    class="text-xl"></ion-icon>
+                                <span class="text-white text-sm">{{ tx.type === 'DEPOSIT_REQUEST' ? 'Deposit' :
+                                    'Payment' }}</span>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 text-slate-300">{{ tx.description }}</td>
+                        <td class="px-6 py-4 text-slate-400 font-mono text-sm">{{ tx.referenceNumber || '-' }}</td>
+                        <td class="px-6 py-4 text-slate-300">{{ formatDate(tx.transactionDate) }}</td>
+                        <td class="px-6 py-4 text-right font-semibold"
+                            [class]="tx.amount >= 0 ? 'text-green-400' : 'text-red-400'">
+                            {{ tx.amount >= 0 ? '+' : '' }}{{ formatCurrency(tx.amount) }}
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            <span [class]="getStatusColor(tx.status)"
+                                class="px-2 py-1 rounded-full text-xs font-medium">
+                                {{ tx.status }}
+                            </span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Empty State -->
+        <div *ngIf="transactions.length === 0" class="py-16 text-center">
+            <ion-icon name="receipt-outline" class="text-5xl text-slate-500"></ion-icon>
+            <p class="text-slate-400 mt-3">No transactions yet</p>
+            <a routerLink="/client/deposits"
+                class="inline-block mt-4 px-4 py-2 bg-green-600 hover:bg-green-500 text-white rounded-lg transition-colors">
+                Make a Deposit
+            </a>
+        </div>
+    </div>
+</div>

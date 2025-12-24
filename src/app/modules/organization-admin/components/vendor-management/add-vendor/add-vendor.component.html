@@ -1,1 +1,146 @@
-<p>add-vendor works!</p>
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex items-center gap-4">
+        <a routerLink="/org-admin/vendors"
+            class="h-10 w-10 bg-slate-700 hover:bg-slate-600 rounded-lg flex items-center justify-center text-slate-400 hover:text-white transition-colors">
+            <ion-icon name="arrow-back-outline" class="text-xl"></ion-icon>
+        </a>
+        <div>
+            <h1 class="text-3xl font-bold text-white">{{ isEditMode ? 'Edit Vendor' : 'Add New Vendor' }}</h1>
+            <p class="text-slate-400 mt-1">{{ isEditMode ? 'Update vendor details and bank information' : 'Register a
+                new vendor with bank details' }}</p>
+        </div>
+    </div>
+
+    <!-- Loading -->
+    <app-loading-spinner *ngIf="isLoadingVendor"></app-loading-spinner>
+
+    <!-- Form -->
+    <form *ngIf="!isLoadingVendor" [formGroup]="vendorForm" (ngSubmit)="onSubmit()" class="space-y-6">
+        <!-- Vendor Info Card -->
+        <div class="bg-slate-800 rounded-xl border border-slate-700 p-6">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="h-10 w-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                    <ion-icon name="business-outline" class="text-blue-400 text-xl"></ion-icon>
+                </div>
+                <div>
+                    <h2 class="text-lg font-semibold text-white">Vendor Information</h2>
+                    <p class="text-sm text-slate-400">Basic details about the vendor</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Vendor Name -->
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-1">Vendor Name *</label>
+                    <input type="text" formControlName="vendorName" placeholder="Enter vendor/company name"
+                        [class.border-red-500]="isFieldInvalid('vendorName')"
+                        class="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <p *ngIf="isFieldInvalid('vendorName')" class="text-xs text-red-400 mt-1">{{
+                        getFieldError('vendorName') }}</p>
+                </div>
+
+                <!-- Email -->
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-1">Email *</label>
+                    <input type="email" formControlName="contactEmail" placeholder="vendor@example.com"
+                        [class.border-red-500]="isFieldInvalid('contactEmail')"
+                        class="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <p *ngIf="isFieldInvalid('contactEmail')" class="text-xs text-red-400 mt-1">{{
+                        getFieldError('contactEmail') }}</p>
+                </div>
+
+                <!-- Phone -->
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-1">Phone Number *</label>
+                    <input type="tel" formControlName="contactPhone" placeholder="10-digit mobile number"
+                        [class.border-red-500]="isFieldInvalid('contactPhone')"
+                        class="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <p *ngIf="isFieldInvalid('contactPhone')" class="text-xs text-red-400 mt-1">{{
+                        getFieldError('contactPhone') }}</p>
+                </div>
+
+                <!-- Address -->
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-slate-300 mb-1">Address *</label>
+                    <textarea formControlName="address" rows="2" placeholder="Full address including city and pincode"
+                        [class.border-red-500]="isFieldInvalid('address')"
+                        class="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"></textarea>
+                    <p *ngIf="isFieldInvalid('address')" class="text-xs text-red-400 mt-1">{{ getFieldError('address')
+                        }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bank Details Card -->
+        <div class="bg-slate-800 rounded-xl border border-slate-700 p-6">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="h-10 w-10 bg-emerald-500/20 rounded-lg flex items-center justify-center">
+                    <ion-icon name="card-outline" class="text-emerald-400 text-xl"></ion-icon>
+                </div>
+                <div>
+                    <h2 class="text-lg font-semibold text-white">Bank Details</h2>
+                    <p class="text-sm text-slate-400">Bank account for payments</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Account Holder -->
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-1">Account Holder Name *</label>
+                    <input type="text" formControlName="accountHolderName" placeholder="Name as per bank records"
+                        [class.border-red-500]="isFieldInvalid('accountHolderName')"
+                        class="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <p *ngIf="isFieldInvalid('accountHolderName')" class="text-xs text-red-400 mt-1">{{
+                        getFieldError('accountHolderName') }}</p>
+                </div>
+
+                <!-- Account Number -->
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-1">Account Number *</label>
+                    <input type="text" formControlName="accountNumber" placeholder="9-18 digit account number"
+                        [class.border-red-500]="isFieldInvalid('accountNumber')"
+                        class="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <p *ngIf="isFieldInvalid('accountNumber')" class="text-xs text-red-400 mt-1">{{
+                        getFieldError('accountNumber') }}</p>
+                </div>
+
+                <!-- Bank Name -->
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-1">Bank Name *</label>
+                    <select formControlName="bankName" [class.border-red-500]="isFieldInvalid('bankName')"
+                        class="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                        <option value="">Select Bank</option>
+                        <option *ngFor="let bank of banks" [value]="bank">{{ bank }}</option>
+                    </select>
+                    <p *ngIf="isFieldInvalid('bankName')" class="text-xs text-red-400 mt-1">{{ getFieldError('bankName')
+                        }}</p>
+                </div>
+
+                <!-- IFSC -->
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-1">IFSC Code *</label>
+                    <input type="text" formControlName="ifscCode" placeholder="e.g., HDFC0001234"
+                        [class.border-red-500]="isFieldInvalid('ifscCode')"
+                        class="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white uppercase focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                    <p *ngIf="isFieldInvalid('ifscCode')" class="text-xs text-red-400 mt-1">{{ getFieldError('ifscCode')
+                        }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex items-center justify-end gap-4">
+            <a routerLink="/org-admin/vendors"
+                class="px-6 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors">
+                Cancel
+            </a>
+            <button type="submit" [disabled]="isSubmitting"
+                class="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-lg hover:from-blue-500 hover:to-blue-400 transition-all disabled:opacity-50 font-medium">
+                <ion-icon [name]="isSubmitting ? 'sync-outline' : 'checkmark-outline'"
+                    [class.animate-spin]="isSubmitting"></ion-icon>
+                {{ isSubmitting ? 'Saving...' : (isEditMode ? 'Update Vendor' : 'Add Vendor') }}
+            </button>
+        </div>
+    </form>
+</div>

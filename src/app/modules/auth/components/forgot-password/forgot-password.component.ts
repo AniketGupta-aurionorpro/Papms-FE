@@ -2,6 +2,7 @@ import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../../core/services/auth.service';
+import { NotificationService } from '../../../../core/services/notification.service';
 import { finalize } from 'rxjs/operators';
 
 @Component({
@@ -19,7 +20,8 @@ export class ForgotPasswordComponent {
   constructor(
     private fb: FormBuilder,
     private authService: AuthService,
-    private router: Router
+    private router: Router,
+    private notificationService: NotificationService
   ) {
     this.forgotPasswordForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]]
@@ -40,9 +42,9 @@ export class ForgotPasswordComponent {
       finalize(() => this.isLoading = false)
     ).subscribe({
       next: (response: string) => {
-        // The service now correctly returns a string on success
         console.log('Forgot password response:', response);
         this.success = true;
+        this.notificationService.showSuccess('Password reset instructions have been sent to your email.');
       },
       error: (err) => {
         console.error('Forgot password error:', err);
@@ -50,12 +52,16 @@ export class ForgotPasswordComponent {
         // For security, show the same success message even if the user doesn't exist
         if (err.status === 404 || err.status === 400) {
           this.success = true;
+          this.notificationService.showInfo('If this email is registered, you will receive password reset instructions.');
         } else if (err.error?.message) {
           this.error = err.error.message;
+          this.notificationService.showError(this.error);
         } else if (err.message) {
           this.error = err.message;
+          this.notificationService.showError(this.error);
         } else {
           this.error = 'An unexpected error occurred. Please try again later.';
+          this.notificationService.showError(this.error);
         }
       }
     });

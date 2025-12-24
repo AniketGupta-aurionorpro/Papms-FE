@@ -90,7 +90,7 @@ export class AuthService {
     this.currentUserSubject.next(null);
   }
 
-   login(authRequest: AuthRequest): Observable<LoginResponseDto> {
+  login(authRequest: AuthRequest): Observable<LoginResponseDto> {
     return this.http.post<LoginResponseDto>(`${this.url}/login`, authRequest).pipe(
       tap((response) => {
         // Use the setUser method to update both state and persistence
@@ -117,5 +117,18 @@ export class AuthService {
   resetPassword(resetPasswordRequest: ResetPasswordRequest): Observable<string> {
     // Expect a text response from the backend
     return this.http.post(`${this.url}/reset-password`, resetPasswordRequest, { responseType: 'text' });
+  }
+
+  // NEW: Real-time availability check methods
+  checkUsernameAvailability(username: string): Observable<{ available: boolean; message: string }> {
+    return this.http.get<{ available: boolean; message: string }>(`${this.url}/check-username`, {
+      params: { username }
+    });
+  }
+
+  checkEmailAvailability(email: string): Observable<{ available: boolean; message: string }> {
+    return this.http.get<{ available: boolean; message: string }>(`${this.url}/check-email`, {
+      params: { email }
+    });
   }
 }

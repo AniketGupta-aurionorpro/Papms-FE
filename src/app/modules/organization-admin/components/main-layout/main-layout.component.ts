@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { Router, RouterModule, NavigationEnd } from '@angular/router';
 import { filter } from 'rxjs/operators';
 import { AuthService } from '../../../../core/services/auth.service';
-import { User } from '../../../../core/models/user.models'; // Import User model for better typing
+import { User } from '../../../../core/models/user.models';
 
 interface MenuItem {
   label: string;
@@ -25,7 +25,6 @@ export class OrgAdminMainLayoutComponent implements OnInit {
   isSidebarOpen = true;
   isMobileMenuOpen = false;
   currentRoute = '';
-  // Use a more specific type for userInfo
   userInfo: (User & { organizationName?: string, organizationLogoUrl?: string }) | null = null;
 
   menuItems: MenuItem[] = [
@@ -37,13 +36,11 @@ export class OrgAdminMainLayoutComponent implements OnInit {
     {
       label: 'Employee Management',
       icon: 'people-outline',
-      route: '/org-admin/employees',
+      route: '/org-admin/employees', // Base route for the section
       children: [
         { label: 'All Employees', icon: 'list-outline', route: '/org-admin/employees/list' },
         { label: 'Add Employee', icon: 'person-add-outline', route: '/org-admin/employees/add' },
-        { label: 'Bulk Upload', icon: 'cloud-upload-outline', route: '/org-admin/employees/bulk-upload' },
-        { label: 'Bank Accounts', icon: 'card-outline', route: '/org-admin/employees/bank-accounts' },
-        { label: 'Salary Management', icon: 'cash-outline', route: '/org-admin/employees/salaries' }
+        { label: 'Bulk Upload & History', icon: 'cloud-upload-outline', route: '/org-admin/employees/bulk-upload' }
       ],
       isExpanded: false
     },
@@ -74,9 +71,9 @@ export class OrgAdminMainLayoutComponent implements OnInit {
       icon: 'business-outline',
       route: '/org-admin/vendors',
       children: [
-        { label: 'Vendor List', icon: 'list-outline', route: '/org-admin/vendors/list' },
+        { label: 'All Vendors', icon: 'list-outline', route: '/org-admin/vendors' },
         { label: 'Add Vendor', icon: 'add-circle-outline', route: '/org-admin/vendors/add' },
-        { label: 'Vendor Payments', icon: 'card-outline', route: '/org-admin/vendors/payments' }
+        { label: 'Vendor Bills', icon: 'receipt-outline', route: '/org-admin/vendors/bills' }
       ],
       isExpanded: false
     },
@@ -85,9 +82,9 @@ export class OrgAdminMainLayoutComponent implements OnInit {
       icon: 'briefcase-outline',
       route: '/org-admin/clients',
       children: [
-        { label: 'Client List', icon: 'list-outline', route: '/org-admin/clients/list' },
-        { label: 'Add Client', icon: 'person-add-outline', route: '/org-admin/clients/add' },
-        { label: 'Invoices', icon: 'document-outline', route: '/org-admin/clients/invoices' }
+        { label: 'Client List', icon: 'list-outline', route: '/org-admin/clients' },
+        { label: 'Deposit History', icon: 'wallet-outline', route: '/org-admin/clients/deposits' },
+        { label: 'Invoices', icon: 'document-outline', route: '/org-admin/invoices' }
       ],
       isExpanded: false
     },
@@ -96,8 +93,7 @@ export class OrgAdminMainLayoutComponent implements OnInit {
       icon: 'help-circle-outline',
       route: '/org-admin/concerns',
       children: [
-        { label: 'All Concerns', icon: 'list-outline', route: '/org-admin/concerns/list' },
-        { label: 'Open Concerns', icon: 'warning-outline', route: '/org-admin/concerns/open' }
+        { label: 'All Concerns', icon: 'list-outline', route: '/org-admin/concerns/list' }
       ],
       isExpanded: false
     },
@@ -109,12 +105,12 @@ export class OrgAdminMainLayoutComponent implements OnInit {
   ];
 
   constructor(
-    public router: Router, // FIX: Made public for template access
+    public router: Router,
     private authService: AuthService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
-    this.userInfo = this.authService.getUserInfo();
+    this.userInfo = this.authService.getUserInfo() as any;
 
     this.router.events
       .pipe(filter(event => event instanceof NavigationEnd))
@@ -127,11 +123,10 @@ export class OrgAdminMainLayoutComponent implements OnInit {
     this.expandActiveSubMenu();
   }
 
-  // NEW: Helper to auto-expand the correct menu on page load/reload
   expandActiveSubMenu(): void {
     for (const item of this.menuItems) {
       if (item.children) {
-        item.isExpanded = item.children.some(child => this.currentRoute.startsWith(child.route));
+        item.isExpanded = this.currentRoute.startsWith(item.route);
       }
     }
   }
@@ -150,20 +145,20 @@ export class OrgAdminMainLayoutComponent implements OnInit {
 
   toggleSubMenu(menuItem: MenuItem): void {
     if (menuItem.children) {
-      // Collapse other menus
       this.menuItems.forEach(item => {
         if (item !== menuItem) item.isExpanded = false;
       });
-      // Toggle the clicked menu
       menuItem.isExpanded = !menuItem.isExpanded;
     }
   }
 
   isMenuItemActive(menuItem: MenuItem): boolean {
+    // For parent items, check if the current route starts with the item's base route
     if (menuItem.children) {
-      return menuItem.children.some(child => this.currentRoute.startsWith(child.route));
+      return this.currentRoute.startsWith(menuItem.route);
     }
-    return this.currentRoute.startsWith(menuItem.route);
+    // For single items, do an exact match
+    return this.currentRoute === menuItem.route;
   }
 
   logout(): void {
@@ -171,7 +166,6 @@ export class OrgAdminMainLayoutComponent implements OnInit {
     this.router.navigate(['/auth/login']);
   }
 
-  // NEW: Helper to get initials from name
   getInitials(name: string | undefined): string {
     if (!name) return 'O';
     const words = name.split(' ').filter(Boolean);

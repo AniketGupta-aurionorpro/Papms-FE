@@ -6,6 +6,7 @@ import { OrganizationResponseDto } from '../../../../../models/organization.mode
 import { LoadingService } from '../../../../../services/loading.service';
 import { OrganizationService } from '../../../../../services/organization.service';
 import { TransactionService } from '../../../../../services/transaction.service';
+import { NotificationService } from '../../../../../core/services/notification.service';
 
 @Component({
   selector: 'app-transaction-audit',
@@ -51,8 +52,9 @@ export class TransactionAuditComponent implements OnInit {
     private router: Router,
     private transactionService: TransactionService,
     private organizationService: OrganizationService,
-    private loadingService: LoadingService
-  ) {}
+    private loadingService: LoadingService,
+    private notificationService: NotificationService
+  ) { }
 
   ngOnInit(): void {
     const organizationId = this.route.snapshot.paramMap.get('id');
@@ -70,8 +72,8 @@ export class TransactionAuditComponent implements OnInit {
         this.organization = organization;
       },
       error: (error) => {
-        this.error =
-          error.error?.message || 'Failed to load organization details';
+        this.error = this.extractErrorMessage(error);
+        this.notificationService.showError(this.error);
       },
     });
   }
@@ -86,13 +88,12 @@ export class TransactionAuditComponent implements OnInit {
           this.filteredTransactions = this.transactions;
           this.totalTransactions =
             response.totalElements || this.transactions.length;
-
-          // Calculate computed properties
           this.calculateTransactionStats();
           this.isLoading = false;
         },
         error: (error) => {
-          this.error = error.error?.message || 'Failed to load transactions';
+          this.error = this.extractErrorMessage(error);
+          this.notificationService.showError(this.error);
           this.isLoading = false;
           this.transactions = [];
           this.filteredTransactions = [];
@@ -191,6 +192,7 @@ export class TransactionAuditComponent implements OnInit {
 
   downloadReport(): void {
     if (this.organization) {
+      this.notificationService.showInfo('Generating audit report...');
       this.transactionService
         .downloadTransactionReport(this.organization.id)
         .subscribe({
@@ -198,14 +200,14 @@ export class TransactionAuditComponent implements OnInit {
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `transactions-${this.organization?.companyName}-${
-              new Date().toISOString().split('T')[0]
-            }.xlsx`;
+            a.download = `transactions-${this.organization?.companyName}-${new Date().toISOString().split('T')[0]
+              }.xlsx`;
             a.click();
             window.URL.revokeObjectURL(url);
+            this.notificationService.showSuccess('Report downloaded successfully!');
           },
           error: (error) => {
-            this.error = 'Failed to download report';
+            this.notificationService.showError('Failed to download report. Please try again.');
           },
         });
     }
@@ -242,5 +244,14 @@ export class TransactionAuditComponent implements OnInit {
       type,
       count,
     }));
+  }
+
+  private extractErrorMessage(err: any): string {
+    if (err.error?.message) return err.error.message;
+    if (err.status === 401) return 'Session expired. Please login again.';
+    if (err.status === 403) return 'You do not have permission to audit transactions.';
+    if (err.status === 404) return 'Organization or transactions not found.';
+    if (err.status === 500) return 'Server error. Please try again later.';
+    return 'Failed to load transaction data. Please try again.';
   }
 }

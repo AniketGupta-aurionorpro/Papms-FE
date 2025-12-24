@@ -1,0 +1,128 @@
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+            <h1 class="text-2xl font-bold text-white tracking-tight">Client Deposit History</h1>
+            <p class="text-slate-400 mt-1">View history of all client deposit requests</p>
+        </div>
+        <div class="flex items-center gap-3">
+            <button (click)="loadDepositRequests()"
+                class="p-2 text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-lg transition-colors">
+                <ion-icon name="refresh-outline" class="text-xl"></ion-icon>
+            </button>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-slate-800 rounded-xl p-6 border border-slate-700/50">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-slate-400 text-sm font-medium">Total Deposits</p>
+                    <h3 class="text-2xl font-bold text-white mt-1">{{ totalDeposits }}</h3>
+                </div>
+                <div class="h-10 w-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                    <ion-icon name="wallet-outline" class="text-blue-400 text-xl"></ion-icon>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-slate-800 rounded-xl p-6 border border-slate-700/50">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-slate-400 text-sm font-medium">Approved Amount</p>
+                    <h3 class="text-2xl font-bold text-white mt-1">{{ formatCurrency(totalAmount) }}</h3>
+                </div>
+                <div class="h-10 w-10 bg-green-500/20 rounded-lg flex items-center justify-center">
+                    <ion-icon name="cash-outline" class="text-green-400 text-xl"></ion-icon>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-slate-800 rounded-xl p-6 border border-slate-700/50">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-slate-400 text-sm font-medium">Approved Requests</p>
+                    <h3 class="text-2xl font-bold text-white mt-1">{{ approvedCount }}</h3>
+                </div>
+                <div class="h-10 w-10 bg-indigo-500/20 rounded-lg flex items-center justify-center">
+                    <ion-icon name="checkmark-circle-outline" class="text-indigo-400 text-xl"></ion-icon>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search & Filters -->
+    <div class="bg-slate-800 rounded-xl p-4 border border-slate-700/50">
+        <div class="relative max-w-md">
+            <ion-icon name="search-outline"
+                class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg"></ion-icon>
+            <input type="text" [(ngModel)]="searchTerm" placeholder="Search by client, amount, or reference..."
+                class="w-full bg-slate-900 text-white pl-10 pr-4 py-2 rounded-lg border border-slate-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 outline-none transition-all placeholder:text-slate-500">
+        </div>
+    </div>
+
+    <!-- Table -->
+    <div class="bg-slate-800 rounded-xl border border-slate-700/50 overflow-hidden flex-1 flex flex-col">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr
+                        class="border-b border-slate-700 bg-slate-800/50 text-xs uppercase text-slate-400 font-semibold tracking-wider">
+                        <th class="px-6 py-4">Client</th>
+                        <th class="px-6 py-4">Amount</th>
+                        <th class="px-6 py-4">Reference</th>
+                        <th class="px-6 py-4">Status</th>
+                        <th class="px-6 py-4">Processed Date</th>
+                        <th class="px-6 py-4">Remarks</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-700">
+                    <tr *ngFor="let req of filteredRequests" class="hover:bg-slate-700/30 transition-colors group">
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-3">
+                                <div
+                                    class="h-8 w-8 rounded-full bg-slate-700 flex items-center justify-center text-xs font-bold text-slate-300">
+                                    {{ req.clientName.substring(0, 2).toUpperCase() }}
+                                </div>
+                                <div>
+                                    <div class="font-medium text-white">{{ req.clientName }}</div>
+                                    <div class="text-xs text-slate-500">{{ req.clientEmail }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 font-medium text-white">
+                            {{ formatCurrency(req.amount) }}
+                        </td>
+                        <td class="px-6 py-4 text-slate-300 text-sm font-mono">
+                            {{ req.referenceNumber || '-' }}
+                        </td>
+                        <td class="px-6 py-4">
+                            <span [class]="getStatusColor(req.status)"
+                                class="px-2.5 py-1 rounded-full text-xs font-medium border border-current opacity-90">
+                                {{ req.status }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-slate-400 text-sm">
+                            {{ formatDate(req.processedAt || req.createdAt) }}
+                        </td>
+                        <td class="px-6 py-4 text-slate-400 text-sm max-w-xs truncate" title="{{ req.remarks }}">
+                            {{ req.remarks || '-' }}
+                        </td>
+                    </tr>
+                    <tr *ngIf="filteredRequests.length === 0 && !isLoading">
+                        <td colspan="6" class="px-6 py-12 text-center">
+                            <div class="flex flex-col items-center justify-center text-slate-500">
+                                <ion-icon name="document-text-outline" class="text-4xl mb-4 opacity-50"></ion-icon>
+                                <p class="text-lg font-medium">No deposits found</p>
+                                <p class="text-sm" *ngIf="searchTerm">Try searching with a different term</p>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <app-loading-spinner *ngIf="isLoading"></app-loading-spinner>
+</div>

@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { PayrollBatchResponse } from '../../../../../models/payroll.models';
 import { LoadingService } from '../../../../../services/loading.service';
 import { PayrollService } from '../../../../../services/payroll.service';
+import { NotificationService } from '../../../../../core/services/notification.service';
 
 
 @Component({
@@ -22,8 +23,9 @@ export class PendingPayrollsComponent implements OnInit {
   constructor(
     private payrollService: PayrollService,
     private loadingService: LoadingService,
-    private router: Router
-  ) {}
+    private router: Router,
+    private notificationService: NotificationService
+  ) { }
 
   ngOnInit(): void {
     this.loadPendingPayrolls();
@@ -36,9 +38,13 @@ export class PendingPayrollsComponent implements OnInit {
         this.payrolls = response.content || response;
         this.filteredPayrolls = this.payrolls;
         this.isLoading = false;
+        if (this.payrolls.length === 0) {
+          this.notificationService.showInfo('No pending payrolls found.');
+        }
       },
       error: (error) => {
-        this.error = error.error?.message || 'Failed to load pending payrolls';
+        this.error = this.extractErrorMessage(error);
+        this.notificationService.showError(this.error);
         this.isLoading = false;
       }
     });
@@ -86,12 +92,14 @@ export class PendingPayrollsComponent implements OnInit {
   }
 
   approvePayroll(batchId: number): void {
+    this.notificationService.showInfo('Processing approval...');
     this.payrollService.approvePayroll(batchId).subscribe({
       next: () => {
+        this.notificationService.showSuccess('Payroll batch approved and processed successfully!');
         this.loadPendingPayrolls();
       },
       error: (error) => {
-        this.error = error.error?.message || 'Failed to approve payroll';
+        this.notificationService.showError(error.error?.message || 'Failed to approve payroll');
       }
     });
   }
@@ -101,10 +109,11 @@ export class PendingPayrollsComponent implements OnInit {
     if (reason) {
       this.payrollService.rejectPayroll(batchId, reason).subscribe({
         next: () => {
+          this.notificationService.showSuccess('Payroll batch rejected.');
           this.loadPendingPayrolls();
         },
         error: (error) => {
-          this.error = error.error?.message || 'Failed to reject payroll';
+          this.notificationService.showError(error.error?.message || 'Failed to reject payroll');
         }
       });
     }
@@ -132,5 +141,13 @@ export class PendingPayrollsComponent implements OnInit {
       'July', 'August', 'September', 'October', 'November', 'December'
     ];
     return months[month - 1] || 'Unknown';
+  }
+
+  private extractErrorMessage(err: any): string {
+    if (err.error?.message) return err.error.message;
+    if (err.status === 401) return 'Session expired. Please login again.';
+    if (err.status === 403) return 'You do not have permission to view payrolls.';
+    if (err.status === 500) return 'Server error. Please try again later.';
+    return 'Failed to load pending payrolls. Please try again.';
   }
 }

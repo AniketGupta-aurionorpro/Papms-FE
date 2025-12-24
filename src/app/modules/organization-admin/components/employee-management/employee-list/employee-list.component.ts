@@ -70,7 +70,7 @@ export class EmployeeListComponent implements OnInit, OnDestroy {
     private employeeService: EmployeeService,
     private authService: AuthService,
     private notificationService: NotificationService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     const userInfo = this.authService.getUserInfo();
@@ -138,9 +138,13 @@ export class EmployeeListComponent implements OnInit, OnDestroy {
           this.employees = response.content;
           this.totalRecords = response.totalElements;
           this.isLoading = false;
+          if (this.employees.length === 0 && this.currentPage === 0 && !this.searchTerm) {
+            this.notificationService.showInfo('No employees found. Add your first employee to get started.');
+          }
         },
         error: (err) => {
-          this.error = 'Failed to load employees. Please try again.';
+          this.error = this.extractErrorMessage(err);
+          this.notificationService.showError(this.error);
           this.isLoading = false;
           console.error(err);
         },
@@ -197,5 +201,38 @@ export class EmployeeListComponent implements OnInit, OnDestroy {
   getInitials(name: string | undefined): string {
     if (!name) return 'U';
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
+  }
+
+
+  scheduleDeletion(employee: CompleteEmployeeResponse, event: MouseEvent): void {
+    event.stopPropagation();
+
+    const confirmation = confirm(
+      `Are you sure you want to schedule ${employee.fullName} for permanent deletion?\n\n` +
+      `This will immediately deactivate their account, and all their data will be permanently erased in 30 days. This action cannot be undone.`
+    );
+
+    if (confirmation) {
+      this.isLoading = true;
+      this.notificationService.showInfo('Processing deletion request...');
+      this.employeeService.scheduleHardDeletion(this.organizationId, employee.id).subscribe({
+        next: () => {
+          this.notificationService.showSuccess(`${employee.fullName} is scheduled for permanent deletion in 30 days. Their account is now inactive.`);
+          this.loadEmployees();
+        },
+        error: (err) => {
+          this.isLoading = false;
+          this.notificationService.showError(this.extractErrorMessage(err));
+        }
+      });
+    }
+  }
+
+  private extractErrorMessage(err: any): string {
+    if (err.error?.message) return err.error.message;
+    if (err.status === 401) return 'Session expired. Please login again.';
+    if (err.status === 403) return 'You do not have permission to perform this action.';
+    if (err.status === 500) return 'Server error. Please try again later.';
+    return 'An error occurred. Please try again.';
   }
 }

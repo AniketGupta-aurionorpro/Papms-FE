@@ -1,16 +1,18 @@
 import { Component } from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { ToastComponent } from './modules/shared/components/ui/toast/toast.component';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, CommonModule],
+  standalone: true,
+  imports: [RouterOutlet, CommonModule, ToastComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })
 export class AppComponent {
   title = 'PAYROLL-SYSTEM';
-  constructor(private router: Router) {}
+  constructor(private router: Router) { }
 
   isAuthPage(): boolean {
     const authRoutes = ['/auth/login', '/auth/register', '/auth/forgot-password', '/auth/reset-password'];

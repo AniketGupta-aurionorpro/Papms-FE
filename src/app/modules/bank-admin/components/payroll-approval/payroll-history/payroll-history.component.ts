@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { PayrollBatchResponse, PayrollStatus } from '../../../../../models/payroll.models';
 import { LoadingService } from '../../../../../services/loading.service';
 import { PayrollService } from '../../../../../services/payroll.service';
+import { NotificationService } from '../../../../../core/services/notification.service';
 
 @Component({
   selector: 'app-payroll-history',
@@ -38,8 +39,9 @@ export class PayrollHistoryComponent implements OnInit {
   constructor(
     private payrollService: PayrollService,
     private loadingService: LoadingService,
-    private router: Router
-  ) {}
+    private router: Router,
+    private notificationService: NotificationService
+  ) { }
 
   ngOnInit(): void {
     this.loadPayrollHistory();
@@ -52,15 +54,18 @@ export class PayrollHistoryComponent implements OnInit {
     this.payrollService.getPendingPayrolls().subscribe({
       next: (response) => {
         const allPayrolls = response.content || [];
-        // Filter out PENDING_APPROVAL status for history view
         this.payrolls = allPayrolls.filter((payroll: PayrollBatchResponse) =>
           payroll.status !== PayrollStatus.PENDING_APPROVAL
         );
         this.filteredPayrolls = this.payrolls;
         this.isLoading = false;
+        if (this.payrolls.length === 0) {
+          this.notificationService.showInfo('No payroll history found.');
+        }
       },
       error: (error) => {
-        this.error = error.error?.message || 'Failed to load payroll history';
+        this.error = this.extractErrorMessage(error);
+        this.notificationService.showError(this.error);
         this.isLoading = false;
         this.payrolls = [];
         this.filteredPayrolls = [];
@@ -79,7 +84,7 @@ export class PayrollHistoryComponent implements OnInit {
   applyFilters(): void {
     this.filteredPayrolls = this.payrolls.filter(payroll => {
       const matchesSearch = payroll.organizationName.toLowerCase().includes(this.searchTerm.toLowerCase()) ||
-                           payroll.submittedBy.toLowerCase().includes(this.searchTerm.toLowerCase());
+        payroll.submittedBy.toLowerCase().includes(this.searchTerm.toLowerCase());
 
       const matchesStatus = this.statusFilter === 'ALL' || payroll.status === this.statusFilter;
 
@@ -148,5 +153,13 @@ export class PayrollHistoryComponent implements OnInit {
 
   getTotalAmount(): number {
     return this.payrolls.reduce((sum, payroll) => sum + payroll.totalAmount, 0);
+  }
+
+  private extractErrorMessage(err: any): string {
+    if (err.error?.message) return err.error.message;
+    if (err.status === 401) return 'Session expired. Please login again.';
+    if (err.status === 403) return 'You do not have permission to view payroll history.';
+    if (err.status === 500) return 'Server error. Please try again later.';
+    return 'Failed to load payroll history. Please try again.';
   }
 }

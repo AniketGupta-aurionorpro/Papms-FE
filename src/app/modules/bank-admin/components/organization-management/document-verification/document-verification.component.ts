@@ -5,6 +5,7 @@ import { DocumentResponseDto, OrganizationResponseDto } from '../../../../../mod
 import { DocumentService } from '../../../../../services/document.service';
 import { LoadingService } from '../../../../../services/loading.service';
 import { OrganizationService } from '../../../../../services/organization.service';
+import { NotificationService } from '../../../../../core/services/notification.service';
 
 
 interface DocumentWithOrganization extends DocumentResponseDto {
@@ -35,8 +36,9 @@ export class DocumentVerificationComponent implements OnInit {
     private organizationService: OrganizationService,
     private documentService: DocumentService,
     private loadingService: LoadingService,
-    private router: Router
-  ) {}
+    private router: Router,
+    private notificationService: NotificationService
+  ) { }
 
   ngOnInit(): void {
     this.loadOrganizationsAndDocuments();
@@ -51,7 +53,8 @@ export class DocumentVerificationComponent implements OnInit {
         this.isLoading = false;
       },
       error: (error) => {
-        this.error = error.error?.message || 'Failed to load documents';
+        this.error = this.extractErrorMessage(error);
+        this.notificationService.showError(this.error);
         this.isLoading = false;
       }
     });
@@ -139,32 +142,34 @@ export class DocumentVerificationComponent implements OnInit {
 
   approveDocument(organizationId: number, documentId: number): void {
     if (!organizationId) {
-      this.error = 'Organization ID is required';
+      this.notificationService.showError('Organization ID is required');
       return;
     }
 
     this.documentService.approveDocument(organizationId, documentId).subscribe({
       next: () => {
+        this.notificationService.showSuccess('Document approved successfully!');
         this.loadOrganizationsAndDocuments();
       },
       error: (error) => {
-        this.error = error.error?.message || 'Failed to approve document';
+        this.notificationService.showError(error.error?.message || 'Failed to approve document');
       }
     });
   }
 
   rejectDocument(organizationId: number, documentId: number): void {
     if (!organizationId) {
-      this.error = 'Organization ID is required';
+      this.notificationService.showError('Organization ID is required');
       return;
     }
 
     this.documentService.rejectDocument(organizationId, documentId).subscribe({
       next: () => {
+        this.notificationService.showSuccess('Document rejected.');
         this.loadOrganizationsAndDocuments();
       },
       error: (error) => {
-        this.error = error.error?.message || 'Failed to reject document';
+        this.notificationService.showError(error.error?.message || 'Failed to reject document');
       }
     });
   }
@@ -201,5 +206,13 @@ export class DocumentVerificationComponent implements OnInit {
   // Helper method to safely get organization ID
   getOrganizationId(document: DocumentWithOrganization): number {
     return document.organization?.id || 0;
+  }
+
+  private extractErrorMessage(err: any): string {
+    if (err.error?.message) return err.error.message;
+    if (err.status === 401) return 'Session expired. Please login again.';
+    if (err.status === 403) return 'You do not have permission to verify documents.';
+    if (err.status === 500) return 'Server error. Please try again later.';
+    return 'Failed to load documents. Please try again.';
   }
 }

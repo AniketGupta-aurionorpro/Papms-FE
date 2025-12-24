@@ -4,6 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { PayrollBatchResponse } from '../../../../../models/payroll.models';
 import { LoadingService } from '../../../../../services/loading.service';
 import { PayrollService } from '../../../../../services/payroll.service';
+import { NotificationService } from '../../../../../core/services/notification.service';
 
 
 @Component({
@@ -28,8 +29,9 @@ export class PayrollDetailsComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private payrollService: PayrollService,
-    private loadingService: LoadingService
-  ) {}
+    private loadingService: LoadingService,
+    private notificationService: NotificationService
+  ) { }
 
   ngOnInit(): void {
     const batchId = this.route.snapshot.paramMap.get('id');
@@ -48,7 +50,8 @@ export class PayrollDetailsComponent implements OnInit {
         this.isLoading = false;
       },
       error: (error) => {
-        this.error = error.error?.message || 'Failed to load payroll details';
+        this.error = this.extractErrorMessage(error);
+        this.notificationService.showError(this.error);
         this.isLoading = false;
       }
     });
@@ -86,12 +89,14 @@ export class PayrollDetailsComponent implements OnInit {
 
   approvePayroll(): void {
     if (this.payroll) {
+      this.notificationService.showInfo('Processing approval...');
       this.payrollService.approvePayroll(this.payroll.id).subscribe({
         next: () => {
+          this.notificationService.showSuccess('Payroll batch approved and processed successfully!');
           this.loadPayrollDetails(this.payroll!.id);
         },
         error: (error) => {
-          this.error = error.error?.message || 'Failed to approve payroll';
+          this.notificationService.showError(error.error?.message || 'Failed to approve payroll');
         }
       });
     }
@@ -103,10 +108,11 @@ export class PayrollDetailsComponent implements OnInit {
       if (reason) {
         this.payrollService.rejectPayroll(this.payroll.id, reason).subscribe({
           next: () => {
+            this.notificationService.showSuccess('Payroll batch rejected.');
             this.loadPayrollDetails(this.payroll!.id);
           },
           error: (error) => {
-            this.error = error.error?.message || 'Failed to reject payroll';
+            this.notificationService.showError(error.error?.message || 'Failed to reject payroll');
           }
         });
       }
@@ -181,5 +187,14 @@ export class PayrollDetailsComponent implements OnInit {
   getEmployeeInitials(employeeName: string): string {
     if (!employeeName) return '??';
     return employeeName.split(' ').map(n => n[0]).join('').toUpperCase();
+  }
+
+  private extractErrorMessage(err: any): string {
+    if (err.error?.message) return err.error.message;
+    if (err.status === 401) return 'Session expired. Please login again.';
+    if (err.status === 403) return 'You do not have permission to view this payroll.';
+    if (err.status === 404) return 'Payroll not found.';
+    if (err.status === 500) return 'Server error. Please try again later.';
+    return 'Failed to load payroll details. Please try again.';
   }
 }

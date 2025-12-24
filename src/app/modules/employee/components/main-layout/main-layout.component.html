@@ -1,0 +1,67 @@
+<div class="flex h-screen bg-slate-900 text-slate-300">
+  <!-- Mobile Menu Button -->
+  <button 
+    (click)="toggleSidebar()" 
+    class="lg:hidden fixed top-4 left-4 z-50 p-2 rounded-lg bg-slate-800 text-cyan-400 hover:bg-slate-700 transition-colors">
+    <ion-icon [name]="isSidebarOpen ? 'close-outline' : 'menu-outline'" class="text-2xl"></ion-icon>
+  </button>
+
+  <!-- Sidebar Overlay (Mobile) -->
+  <div 
+    *ngIf="isSidebarOpen" 
+    (click)="toggleSidebar()" 
+    class="lg:hidden fixed inset-0 bg-black/50 z-30">
+  </div>
+
+  <!-- Sidebar -->
+  <aside 
+    [class]="'w-64 flex-shrink-0 bg-slate-800 p-4 flex flex-col justify-between fixed lg:relative h-full z-40 transition-transform duration-300 ' + 
+             (isSidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0')">
+    <div>
+      <!-- Logo and Title -->
+      <div class="flex items-center gap-3 px-2 py-3 mb-6">
+        <div class="h-10 w-10 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-lg flex items-center justify-center">
+          <ion-icon name="person-circle-outline" class="text-white text-xl"></ion-icon>
+        </div>
+        <div>
+          <h2 class="text-lg font-bold text-white">Employee Portal</h2>
+          <p class="text-xs text-slate-400 truncate max-w-[140px]">{{ employeeName }}</p>
+        </div>
+      </div>
+
+      <!-- Navigation Menu -->
+      <nav class="flex flex-col gap-2">
+        <a *ngFor="let item of navigationItems"
+           [routerLink]="item.route"
+           routerLinkActive="bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-lg shadow-cyan-500/20"
+           [routerLinkActiveOptions]="{ exact: item.route === '/employee/dashboard' }"
+           (click)="isSidebarOpen = false"
+           class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-700 transition-all duration-200">
+          <ion-icon [name]="item.icon" class="text-xl"></ion-icon>
+          <span class="font-medium">{{ item.label }}</span>
+        </a>
+      </nav>
+    </div>
+
+    <!-- User Section & Logout -->
+    <div class="space-y-4">
+      <!-- Divider -->
+      <div class="border-t border-slate-700"></div>
+      
+      <!-- Logout Button -->
+      <button 
+        (click)="logout()"
+        class="flex items-center gap-3 w-full px-4 py-3 rounded-lg text-slate-400 hover:bg-red-900/30 hover:text-red-400 transition-all duration-200">
+        <ion-icon name="log-out-outline" class="text-xl"></ion-icon>
+        <span class="font-medium">Logout</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="flex-1 overflow-y-auto bg-slate-900 lg:ml-0">
+    <div class="p-4 md:p-6 lg:p-8 pt-16 lg:pt-8">
+      <router-outlet></router-outlet>
+    </div>
+  </main>
+</div>

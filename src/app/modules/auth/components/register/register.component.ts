@@ -1,8 +1,12 @@
 import { Component, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Router } from '@angular/router';
 import { OrganizationService } from '../../../../services/organization.service';
 import { OrganizationRegistrationReq } from '../../../../models/organization.models';
+import { AuthService } from '../../../../core/services/auth.service';
+import { NotificationService } from '../../../../core/services/notification.service';
+import { Observable, of } from 'rxjs';
+import { debounceTime, map, catchError, switchMap, first } from 'rxjs/operators';
 
 @Component({
   selector: 'app-register',
@@ -20,16 +24,22 @@ export class RegisterComponent {
   document2: File | null = null;
   logo: File | null = null;
 
+  // Track validation status for UI feedback
+  usernameChecking = false;
+  emailChecking = false;
+
   constructor(
     private fb: FormBuilder,
     private organizationService: OrganizationService,
+    private authService: AuthService,
+    private notificationService: NotificationService,
     private router: Router
   ) {
     this.registerForm = this.fb.group({
       companyName: ['', [Validators.required]],
       fullName: ['', [Validators.required]],
-      username: ['', [Validators.required, Validators.minLength(3)]],
-      email: ['', [Validators.required, Validators.email]],
+      username: ['', [Validators.required, Validators.minLength(3)], [this.usernameValidator.bind(this)]],
+      email: ['', [Validators.required, Validators.email], [this.emailValidator.bind(this)]],
       contactNumber: ['', [Validators.required, Validators.pattern(/^[0-9]{10}$/)]],
       address: ['', [Validators.required]],
       password: ['', [Validators.required, Validators.minLength(6)]],
@@ -38,6 +48,54 @@ export class RegisterComponent {
       document2: [null, Validators.required],
       logo: [null]
     }, { validators: this.passwordMatchValidator });
+  }
+
+  // NEW: Async validator for username
+  private usernameValidator(control: AbstractControl): Observable<ValidationErrors | null> {
+    if (!control.value || control.value.length < 3) {
+      return of(null);
+    }
+    this.usernameChecking = true;
+    return of(control.value).pipe(
+      debounceTime(500), // Wait 500ms after user stops typing
+      switchMap(value =>
+        this.authService.checkUsernameAvailability(value).pipe(
+          map(response => {
+            this.usernameChecking = false;
+            return response.available ? null : { usernameTaken: response.message };
+          }),
+          catchError(() => {
+            this.usernameChecking = false;
+            return of(null); // Don't block on network errors
+          })
+        )
+      ),
+      first()
+    );
+  }
+
+  // NEW: Async validator for email
+  private emailValidator(control: AbstractControl): Observable<ValidationErrors | null> {
+    if (!control.value || !control.value.includes('@')) {
+      return of(null);
+    }
+    this.emailChecking = true;
+    return of(control.value).pipe(
+      debounceTime(500), // Wait 500ms after user stops typing
+      switchMap(value =>
+        this.authService.checkEmailAvailability(value).pipe(
+          map(response => {
+            this.emailChecking = false;
+            return response.available ? null : { emailTaken: response.message };
+          }),
+          catchError(() => {
+            this.emailChecking = false;
+            return of(null); // Don't block on network errors
+          })
+        )
+      ),
+      first()
+    );
   }
 
   get f() { return this.registerForm.controls; }
@@ -95,6 +153,7 @@ export class RegisterComponent {
       next: () => {
         this.isLoading = false;
         this.success = true;
+        this.notificationService.showSuccess('Registration submitted! Awaiting bank approval.');
         setTimeout(() => {
           this.router.navigate(['/auth/login'], { queryParams: { registration: 'success' } });
         }, 4000);
@@ -102,6 +161,7 @@ export class RegisterComponent {
       error: (err) => {
         this.isLoading = false;
         this.error = err.error?.message || err.error || 'Registration failed. Please check your inputs and try again.';
+        this.notificationService.showError(this.error);
         console.error(err);
       }
     });

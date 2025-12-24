@@ -10,6 +10,7 @@ import {
 import { Router, ActivatedRoute } from '@angular/router';
 import { LoadingService } from '../../../../services/loading.service';
 import { AuthService } from '../../../../core/services/auth.service';
+import { NotificationService } from '../../../../core/services/notification.service';
 
 @Component({
   selector: 'app-login',
@@ -28,7 +29,8 @@ export class LoginComponent {
     private authService: AuthService,
     private loadingService: LoadingService,
     private router: Router,
-    private route: ActivatedRoute
+    private route: ActivatedRoute,
+    private notificationService: NotificationService
   ) {
     this.loginForm = this.fb.group({
       username: ['', [Validators.required]],
@@ -50,6 +52,7 @@ export class LoginComponent {
         next: (response) => {
           console.log('Login successful response:', response);
           console.log('User role:', response.role);
+          this.notificationService.showSuccess(`Welcome back! Logging in as ${response.role.replace('_', ' ')}...`);
 
           // Give a small delay to ensure token is stored
           setTimeout(() => {
@@ -59,7 +62,8 @@ export class LoginComponent {
         error: (error) => {
           console.error('Login error:', error);
           this.isLoading = false;
-          this.error = error.error?.message || error.message || 'Login failed. Please try again.';
+          this.error = this.extractErrorMessage(error);
+          this.notificationService.showError(this.error);
 
           // Clear any potentially corrupted stored data
           this.authService.logout();
@@ -108,6 +112,11 @@ export class LoginComponent {
           console.log('Navigation to client successful:', success);
         });
         break;
+      case 'VENDOR':
+        this.router.navigate(['/vendor']).then(success => {
+          console.log('Navigation to vendor successful:', success);
+        });
+        break;
       default:
         console.warn('Unknown role:', role, 'redirecting to home');
         this.router.navigate(['/']).then(success => {
@@ -127,5 +136,13 @@ export class LoginComponent {
   }
   get password() {
     return this.loginForm.get('password');
+  }
+
+  private extractErrorMessage(err: any): string {
+    if (err.error?.message) return err.error.message;
+    if (err.status === 401) return 'Invalid username or password.';
+    if (err.status === 403) return 'Your account has been locked. Please contact support.';
+    if (err.status === 500) return 'Server error. Please try again later.';
+    return 'Login failed. Please check your credentials.';
   }
 }

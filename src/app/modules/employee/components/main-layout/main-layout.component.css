@@ -1,0 +1,77 @@
+/* Employee Main Layout Styles */
+
+/* Custom scrollbar for sidebar */
+aside::-webkit-scrollbar {
+  width: 4px;
+}
+
+aside::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+aside::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.3);
+  border-radius: 2px;
+}
+
+aside::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.5);
+}
+
+/* Navigation item hover effect */
+nav a {
+  position: relative;
+  overflow: hidden;
+}
+
+nav a::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 3px;
+  height: 100%;
+  background: linear-gradient(to bottom, #06b6d4, #3b82f6);
+  transform: scaleY(0);
+  transition: transform 0.2s ease;
+}
+
+nav a:hover::before,
+nav a.active::before {
+  transform: scaleY(1);
+}
+
+/* Active navigation item glow */
+nav a[class*="from-cyan-600"] {
+  box-shadow: 0 4px 15px -3px rgba(6, 182, 212, 0.3);
+}
+
+/* Main content scrollbar */
+main::-webkit-scrollbar {
+  width: 8px;
+}
+
+main::-webkit-scrollbar-track {
+  background: #1e293b;
+}
+
+main::-webkit-scrollbar-thumb {
+  background: #475569;
+  border-radius: 4px;
+}
+
+main::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+
+/* Smooth transitions for sidebar */
+@media (max-width: 1024px) {
+  aside {
+    box-shadow: 4px 0 25px rgba(0, 0, 0, 0.5);
+  }
+}
+
+/* Logout button hover glow */
+button:hover ion-icon[name="log-out-outline"] {
+  filter: drop-shadow(0 0 8px rgba(248, 113, 113, 0.5));
+}

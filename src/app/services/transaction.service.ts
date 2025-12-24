@@ -2,7 +2,7 @@ import { Injectable } from "@angular/core";
 import { Observable } from "rxjs";
 import { HttpClient, HttpParams } from "@angular/common/http";
 import { environment } from "../../environments/environment";
-import { TransactionDto } from "../models/transaction.models";
+import { TransactionDto, TransactionSourceType, TransactionType } from "../models/transaction.models"; // MODIFIED
 
 @Injectable({
   providedIn: 'root',
@@ -12,7 +12,6 @@ export class TransactionService {
 
   private baseUrl = environment.apiUrl + '/api/organizations';
 
-  // --- MODIFIED SIGNATURE AND LOGIC ---
   getTransactions(
     organizationId: number,
     page: number = 0,
@@ -20,7 +19,8 @@ export class TransactionService {
     searchTerm?: string | null,
     startDate?: string | null,
     endDate?: string | null,
-    type?: string | null
+    type?: TransactionType | 'ALL' | null, // MODIFIED
+    sourceType?: TransactionSourceType | null // NEW PARAMETER
   ): Observable<any> {
     let params = new HttpParams()
       .set('page', page.toString())
@@ -38,10 +38,14 @@ export class TransactionService {
     if (type && type !== 'ALL') {
       params = params.set('type', type);
     }
+    // --- FIX IS HERE ---
+    if (sourceType) {
+      params = params.set('sourceType', sourceType);
+    }
+    // --- END FIX ---
 
     return this.http.get<any>(`${this.baseUrl}/${organizationId}/transactions`, { params });
   }
-  // --- END MODIFICATION ---
 
   downloadTransactionReport(organizationId: number): Observable<Blob> {
     return this.http.get(`${this.baseUrl}/${organizationId}/transactions/download/excel`, {

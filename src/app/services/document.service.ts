@@ -25,4 +25,9 @@ export class DocumentService {
       {}
     );
   }
+
+  // NEW: Get proxy URL for document content (bypasses Cloudinary 401)
+  getDocumentContentUrl(organizationId: number, documentId: number): string {
+    return `${this.baseUrl}/${organizationId}/documents/${documentId}/content`;
+  }
 }

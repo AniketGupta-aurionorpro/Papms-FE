@@ -1,9 +1,9 @@
-<div class="space-y-6">
+<div class="space-y-8">
   <!-- Header -->
   <div class="flex items-start justify-between">
     <div>
       <h1 class="text-3xl font-bold text-white">Bulk Employee Upload</h1>
-      <p class="text-slate-400 mt-1">Add multiple employees at once using a CSV file.</p>
+      <p class="text-slate-400 mt-1">Add or review employee data imported via CSV files.</p>
     </div>
     <a routerLink="/org-admin/employees/list" class="flex items-center gap-2 px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-600 transition-colors text-sm font-medium">
       <ion-icon name="arrow-back-outline"></ion-icon>
@@ -11,64 +11,111 @@
     </a>
   </div>
 
-  <!-- Step 1: Download Template -->
-  <div class="bg-slate-800 rounded-xl border border-slate-700 p-6">
-    <div class="flex items-start gap-4">
-      <div class="flex-shrink-0 h-10 w-10 bg-blue-600/20 text-blue-400 rounded-full flex items-center justify-center font-bold text-lg">1</div>
-      <div>
-        <h2 class="text-lg font-semibold text-white">Download the CSV Template</h2>
-        <p class="text-slate-400 mt-1 text-sm">Start by downloading our pre-formatted CSV template. This ensures your data matches our system's requirements and reduces upload errors.</p>
-        <button (click)="downloadTemplate()" [disabled]="isDownloading" class="mt-4 flex items-center gap-2 px-4 py-2 bg-slate-700 text-white rounded-lg hover:bg-slate-600 transition-colors text-sm font-medium disabled:opacity-50">
-          <ion-icon [name]="isDownloading ? 'sync-outline' : 'download-outline'" [class.animate-spin]="isDownloading"></ion-icon>
-          <span>{{ isDownloading ? 'Downloading...' : 'Download Template.csv' }}</span>
+  <!-- UPLOAD SECTION -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <!-- Left Column: Steps -->
+    <div class="space-y-6">
+      <div class="flex items-start gap-4">
+        <div class="flex-shrink-0 h-10 w-10 bg-blue-600/20 text-blue-400 rounded-full flex items-center justify-center font-bold text-lg">1</div>
+        <div>
+          <h2 class="text-lg font-semibold text-white">Download Template</h2>
+          <p class="text-slate-400 mt-1 text-sm">Download our CSV template to ensure your data is formatted correctly.</p>
+          <button (click)="downloadTemplate()" [disabled]="isDownloading" class="mt-3 flex items-center gap-2 px-3 py-1.5 bg-slate-700 text-white rounded-md hover:bg-slate-600 transition-colors text-sm font-medium disabled:opacity-50">
+            <ion-icon [name]="isDownloading ? 'sync-outline' : 'download-outline'" [class.animate-spin]="isDownloading"></ion-icon>
+            <span>Download Template.csv</span>
+          </button>
+        </div>
+      </div>
+      <div class="flex items-start gap-4">
+        <div class="flex-shrink-0 h-10 w-10 bg-blue-600/20 text-blue-400 rounded-full flex items-center justify-center font-bold text-lg">2</div>
+        <div>
+          <h2 class="text-lg font-semibold text-white">Process & Notify</h2>
+          <p class="text-slate-400 mt-1 text-sm">The file is processed in the background. You will receive a notification when the job is complete.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Upload Area -->
+    <div class="bg-slate-800 rounded-xl border border-slate-700 p-6">
+      <h2 class="text-lg font-semibold text-white">Upload Your Completed CSV File</h2>
+      <div class="mt-4">
+        <label for="file-upload" class="flex flex-col items-center justify-center w-full h-32 border-2 border-slate-600 border-dashed rounded-lg cursor-pointer bg-slate-900/50 hover:bg-slate-700/50 transition-colors">
+          <div class="flex flex-col items-center justify-center pt-5 pb-6">
+            <ion-icon name="cloud-upload-outline" class="text-3xl text-slate-400"></ion-icon>
+            <p *ngIf="!selectedFile" class="mb-2 text-sm text-slate-400"><span class="font-semibold">Click to upload</span> or drag and drop</p>
+            <p *ngIf="selectedFile" class="mb-2 text-sm text-green-400 font-semibold">{{ selectedFile.name }}</p>
+            <p class="text-xs text-slate-500">CSV file only</p>
+          </div>
+          <input id="file-upload" type="file" class="hidden" (change)="onFileSelected($event)" accept=".csv">
+        </label>
+      </div>
+      <div class="mt-6">
+        <button (click)="uploadFile()" [disabled]="isLoading || !selectedFile" class="w-full flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-500 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed">
+          <ion-icon [name]="isLoading ? 'sync-outline' : 'rocket-outline'" [class.animate-spin]="isLoading"></ion-icon>
+          <span>{{ isLoading ? 'Starting Import...' : 'Start Asynchronous Import' }}</span>
         </button>
       </div>
     </div>
   </div>
 
-  <!-- Step 2: Upload File -->
-  <div class="bg-slate-800 rounded-xl border border-slate-700 p-6">
-    <div class="flex items-start gap-4">
-      <div class="flex-shrink-0 h-10 w-10 bg-blue-600/20 text-blue-400 rounded-full flex items-center justify-center font-bold text-lg">2</div>
-      <div>
-        <h2 class="text-lg font-semibold text-white">Upload Your Completed CSV File</h2>
-        <p class="text-slate-400 mt-1 text-sm">Once you've filled out the template, upload it here. The system will process it in the background.</p>
-
-        <!-- File Upload Area -->
-        <div class="mt-4 max-w-lg">
-          <label for="file-upload" class="flex flex-col items-center justify-center w-full h-32 border-2 border-slate-600 border-dashed rounded-lg cursor-pointer bg-slate-900/50 hover:bg-slate-700/50 transition-colors">
-            <div class="flex flex-col items-center justify-center pt-5 pb-6">
-              <ion-icon name="cloud-upload-outline" class="text-3xl text-slate-400"></ion-icon>
-              <p *ngIf="!selectedFile" class="mb-2 text-sm text-slate-400"><span class="font-semibold">Click to upload</span> or drag and drop</p>
-              <p *ngIf="selectedFile" class="mb-2 text-sm text-green-400 font-semibold">{{ selectedFile.name }}</p>
-              <p class="text-xs text-slate-500">CSV file only</p>
-            </div>
-            <input id="file-upload" type="file" class="hidden" (change)="onFileSelected($event)" accept=".csv">
-          </label>
-        </div>
-
-        <!-- Upload Button -->
-        <div class="mt-6">
-          <button (click)="uploadFile()" [disabled]="isLoading || !selectedFile" class="flex items-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-500 transition-colors font-semibold disabled:opacity-50 disabled:cursor-not-allowed">
-            <ion-icon [name]="isLoading ? 'sync-outline' : 'rocket-outline'" [class.animate-spin]="isLoading"></ion-icon>
-            <span>{{ isLoading ? 'Uploading & Processing...' : 'Start Asynchronous Import' }}</span>
-          </button>
-        </div>
-      </div>
+  <!-- HISTORY SECTION -->
+  <div class="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
+    <div class="p-4 border-b border-slate-700">
+        <h2 class="text-xl font-bold text-white">Upload History</h2>
     </div>
-  </div>
-
-  <!-- Step 3: Notification Info -->
-  <div class="bg-slate-800 rounded-xl border border-slate-700 p-6">
-    <div class="flex items-start gap-4">
-      <div class="flex-shrink-0 h-10 w-10 bg-blue-600/20 text-blue-400 rounded-full flex items-center justify-center font-bold text-lg">3</div>
-      <div>
-        <h2 class="text-lg font-semibold text-white">Processing & Notification</h2>
-        <p class="text-slate-400 mt-1 text-sm">
-          The file will be processed in the background. This is safe for large files and you can navigate away from this page.
-          You will receive a notification in the top right corner once the import is complete with a summary of successful and failed records.
-        </p>
-      </div>
+    <div *ngIf="historyIsLoading" class="p-16 text-center text-slate-400">
+      <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+      <p class="mt-4">Loading history...</p>
     </div>
+    <div *ngIf="historyError && !historyIsLoading" class="p-6 bg-red-900/50 text-red-300 text-center">
+        <ion-icon name="alert-circle-outline" class="text-4xl"></ion-icon>
+        <p class="mt-2 font-semibold">Could not load upload history.</p>
+        <p class="text-sm">{{ historyError }}</p>
+    </div>
+    <div *ngIf="!historyIsLoading && !historyError && reports.length > 0" class="overflow-x-auto">
+      <table class="w-full text-sm text-left text-slate-400">
+        <thead class="text-xs text-slate-400 uppercase bg-slate-900/50">
+          <tr>
+            <th scope="col" class="px-6 py-3">Job ID</th>
+            <th scope="col" class="px-6 py-3">Date</th>
+            <th scope="col" class="px-6 py-3">Status</th>
+            <th scope="col" class="px-6 py-3 text-center">Records Read</th>
+            <th scope="col" class="px-6 py-3 text-center">Successful</th>
+            <th scope="col" class="px-6 py-3 text-center">Failed</th>
+            <th scope="col" class="px-6 py-3 text-center">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let report of reports" class="border-b border-slate-700 hover:bg-slate-700/50">
+            <td class="px-6 py-4 font-mono text-white">#{{ report.jobExecutionId }}</td>
+            <td class="px-6 py-4">{{ report.createdAt | date:'medium' }}</td>
+            <td class="px-6 py-4">
+              <span class="px-2.5 py-1 text-xs font-semibold rounded-full" [ngClass]="getStatusClass(report.status)">
+                {{ report.status }}
+              </span>
+            </td>
+            <td class="px-6 py-4 text-center font-medium text-white">{{ report.totalRecordsRead }}</td>
+            <td class="px-6 py-4 text-center font-medium text-green-400">{{ report.successfulImports }}</td>
+            <td class="px-6 py-4 text-center font-medium text-red-400">{{ report.failedImports }}</td>
+            <td class="px-6 py-4 text-center">
+              <button (click)="viewReport(report.id)" class="px-3 py-1 text-sm font-semibold rounded-md text-white bg-blue-600 hover:bg-blue-500 transition">
+                View Report
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div *ngIf="!historyIsLoading && !historyError && reports.length === 0" class="p-16 text-center text-slate-500">
+      <ion-icon name="archive-outline" class="text-5xl"></ion-icon>
+      <p class="mt-2">No bulk upload history found.</p>
+    </div>
+    <app-pagination
+      *ngIf="totalRecords > pageSize && !historyIsLoading"
+      [totalRecords]="totalRecords"
+      [rows]="pageSize"
+      [currentPage]="currentPage"
+      (onPageChange)="onPageChange($event)">
+    </app-pagination>
   </div>
 </div>

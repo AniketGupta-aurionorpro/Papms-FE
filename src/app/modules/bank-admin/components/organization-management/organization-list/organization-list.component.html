@@ -9,13 +9,9 @@
         <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
           <ion-icon name="search-outline" class="text-slate-400"></ion-icon>
         </div>
-        <input
-          type="text"
-          [(ngModel)]="searchTerm"
-          (ngModelChange)="onSearchChange()"
+        <input type="text" [(ngModel)]="searchTerm" (ngModelChange)="onSearchChange()"
           class="block w-full pl-10 pr-3 py-2 bg-slate-800 border border-slate-700 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
-          placeholder="Search organizations..."
-        >
+          placeholder="Search organizations...">
       </div>
     </div>
   </div>
@@ -31,54 +27,64 @@
   </div>
 
   <!-- Organizations Grid -->
-  <div *ngIf="!isLoading && !error && filteredOrganizations.length > 0" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-    <div *ngFor="let org of filteredOrganizations; let i = index"
-         (click)="viewOrganization(org.id)"
-         class="org-card bg-slate-800 rounded-2xl p-6 flex flex-col justify-between items-center text-center aspect-square cursor-pointer transition-all duration-300 hover:-translate-y-2 hover:bg-slate-700/50 hover:shadow-2xl hover:shadow-blue-900/20 relative"
-         [style.animation-delay]="i * 0.05 + 's'">
+  <div *ngIf="!isLoading && !error && filteredOrganizations.length > 0">
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+      <div *ngFor="let org of paginatedOrganizations; let i = index" (click)="viewOrganization(org.id)"
+        class="org-card bg-slate-800 rounded-2xl p-6 flex flex-col justify-between items-center text-center aspect-square cursor-pointer transition-all duration-300 hover:-translate-y-2 hover:bg-slate-700/50 hover:shadow-2xl hover:shadow-blue-900/20 relative"
+        [style.animation-delay]="i * 0.05 + 's'">
 
-      <!-- Notification Badge for Pending Payrolls -->
-      <div *ngIf="getPendingCountForOrg(org.id) > 0"
-           class="absolute top-4 right-4 h-6 w-6 text-slate-900 text-xs font-bold rounded-full flex items-center justify-center shadow-lg bg-cyan-400 shadow-cyan-500/30">
-        {{ getPendingCountForOrg(org.id) }}
-      </div>
-
-      <!-- Container for Logo and Name -->
-      <div class="flex flex-col items-center">
-        <!-- Logo or Fallback Initials -->
-        <div class="w-20 h-20 mb-4 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0" [ngClass]="org.logoUrl ? 'bg-slate-700' : 'bg-gradient-to-br from-blue-600 to-cyan-500'">
-          <img *ngIf="org.logoUrl" [src]="org.logoUrl" alt="{{ org.companyName }} Logo" class="w-full h-full object-cover">
-          <span *ngIf="!org.logoUrl" class="text-2xl font-bold text-white">
-            {{ getInitials(org.companyName) }}
-          </span>
+        <!-- Notification Badge for Pending Payrolls -->
+        <div *ngIf="getPendingCountForOrg(org.id) > 0"
+          class="absolute top-4 right-4 h-6 w-6 text-slate-900 text-xs font-bold rounded-full flex items-center justify-center shadow-lg bg-cyan-400 shadow-cyan-500/30">
+          {{ getPendingCountForOrg(org.id) }}
         </div>
 
-        <!-- Company Name -->
-        <h3 class="text-lg font-bold text-white leading-tight">
-          {{ org.companyName }}
-        </h3>
-      </div>
+        <!-- Container for Logo and Name -->
+        <div class="flex flex-col items-center">
+          <!-- Logo or Fallback Initials -->
+          <div class="w-20 h-20 mb-4 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0"
+            [ngClass]="org.logoUrl ? 'bg-slate-700' : 'bg-gradient-to-br from-blue-600 to-cyan-500'">
+            <img *ngIf="org.logoUrl" [src]="org.logoUrl" alt="{{ org.companyName }} Logo"
+              class="w-full h-full object-cover">
+            <span *ngIf="!org.logoUrl" class="text-2xl font-bold text-white">
+              {{ getInitials(org.companyName) }}
+            </span>
+          </div>
 
-      <!-- ** NEW: Status Badge ** -->
-      <div class="mt-2">
-        <span
-          class="text-xs font-semibold px-2.5 py-1 rounded-full capitalize"
-          [ngClass]="getStatusBadgeClass(org.status)"
-        >
-          {{ org.status.replace('_', ' ') | lowercase }}
-        </span>
+          <!-- Company Name -->
+          <h3 class="text-lg font-bold text-white leading-tight">
+            {{ org.companyName }}
+          </h3>
+        </div>
+
+        <!-- ** NEW: Status Badge ** -->
+        <div class="mt-2">
+          <span class="text-xs font-semibold px-2.5 py-1 rounded-full capitalize"
+            [ngClass]="getStatusBadgeClass(org.status)">
+            {{ org.status.replace('_', ' ') | lowercase }}
+          </span>
+        </div>
       </div>
+    </div>
+
+    <!-- Pagination -->
+    <div class="mt-8">
+      <app-pagination *ngIf="totalRecords > 0" [totalRecords]="totalRecords" [rows]="pageSize"
+        [currentPage]="currentPage" (onPageChange)="onPageChange($event)">
+      </app-pagination>
     </div>
   </div>
 
   <!-- Empty State for Search -->
-  <div *ngIf="filteredOrganizations.length === 0 && organizations.length > 0 && !isLoading" class="col-span-full text-center py-16 text-slate-500">
+  <div *ngIf="filteredOrganizations.length === 0 && organizations.length > 0 && !isLoading"
+    class="col-span-full text-center py-16 text-slate-500">
     <ion-icon name="search-circle-outline" class="text-6xl"></ion-icon>
     <p class="mt-4">No organizations found for "{{ searchTerm }}"</p>
   </div>
 
   <!-- Empty State for Initial Load -->
-  <div *ngIf="organizations.length === 0 && !isLoading && !error" class="col-span-full text-center py-16 text-slate-500">
+  <div *ngIf="organizations.length === 0 && !isLoading && !error"
+    class="col-span-full text-center py-16 text-slate-500">
     <ion-icon name="business-outline" class="text-6xl"></ion-icon>
     <p class="mt-4">There are no organizations to display yet.</p>
   </div>

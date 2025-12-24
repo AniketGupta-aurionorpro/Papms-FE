@@ -1,40 +1,23 @@
 <div *ngIf="isLoading" class="flex justify-center items-center h-96">
-  <div
-    class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"
-  ></div>
+  <div class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
 </div>
 
-<div
-  *ngIf="error && !isLoading"
-  class="bg-red-900/50 border border-red-700 text-red-300 rounded-lg p-4"
->
+<div *ngIf="error && !isLoading" class="bg-red-900/50 border border-red-700 text-red-300 rounded-lg p-4">
   <p><strong>Error:</strong> {{ error }}</p>
 </div>
 
 <div *ngIf="organization && !isLoading" class="space-y-8">
   <!-- Header Section -->
-  <div
-    class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4"
-  >
+  <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
     <div class="flex items-center gap-5">
-      <div
-        class="w-20 h-20 rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0"
-        [ngClass]="
+      <div class="w-20 h-20 rounded-lg flex items-center justify-center overflow-hidden flex-shrink-0" [ngClass]="
           organization.logoUrl
             ? 'bg-slate-700'
             : 'bg-gradient-to-br from-blue-600 to-cyan-500'
-        "
-      >
-        <img
-          *ngIf="organization.logoUrl"
-          [src]="organization.logoUrl"
-          [alt]="organization.companyName + ' Logo'"
-          class="w-full h-full object-cover"
-        />
-        <span
-          *ngIf="!organization.logoUrl"
-          class="text-3xl font-bold text-white"
-        >
+        ">
+        <img *ngIf="organization.logoUrl" [src]="organization.logoUrl" [alt]="organization.companyName + ' Logo'"
+          class="w-full h-full object-cover" />
+        <span *ngIf="!organization.logoUrl" class="text-3xl font-bold text-white">
           {{ getInitials(organization.companyName) }}
         </span>
       </div>
@@ -43,32 +26,25 @@
           <h1 class="text-3xl font-bold text-white">
             {{ organization.companyName }}
           </h1>
-          <div
-            *ngIf="organization.status.toUpperCase() === 'ACTIVE'"
-            class="flex items-baseline gap-2 bg-slate-800 px-3 py-1 rounded-md"
-          >
+          <div *ngIf="organization.status.toUpperCase() === 'ACTIVE'"
+            class="flex items-baseline gap-2 bg-slate-800 px-3 py-1 rounded-md">
             <span class="text-sm text-slate-400">Balance:</span>
             <span class="text-lg font-bold text-white">{{
               organization.internalBalance | currency : "INR" : "symbol-narrow"
-            }}</span>
+              }}</span>
           </div>
         </div>
         <div class="mt-2">
-          <span
-            class="text-xs font-semibold px-2.5 py-1 rounded-full capitalize"
-            [ngClass]="getStatusBadgeClass(organization.status)"
-          >
-            <span
-              class="inline-block w-2 h-2 rounded-full mr-1.5"
-              [ngClass]="{
+          <span class="text-xs font-semibold px-2.5 py-1 rounded-full capitalize"
+            [ngClass]="getStatusBadgeClass(organization.status)">
+            <span class="inline-block w-2 h-2 rounded-full mr-1.5" [ngClass]="{
                 'bg-green-400': organization.status.toUpperCase() === 'ACTIVE',
                 'bg-amber-400':
                   organization.status.toUpperCase() === 'PENDING_APPROVAL',
                 'bg-red-400':
                   organization.status.toUpperCase() === 'SUSPENDED' ||
                   organization.status.toUpperCase() === 'REJECTED'
-              }"
-            >
+              }">
             </span>
             {{ organization.status.replace("_", " ") | lowercase }}
           </span>
@@ -77,48 +53,29 @@
     </div>
     <div class="flex items-center gap-3 flex-shrink-0">
       <!-- Action Buttons -->
-      <button
-        *ngIf="organization.status.toUpperCase() === 'PENDING_APPROVAL'"
-        (click)="rejectOrganization()"
-        class="px-4 py-2 rounded-lg bg-slate-700 text-white font-semibold hover:bg-slate-600 transition"
-      >
+      <button *ngIf="organization.status.toUpperCase() === 'PENDING_APPROVAL'" (click)="rejectOrganization()"
+        class="px-4 py-2 rounded-lg bg-slate-700 text-white font-semibold hover:bg-slate-600 transition">
         Reject
       </button>
-      <button
-        *ngIf="organization.status.toUpperCase() === 'PENDING_APPROVAL'"
-        (click)="approveOrganization()"
-        [disabled]="!areAllDocumentsApproved"
-        [title]="
+      <button *ngIf="organization.status.toUpperCase() === 'PENDING_APPROVAL'" (click)="approveOrganization()"
+        [disabled]="!areAllDocumentsApproved" [title]="
           !areAllDocumentsApproved
             ? 'All documents must be approved first'
             : 'Approve Organization'
         "
-        class="px-4 py-2 rounded-lg bg-green-600 text-white font-semibold hover:bg-green-500 transition disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        <span class="flex items-center gap-2"
-          ><ion-icon name="checkmark-outline"></ion-icon> Approve
-          Organization</span
-        >
+        class="px-4 py-2 rounded-lg bg-green-600 text-white font-semibold hover:bg-green-500 transition disabled:opacity-50 disabled:cursor-not-allowed">
+        <span class="flex items-center gap-2"><ion-icon name="checkmark-outline"></ion-icon> Approve
+          Organization</span>
       </button>
-      <button
-        *ngIf="organization.status.toUpperCase() === 'ACTIVE'"
-        (click)="suspendOrganization()"
-        class="px-4 py-2 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-500 transition"
-      >
-        <span class="flex items-center gap-2"
-          ><ion-icon name="pause-circle-outline"></ion-icon> Suspend
-          Organization</span
-        >
+      <button *ngIf="organization.status.toUpperCase() === 'ACTIVE'" (click)="suspendOrganization()"
+        class="px-4 py-2 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-500 transition">
+        <span class="flex items-center gap-2"><ion-icon name="pause-circle-outline"></ion-icon> Suspend
+          Organization</span>
       </button>
-      <button
-        *ngIf="organization.status.toUpperCase() === 'SUSPENDED'"
-        (click)="reactivateOrganization()"
-        class="px-4 py-2 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-500 transition"
-      >
-        <span class="flex items-center gap-2"
-          ><ion-icon name="play-circle-outline"></ion-icon> Reactivate
-          Organization</span
-        >
+      <button *ngIf="organization.status.toUpperCase() === 'SUSPENDED'" (click)="reactivateOrganization()"
+        class="px-4 py-2 rounded-lg bg-blue-600 text-white font-semibold hover:bg-blue-500 transition">
+        <span class="flex items-center gap-2"><ion-icon name="play-circle-outline"></ion-icon> Reactivate
+          Organization</span>
       </button>
     </div>
   </div>
@@ -126,16 +83,11 @@
   <!-- Tabs Navigation -->
   <div class="border-b border-slate-700">
     <nav class="-mb-px flex space-x-8" aria-label="Tabs">
-      <button
-        *ngFor="let tab of tabs"
-        (click)="setActiveTab(tab.id)"
-        [ngClass]="{
+      <button *ngFor="let tab of tabs" (click)="setActiveTab(tab.id)" [ngClass]="{
           'border-blue-500 text-blue-400': activeTab === tab.id,
           'border-transparent text-slate-400 hover:text-slate-300':
             activeTab !== tab.id
-        }"
-        class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2"
-      >
+        }" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2">
         <ion-icon [name]="tab.icon"></ion-icon>
         <span>{{ tab.label }}</span>
       </button>
@@ -145,51 +97,40 @@
   <!-- Tab Content -->
   <div [ngSwitch]="activeTab">
     <!-- Profile & Documents Tab -->
-    <div
-      *ngSwitchCase="'profile'"
-      class="grid grid-cols-1 lg:grid-cols-2 gap-8"
-    >
+    <div *ngSwitchCase="'profile'" class="grid grid-cols-1 lg:grid-cols-2 gap-8">
       <!-- Organization Details Card -->
       <div class="bg-slate-800 p-6 rounded-lg">
         <h3 class="text-xl font-bold text-white mb-6">Organization Details</h3>
         <div class="space-y-4 text-sm">
-          <div
-            class="flex justify-between items-center py-2 border-b border-slate-700/50"
-          >
+          <div class="flex justify-between items-center py-2 border-b border-slate-700/50">
             <span class="text-slate-400">Company Name</span>
             <span class="font-medium text-white">{{
               organization.companyName
-            }}</span>
+              }}</span>
           </div>
-          <div
-            class="flex justify-between items-center py-2 border-b border-slate-700/50"
-          >
+          <div class="flex justify-between items-center py-2 border-b border-slate-700/50">
             <span class="text-slate-400">Account Number</span>
             <span class="font-medium text-white">{{
               organization.bankAssignedAccountNumber || "N/A"
-            }}</span>
+              }}</span>
           </div>
-          <div
-            class="flex justify-between items-center py-2 border-b border-slate-700/50"
-          >
+          <div class="flex justify-between items-center py-2 border-b border-slate-700/50">
             <span class="text-slate-400">Date of Incorporation</span>
             <span class="font-medium text-white">{{
               organization.createdAt | date : "longDate"
-            }}</span>
+              }}</span>
           </div>
-          <div
-            class="flex justify-between items-start py-2 border-b border-slate-700/50"
-          >
+          <div class="flex justify-between items-start py-2 border-b border-slate-700/50">
             <span class="text-slate-400">Business Address</span>
             <span class="font-medium text-white text-right">{{
               organization.address
-            }}</span>
+              }}</span>
           </div>
           <div class="flex justify-between items-center py-2">
             <span class="text-slate-400">Primary Contact</span>
             <span class="font-medium text-white">{{
               organization.contactEmail
-            }}</span>
+              }}</span>
           </div>
         </div>
       </div>
@@ -199,58 +140,34 @@
           Verification Documents
         </h3>
         <div class="space-y-3">
-          <div
-            *ngIf="
+          <div *ngIf="
               !organization.documents || organization.documents.length === 0
-            "
-            class="text-center py-8 text-slate-500"
-          >
+            " class="text-center py-8 text-slate-500">
             No documents uploaded.
           </div>
-          <div
-            *ngFor="let doc of organization.documents"
-            class="bg-slate-900/50 p-4 rounded-md"
-          >
+          <div *ngFor="let doc of organization.documents" class="bg-slate-900/50 p-4 rounded-md">
             <div class="flex items-center justify-between">
               <div>
                 <p class="font-medium text-white truncate">
                   {{ doc.fileName }}
                 </p>
-                <p
-                  class="text-xs font-medium capitalize mt-1"
-                  [ngClass]="getDocumentStatusClass(doc.status)"
-                >
+                <p class="text-xs font-medium capitalize mt-1" [ngClass]="getDocumentStatusClass(doc.status)">
                   {{ doc.status | lowercase }}
                 </p>
               </div>
               <div class="flex items-center gap-2">
-                <button
-                  (click)="viewDocument(doc)"
-                  title="View Document"
-                  class="p-2 text-slate-400 hover:text-white transition rounded-full hover:bg-slate-700"
-                >
+                <button (click)="viewDocument(doc)" title="View Document"
+                  class="p-2 text-slate-400 hover:text-white transition rounded-full hover:bg-slate-700">
                   <ion-icon name="eye-outline" class="text-lg"></ion-icon>
                 </button>
                 <ng-container *ngIf="doc.status.toUpperCase() === 'PENDING'">
-                  <button
-                    (click)="approveDocument(doc)"
-                    title="Approve Document"
-                    class="p-2 text-green-400 hover:text-white transition rounded-full hover:bg-green-500/50"
-                  >
-                    <ion-icon
-                      name="checkmark-circle-outline"
-                      class="text-lg"
-                    ></ion-icon>
+                  <button (click)="approveDocument(doc)" title="Approve Document"
+                    class="p-2 text-green-400 hover:text-white transition rounded-full hover:bg-green-500/50">
+                    <ion-icon name="checkmark-circle-outline" class="text-lg"></ion-icon>
                   </button>
-                  <button
-                    (click)="rejectDocument(doc)"
-                    title="Reject Document"
-                    class="p-2 text-red-400 hover:text-white transition rounded-full hover:bg-red-500/50"
-                  >
-                    <ion-icon
-                      name="close-circle-outline"
-                      class="text-lg"
-                    ></ion-icon>
+                  <button (click)="rejectDocument(doc)" title="Reject Document"
+                    class="p-2 text-red-400 hover:text-white transition rounded-full hover:bg-red-500/50">
+                    <ion-icon name="close-circle-outline" class="text-lg"></ion-icon>
                   </button>
                 </ng-container>
               </div>
@@ -267,47 +184,27 @@
           <div class="grid grid-cols-1 md:grid-cols-12 gap-4 items-center">
             <!-- Search Input -->
             <div class="md:col-span-5 relative">
-              <div
-                class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
-              >
-                <ion-icon
-                  name="search-outline"
-                  class="text-slate-400"
-                ></ion-icon>
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <ion-icon name="search-outline" class="text-slate-400"></ion-icon>
               </div>
-              <input
-                type="text"
-                [(ngModel)]="searchTerm"
-                (ngModelChange)="onFilterChange()"
+              <input type="text" [(ngModel)]="searchTerm" (ngModelChange)="onFilterChange()"
                 class="block w-full pl-10 pr-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
-                placeholder="Search by description..."
-              />
+                placeholder="Search by description..." />
             </div>
 
             <!-- Date Range -->
             <div class="md:col-span-5 flex items-center gap-2">
-              <input
-                type="date"
-                [(ngModel)]="startDate"
-                (ngModelChange)="onFilterChange()"
-                class="block w-full py-2 px-3 bg-slate-700 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
-              />
+              <input type="date" [(ngModel)]="startDate" (ngModelChange)="onFilterChange()"
+                class="block w-full py-2 px-3 bg-slate-700 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" />
               <span class="text-slate-400">to</span>
-              <input
-                type="date"
-                [(ngModel)]="endDate"
-                (ngModelChange)="onFilterChange()"
-                class="block w-full py-2 px-3 bg-slate-700 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
-              />
+              <input type="date" [(ngModel)]="endDate" (ngModelChange)="onFilterChange()"
+                class="block w-full py-2 px-3 bg-slate-700 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition" />
             </div>
 
             <!-- Type Filter -->
             <div class="md:col-span-2">
-              <select
-                [(ngModel)]="typeFilter"
-                (ngModelChange)="onFilterChange()"
-                class="block w-full py-2 px-3 bg-slate-700 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
-              >
+              <select [(ngModel)]="typeFilter" (ngModelChange)="onFilterChange()"
+                class="block w-full py-2 px-3 bg-slate-700 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
                 <option value="ALL">All Types</option>
                 <option value="CREDIT">Credit</option>
                 <option value="DEBIT">Debit</option>
@@ -315,25 +212,15 @@
             </div>
           </div>
         </div>
-        <div
-          *ngIf="isLoadingTransactions"
-          class="flex justify-center items-center py-16"
-        >
-          <div
-            class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"
-          ></div>
+        <div *ngIf="isLoadingTransactions" class="flex justify-center items-center py-16">
+          <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
         </div>
-        <div
-          *ngIf="transactionsError && !isLoadingTransactions"
-          class="bg-red-900/50 border border-red-700 text-red-300 rounded-lg p-4"
-        >
+        <div *ngIf="transactionsError && !isLoadingTransactions"
+          class="bg-red-900/50 border border-red-700 text-red-300 rounded-lg p-4">
           <p><strong>Error:</strong> {{ transactionsError }}</p>
         </div>
 
-        <div
-          *ngIf="!isLoadingTransactions && !transactionsError"
-          class="bg-slate-800 rounded-lg overflow-hidden"
-        >
+        <div *ngIf="!isLoadingTransactions && !transactionsError" class="bg-slate-800 rounded-lg overflow-hidden">
           <div class="overflow-x-auto">
             <table class="w-full text-sm text-left text-slate-400">
               <thead class="text-xs text-slate-400 uppercase bg-slate-900/50">
@@ -349,10 +236,7 @@
                 </tr>
               </thead>
               <tbody *ngIf="transactions.length > 0">
-                <tr
-                  *ngFor="let tx of transactions"
-                  class="border-b border-slate-700 hover:bg-slate-700/50"
-                >
+                <tr *ngFor="let tx of transactions" class="border-b border-slate-700 hover:bg-slate-700/50">
                   <td class="px-6 py-4 font-mono text-slate-300">
                     #{{ tx.id }}
                   </td>
@@ -360,22 +244,15 @@
                     {{ tx.transactionDate | date : "yyyy-MM-dd" }}
                   </td>
                   <td class="px-6 py-4">
-                    <span
-                      class="px-2.5 py-1 text-xs font-semibold rounded-full flex items-center gap-1.5 w-fit"
-                      [ngClass]="getTransactionTypeClass(tx.type)"
-                    >
-                      <ion-icon
-                        [name]="getTransactionTypeIcon(tx.type)"
-                      ></ion-icon>
+                    <span class="px-2.5 py-1 text-xs font-semibold rounded-full flex items-center gap-1.5 w-fit"
+                      [ngClass]="getTransactionTypeClass(tx.type)">
+                      <ion-icon [name]="getTransactionTypeIcon(tx.type)"></ion-icon>
                       {{ tx.type | titlecase }}
                     </span>
                   </td>
-                  <td
-                    class="px-6 py-4 font-mono text-right font-semibold"
-                    [ngClass]="{
+                  <td class="px-6 py-4 font-mono text-right font-semibold" [ngClass]="{
                       'text-white': tx.type === 'CREDIT' || tx.type === 'DEBIT'
-                    }"
-                  >
+                    }">
                     {{ tx.amount | currency : "INR" : "symbol-narrow" }}
                   </td>
                   <td class="px-6 py-4 max-w-xs truncate">
@@ -383,8 +260,8 @@
                   </td>
                   <td class="px-6 py-4 font-mono text-right text-slate-300">
                     {{
-                      tx.balanceAfterTransaction
-                        | currency : "INR" : "symbol-narrow"
+                    tx.balanceAfterTransaction
+                    | currency : "INR" : "symbol-narrow"
                     }}
                   </td>
                 </tr>
@@ -392,10 +269,7 @@
               <tbody *ngIf="transactions.length === 0">
                 <tr>
                   <td colspan="6" class="text-center py-16 text-slate-500">
-                    <ion-icon
-                      name="receipt-outline"
-                      class="text-5xl"
-                    ></ion-icon>
+                    <ion-icon name="receipt-outline" class="text-5xl"></ion-icon>
                     <p class="mt-2">
                       No transactions found for the selected criteria.
                     </p>
@@ -405,13 +279,8 @@
             </table>
           </div>
           <!-- FIX: Added self-closing tag -->
-          <app-pagination
-            *ngIf="totalRecords > 0"
-            [totalRecords]="totalRecords"
-            [rows]="pageSize"
-            [currentPage]="currentPage"
-            (onPageChange)="onPageChange($event)"
-          />
+          <app-pagination *ngIf="totalRecords > 0" [totalRecords]="totalRecords" [rows]="pageSize"
+            [currentPage]="currentPage" (onPageChange)="onPageChange($event)" />
         </div>
       </div>
     </div>
@@ -422,29 +291,17 @@
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <!-- Search -->
             <div class="relative">
-              <div
-                class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
-              >
-                <ion-icon
-                  name="search-outline"
-                  class="text-slate-400"
-                ></ion-icon>
+              <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <ion-icon name="search-outline" class="text-slate-400"></ion-icon>
               </div>
-              <input
-                type="text"
-                [(ngModel)]="employeeSearchTerm"
-                (ngModelChange)="onEmployeeFilterChange()"
+              <input type="text" [(ngModel)]="employeeSearchTerm" (ngModelChange)="onEmployeeFilterChange()"
                 class="w-full pl-10 pr-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
-                placeholder="Search by name or email..."
-              />
+                placeholder="Search by name or email..." />
             </div>
             <!-- Department Filter -->
             <div>
-              <select
-                [(ngModel)]="departmentFilter"
-                (ngModelChange)="onEmployeeFilterChange()"
-                class="w-full py-2 px-3 bg-slate-700 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
-              >
+              <select [(ngModel)]="departmentFilter" (ngModelChange)="onEmployeeFilterChange()"
+                class="w-full py-2 px-3 bg-slate-700 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
                 <option *ngFor="let dept of uniqueDepartments" [value]="dept">
                   {{ dept === "ALL" ? "All Departments" : dept }}
                 </option>
@@ -452,11 +309,8 @@
             </div>
             <!-- Status Filter -->
             <div>
-              <select
-                [(ngModel)]="statusFilter"
-                (ngModelChange)="onEmployeeFilterChange()"
-                class="w-full py-2 px-3 bg-slate-700 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
-              >
+              <select [(ngModel)]="statusFilter" (ngModelChange)="onEmployeeFilterChange()"
+                class="w-full py-2 px-3 bg-slate-700 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition">
                 <option value="ALL">All Statuses</option>
                 <option value="ACTIVE">Active</option>
                 <option value="INACTIVE">Inactive</option>
@@ -466,26 +320,16 @@
         </div>
 
         <!-- Loading & Error States -->
-        <div
-          *ngIf="isLoadingEmployees"
-          class="flex justify-center items-center py-16"
-        >
-          <div
-            class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"
-          ></div>
+        <div *ngIf="isLoadingEmployees" class="flex justify-center items-center py-16">
+          <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
         </div>
-        <div
-          *ngIf="employeesError && !isLoadingEmployees"
-          class="bg-red-900/50 border border-red-700 text-red-300 rounded-lg p-4"
-        >
+        <div *ngIf="employeesError && !isLoadingEmployees"
+          class="bg-red-900/50 border border-red-700 text-red-300 rounded-lg p-4">
           <p><strong>Error:</strong> {{ employeesError }}</p>
         </div>
 
         <!-- Employee Table -->
-        <div
-          *ngIf="!isLoadingEmployees && !employeesError"
-          class="bg-slate-800 rounded-lg overflow-hidden"
-        >
+        <div *ngIf="!isLoadingEmployees && !employeesError" class="bg-slate-800 rounded-lg overflow-hidden">
           <div class="overflow-x-auto">
             <table class="w-full text-sm text-left text-slate-400">
               <thead class="text-xs text-slate-400 uppercase bg-slate-900/50">
@@ -499,10 +343,7 @@
                 </tr>
               </thead>
               <tbody *ngIf="employees.length > 0">
-                <tr
-                  *ngFor="let emp of employees"
-                  class="border-b border-slate-700"
-                >
+                <tr *ngFor="let emp of employees" class="border-b border-slate-700">
                   <td class="px-6 py-4 font-mono text-slate-300">
                     {{ emp.employeeCode }}
                   </td>
@@ -514,10 +355,8 @@
                   <td class="px-6 py-4">{{ emp.jobTitle }}</td>
                   <!-- FIX: Revert to using 'isEmployeeActive' which is now correctly populated in the component -->
                   <td class="px-6 py-4">
-                    <span
-                      class="px-2 py-0.5 text-xs font-semibold rounded-full"
-                      [ngClass]="getEmployeeStatusClass(emp.isEmployeeActive)"
-                    >
+                    <span class="px-2 py-0.5 text-xs font-semibold rounded-full"
+                      [ngClass]="getEmployeeStatusClass(emp.isEmployeeActive)">
                       {{ emp.isEmployeeActive ? "Active" : "Inactive" }}
                     </span>
                   </td>
@@ -526,10 +365,7 @@
               <tbody *ngIf="employees.length === 0">
                 <tr>
                   <td colspan="6" class="text-center py-16 text-slate-500">
-                    <ion-icon
-                      name="people-circle-outline"
-                      class="text-5xl"
-                    ></ion-icon>
+                    <ion-icon name="people-circle-outline" class="text-5xl"></ion-icon>
                     <p class="mt-2">
                       No employees found for the selected criteria.
                     </p>
@@ -539,13 +375,9 @@
             </table>
           </div>
           <!-- FIX: Added self-closing tag -->
-          <app-pagination
-            *ngIf="employeeTotalRecords > 0"
-            [totalRecords]="employeeTotalRecords"
-            [rows]="employeePageSize"
-            [currentPage]="employeeCurrentPage"
-            (onPageChange)="onEmployeePageChange($event)"
-          />
+          <app-pagination *ngIf="employeeTotalRecords > 0" [totalRecords]="employeeTotalRecords"
+            [rows]="employeePageSize" [currentPage]="employeeCurrentPage"
+            (onPageChange)="onEmployeePageChange($event)" />
         </div>
       </div>
     </div>
@@ -554,40 +386,24 @@
         <div class="flex justify-between items-center">
           <h2 class="text-2xl font-bold text-white">Payroll Batches</h2>
           <div class="w-full max-w-sm relative">
-            <div
-              class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"
-            >
+            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <ion-icon name="search-outline" class="text-slate-400"></ion-icon>
             </div>
-            <input
-              type="text"
-              [(ngModel)]="payrollSearchTerm"
-              (ngModelChange)="onPayrollSearchChange()"
+            <input type="text" [(ngModel)]="payrollSearchTerm" (ngModelChange)="onPayrollSearchChange()"
               class="block w-full pl-10 pr-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
-              placeholder="Search by ID or Period..."
-            />
+              placeholder="Search by ID or Period..." />
           </div>
         </div>
 
-        <div
-          *ngIf="isLoadingPayrolls"
-          class="flex justify-center items-center py-16"
-        >
-          <div
-            class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"
-          ></div>
+        <div *ngIf="isLoadingPayrolls" class="flex justify-center items-center py-16">
+          <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
         </div>
-        <div
-          *ngIf="payrollsError && !isLoadingPayrolls"
-          class="bg-red-900/50 border border-red-700 text-red-300 rounded-lg p-4"
-        >
+        <div *ngIf="payrollsError && !isLoadingPayrolls"
+          class="bg-red-900/50 border border-red-700 text-red-300 rounded-lg p-4">
           <p><strong>Error:</strong> {{ payrollsError }}</p>
         </div>
 
-        <div
-          *ngIf="!isLoadingPayrolls && !payrollsError"
-          class="bg-slate-800 rounded-lg overflow-hidden"
-        >
+        <div *ngIf="!isLoadingPayrolls && !payrollsError" class="bg-slate-800 rounded-lg overflow-hidden">
           <div class="overflow-x-auto">
             <table class="w-full text-sm text-left text-slate-400">
               <thead class="text-xs text-slate-400 uppercase bg-slate-900/50">
@@ -604,21 +420,18 @@
                 </tr>
               </thead>
               <tbody *ngIf="payrolls.length > 0">
-                <tr
-                  *ngFor="let payroll of payrolls"
-                  class="border-b border-slate-700 hover:bg-slate-700/50"
-                >
+                <tr *ngFor="let payroll of payrolls" class="border-b border-slate-700 hover:bg-slate-700/50">
                   <td class="px-6 py-4 font-mono text-white">
                     PB-{{ payroll.payrollYear }}-{{
-                      payroll.id | number : "4.0-0"
+                    payroll.id | number : "4.0-0"
                     }}
                   </td>
                   <td class="px-6 py-4">
                     {{
-                      getPayrollPeriod(
-                        payroll.payrollMonth,
-                        payroll.payrollYear
-                      )
+                    getPayrollPeriod(
+                    payroll.payrollMonth,
+                    payroll.payrollYear
+                    )
                     }}
                   </td>
                   <td class="px-6 py-4">
@@ -631,38 +444,26 @@
                     {{ payroll.totalEmployees }}
                   </td>
                   <td class="px-6 py-4">
-                    <span
-                      class="px-2.5 py-1 text-xs font-semibold rounded-full capitalize"
-                      [ngClass]="getPayrollStatusClass(payroll.status)"
-                    >
+                    <span class="px-2.5 py-1 text-xs font-semibold rounded-full capitalize"
+                      [ngClass]="getPayrollStatusClass(payroll.status)">
                       {{ payroll.status.replace("_", " ") | lowercase }}
                     </span>
                   </td>
                   <td class="px-6 py-4">
                     <div class="flex items-center justify-center gap-2">
-                      <ng-container
-                        *ngIf="payroll.status === 'PENDING_APPROVAL'"
-                      >
-                        <button
-                          (click)="approvePayroll(payroll.id, $event)"
-                          class="px-3 py-1 text-sm font-semibold rounded-md text-white bg-green-600 hover:bg-green-500 transition"
-                        >
+                      <ng-container *ngIf="payroll.status === 'PENDING_APPROVAL'">
+                        <button (click)="approvePayroll(payroll.id, $event)"
+                          class="px-3 py-1 text-sm font-semibold rounded-md text-white bg-green-600 hover:bg-green-500 transition">
                           Approve
                         </button>
-                        <button
-                          (click)="rejectPayroll(payroll, $event)"
-                          class="px-3 py-1 text-sm font-semibold rounded-md text-white bg-red-600 hover:bg-red-500 transition"
-                        >
+                        <button (click)="rejectPayroll(payroll, $event)"
+                          class="px-3 py-1 text-sm font-semibold rounded-md text-white bg-red-600 hover:bg-red-500 transition">
                           Reject
                         </button>
                       </ng-container>
-                      <ng-container
-                        *ngIf="payroll.status !== 'PENDING_APPROVAL'"
-                      >
-                        <button
-                          (click)="viewPayrollDetails(payroll.id, $event)"
-                          class="px-3 py-1 text-sm font-semibold rounded-md text-white bg-blue-600 hover:bg-blue-500 transition"
-                        >
+                      <ng-container *ngIf="payroll.status !== 'PENDING_APPROVAL'">
+                        <button (click)="viewPayrollDetails(payroll.id, $event)"
+                          class="px-3 py-1 text-sm font-semibold rounded-md text-white bg-blue-600 hover:bg-blue-500 transition">
                           View Details
                         </button>
                       </ng-container>
@@ -673,10 +474,7 @@
               <tbody *ngIf="payrolls.length === 0">
                 <tr>
                   <td colspan="7" class="text-center py-16 text-slate-500">
-                    <ion-icon
-                      name="receipt-outline"
-                      class="text-5xl"
-                    ></ion-icon>
+                    <ion-icon name="receipt-outline" class="text-5xl"></ion-icon>
                     <p class="mt-2">
                       No payroll history found for this organization.
                     </p>
@@ -686,13 +484,8 @@
             </table>
           </div>
           <!-- FIX: Added self-closing tag -->
-          <app-pagination
-            *ngIf="payrollTotalRecords > 0"
-            [totalRecords]="payrollTotalRecords"
-            [rows]="payrollPageSize"
-            [currentPage]="payrollCurrentPage"
-            (onPageChange)="onPayrollPageChange($event)"
-          />
+          <app-pagination *ngIf="payrollTotalRecords > 0" [totalRecords]="payrollTotalRecords" [rows]="payrollPageSize"
+            [currentPage]="payrollCurrentPage" (onPageChange)="onPayrollPageChange($event)" />
         </div>
       </div>
     </div>
@@ -705,31 +498,20 @@
           <div class="p-4 border-b border-slate-700">
             <h3 class="font-semibold text-white flex items-center gap-2">
               <ion-icon name="business-outline"></ion-icon> Vendors ({{
-                vendorTotalRecords
+              vendorTotalRecords
               }})
             </h3>
           </div>
 
-          <div
-            *ngIf="isLoadingVendors"
-            class="flex justify-center items-center py-16"
-          >
-            <div
-              class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"
-            ></div>
+          <div *ngIf="isLoadingVendors" class="flex justify-center items-center py-16">
+            <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
           </div>
-          <div
-            *ngIf="vendorsError && !isLoadingVendors"
-            class="p-4 bg-red-900/50 text-red-300 text-sm"
-          >
+          <div *ngIf="vendorsError && !isLoadingVendors" class="p-4 bg-red-900/50 text-red-300 text-sm">
             {{ vendorsError }}
           </div>
 
           <div *ngIf="!isLoadingVendors && !vendorsError">
-            <div
-              *ngIf="vendors.length === 0"
-              class="text-center py-16 text-slate-500"
-            >
+            <div *ngIf="vendors.length === 0" class="text-center py-16 text-slate-500">
               <ion-icon name="business-outline" class="text-4xl"></ion-icon>
               <p class="mt-2">No vendors found for this organization.</p>
             </div>
@@ -743,10 +525,7 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr
-                    *ngFor="let vendor of vendors"
-                    class="border-b border-slate-700"
-                  >
+                  <tr *ngFor="let vendor of vendors" class="border-b border-slate-700">
                     <td class="px-4 py-3 font-medium text-white">
                       {{ vendor.vendorName }}
                     </td>
@@ -754,10 +533,8 @@
                       {{ vendor.contactEmail }}<br />{{ vendor.contactPhone }}
                     </td>
                     <td class="px-4 py-3">
-                      <span
-                        class="px-2 py-0.5 text-xs font-semibold rounded-full"
-                        [ngClass]="getStatusClass(vendor.isActive)"
-                      >
+                      <span class="px-2 py-0.5 text-xs font-semibold rounded-full"
+                        [ngClass]="getStatusClass(vendor.isActive)">
                         {{ vendor.isActive ? "Active" : "Inactive" }}
                       </span>
                     </td>
@@ -766,13 +543,8 @@
               </table>
             </div>
             <!-- FIX: Added self-closing tag -->
-            <app-pagination
-              *ngIf="vendorTotalRecords > vendorPageSize"
-              [totalRecords]="vendorTotalRecords"
-              [rows]="vendorPageSize"
-              [currentPage]="vendorCurrentPage"
-              (onPageChange)="onVendorPageChange($event)"
-            />
+            <app-pagination *ngIf="vendorTotalRecords > vendorPageSize" [totalRecords]="vendorTotalRecords"
+              [rows]="vendorPageSize" [currentPage]="vendorCurrentPage" (onPageChange)="onVendorPageChange($event)" />
           </div>
         </div>
 
@@ -781,31 +553,20 @@
           <div class="p-4 border-b border-slate-700">
             <h3 class="font-semibold text-white flex items-center gap-2">
               <ion-icon name="briefcase-outline"></ion-icon> Clients ({{
-                clientTotalRecords
+              clientTotalRecords
               }})
             </h3>
           </div>
 
-          <div
-            *ngIf="isLoadingClients"
-            class="flex justify-center items-center py-16"
-          >
-            <div
-              class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"
-            ></div>
+          <div *ngIf="isLoadingClients" class="flex justify-center items-center py-16">
+            <div class="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
           </div>
-          <div
-            *ngIf="clientsError && !isLoadingClients"
-            class="p-4 bg-red-900/50 text-red-300 text-sm"
-          >
+          <div *ngIf="clientsError && !isLoadingClients" class="p-4 bg-red-900/50 text-red-300 text-sm">
             {{ clientsError }}
           </div>
 
           <div *ngIf="!isLoadingClients && !clientsError">
-            <div
-              *ngIf="clients.length === 0"
-              class="text-center py-16 text-slate-500"
-            >
+            <div *ngIf="clients.length === 0" class="text-center py-16 text-slate-500">
               <ion-icon name="briefcase-outline" class="text-4xl"></ion-icon>
               <p class="mt-2">No clients found for this organization.</p>
             </div>
@@ -819,10 +580,7 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr
-                    *ngFor="let client of clients"
-                    class="border-b border-slate-700"
-                  >
+                  <tr *ngFor="let client of clients" class="border-b border-slate-700">
                     <td class="px-4 py-3 font-medium text-white">
                       {{ client.companyName }}
                     </td>
@@ -830,10 +588,8 @@
                       {{ client.contactPerson }}<br />{{ client.email }}
                     </td>
                     <td class="px-4 py-3">
-                      <span
-                        class="px-2 py-0.5 text-xs font-semibold rounded-full"
-                        [ngClass]="getStatusClass(client.isClientActive)"
-                      >
+                      <span class="px-2 py-0.5 text-xs font-semibold rounded-full"
+                        [ngClass]="getStatusClass(client.isClientActive)">
                         {{ client.isClientActive ? "Active" : "Inactive" }}
                       </span>
                     </td>
@@ -842,13 +598,8 @@
               </table>
             </div>
             <!-- FIX: Added self-closing tag -->
-            <app-pagination
-              *ngIf="clientTotalRecords > clientPageSize"
-              [totalRecords]="clientTotalRecords"
-              [rows]="clientPageSize"
-              [currentPage]="clientCurrentPage"
-              (onPageChange)="onClientPageChange($event)"
-            />
+            <app-pagination *ngIf="clientTotalRecords > clientPageSize" [totalRecords]="clientTotalRecords"
+              [rows]="clientPageSize" [currentPage]="clientCurrentPage" (onPageChange)="onClientPageChange($event)" />
           </div>
         </div>
       </div>
@@ -863,15 +614,46 @@
 </div>
 
 <!-- Dialog for ORGANIZATION rejection -->
-<app-rejection-dialog
-  [isVisible]="isOrgRejectionDialogVisible"
-  (close)="closeOrgRejectionDialog()"
-  (submitRejection)="handleOrgRejection($event)"
-></app-rejection-dialog>
+<app-rejection-dialog [isVisible]="isOrgRejectionDialogVisible" (close)="closeOrgRejectionDialog()"
+  (submitRejection)="handleOrgRejection($event)"></app-rejection-dialog>
 
 <!-- Dialog for PAYROLL rejection -->
-<app-rejection-dialog
-  [isVisible]="isPayrollRejectionDialogVisible"
-  (close)="closePayrollRejectionDialog()"
-  (submitRejection)="handlePayrollRejection($event)"
-></app-rejection-dialog>
+<app-rejection-dialog [isVisible]="isPayrollRejectionDialogVisible" (close)="closePayrollRejectionDialog()"
+  (submitRejection)="handlePayrollRejection($event)"></app-rejection-dialog>
+
+<!-- PDF Viewer Modal -->
+<div *ngIf="isPdfViewerOpen"
+  class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
+  (click)="closePdfViewer()">
+  <div class="bg-slate-900 rounded-lg shadow-2xl w-full max-w-5xl h-[90vh] flex flex-col"
+    (click)="$event.stopPropagation()">
+    <!-- Modal Header -->
+    <div class="flex items-center justify-between p-4 border-b border-slate-700">
+      <div class="flex items-center gap-3">
+        <ion-icon name="document-outline" class="text-2xl text-cyan-400"></ion-icon>
+        <h3 class="text-lg font-semibold text-white truncate">{{ currentPdfName }}</h3>
+      </div>
+      <div class="flex items-center gap-2">
+        <button (click)="downloadDocument()"
+          class="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-all" title="Download PDF">
+          <ion-icon name="download-outline" class="text-xl"></ion-icon>
+        </button>
+        <button (click)="closePdfViewer()"
+          class="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-all" title="Close">
+          <ion-icon name="close-outline" class="text-xl"></ion-icon>
+        </button>
+      </div>
+    </div>
+    <!-- PDF Iframe Container -->
+    <div class="flex-1 overflow-hidden bg-slate-800 flex items-center justify-center">
+      <!-- Loading Spinner -->
+      <div *ngIf="!currentPdfUrl" class="flex flex-col items-center gap-4">
+        <div class="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-cyan-500"></div>
+        <p class="text-slate-400">Loading document...</p>
+      </div>
+      <!-- PDF Iframe -->
+      <iframe *ngIf="currentPdfUrl" [src]="currentPdfUrl" class="w-full h-full border-0" title="Document Viewer">
+      </iframe>
+    </div>
+  </div>
+</div>

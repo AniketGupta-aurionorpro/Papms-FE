@@ -2,12 +2,13 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { debounceTime, takeUntil } from 'rxjs/operators';
+// MODIFICATION: Import the enums
 import { TransactionDto, TransactionType, TransactionSourceType } from '../../../../models/dashboard.models';
 import { OrganizationResponseDto } from '../../../../models/organization.models';
 import { TransactionService } from '../../../../services/transaction.service';
 import { OrganizationService } from '../../../../services/organization.service';
+import { NotificationService } from '../../../../core/services/notification.service';
 
-// Extended interface to include organization information
 interface ExtendedTransactionDto extends TransactionDto {
   organizationId?: number;
   organizationName?: string;
@@ -20,12 +21,8 @@ interface ExtendedTransactionDto extends TransactionDto {
   standalone: false
 })
 export class TransactionsComponent implements OnInit, OnDestroy {
-  // Master list of all transactions fetched from the server
   private allTransactions: ExtendedTransactionDto[] = [];
-
-  // The list that gets displayed in the UI after filtering
   filteredTransactions: ExtendedTransactionDto[] = [];
-
   organizations: OrganizationResponseDto[] = [];
   isLoading = true;
   error = '';
@@ -33,8 +30,11 @@ export class TransactionsComponent implements OnInit, OnDestroy {
   // Filters
   searchTerm = '';
   organizationFilter: number | 'ALL' = 'ALL';
+
+  // FIX: Use the imported enums for type safety
   typeFilter: TransactionType | 'ALL' = 'ALL';
   sourceTypeFilter: TransactionSourceType | 'ALL' = 'ALL';
+
   startDate: string | null = null;
   endDate: string | null = null;
 
@@ -42,7 +42,6 @@ export class TransactionsComponent implements OnInit, OnDestroy {
   currentPage = 0;
   pageSize = 20;
   totalRecords = 0;
-
   Math = Math;
 
   private filterSubject = new Subject<void>();
@@ -66,8 +65,9 @@ export class TransactionsComponent implements OnInit, OnDestroy {
   constructor(
     private transactionService: TransactionService,
     private organizationService: OrganizationService,
-    private router: Router
-  ) {}
+    private router: Router,
+    private notificationService: NotificationService
+  ) { }
 
   ngOnInit(): void {
     this.setupFilterDebounce();
@@ -81,7 +81,7 @@ export class TransactionsComponent implements OnInit, OnDestroy {
 
   private setupFilterDebounce(): void {
     this.filterSubject.pipe(
-      debounceTime(300), // Debounce input to avoid rapid filtering
+      debounceTime(300),
       takeUntil(this.destroy$)
     ).subscribe(() => this.applyFilters());
   }
@@ -94,7 +94,8 @@ export class TransactionsComponent implements OnInit, OnDestroy {
         this.loadAllTransactionsFromServer();
       },
       error: (err) => {
-        this.error = 'Failed to load organizations. Cannot fetch transactions.';
+        this.error = this.extractErrorMessage(err);
+        this.notificationService.showError(this.error);
         this.isLoading = false;
       }
     });
@@ -102,9 +103,9 @@ export class TransactionsComponent implements OnInit, OnDestroy {
 
   loadAllTransactionsFromServer(): void {
     this.error = '';
-    // Create an array of Observables for each organization's transactions
     const transactionObservables = this.organizations.map(org =>
-      this.transactionService.getTransactions(org.id, 0, 10000) // Fetch a large number of transactions
+      // FIX: The service call now passes null for the new sourceType parameter
+      this.transactionService.getTransactions(org.id, 0, 100, null, null, null, null, null)
     );
 
     if (transactionObservables.length === 0) {
@@ -114,7 +115,6 @@ export class TransactionsComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Use Promise.all to wait for all transaction fetches to complete
     Promise.all(transactionObservables.map(obs => obs.toPromise())).then(responses => {
       this.allTransactions = responses.flatMap((response: any, index: number) => {
         const orgTransactions = response?.content || [];
@@ -125,29 +125,23 @@ export class TransactionsComponent implements OnInit, OnDestroy {
           organizationName: organization.companyName
         }));
       });
-
-      // Sort all transactions by date once after fetching
       this.allTransactions.sort((a, b) => new Date(b.transactionDate).getTime() - new Date(a.transactionDate).getTime());
-
-      this.applyFilters(); // Apply initial filters (if any)
+      this.applyFilters();
       this.isLoading = false;
     }).catch(err => {
-      this.error = 'Failed to load transactions for one or more organizations.';
+      this.error = this.extractErrorMessage(err);
+      this.notificationService.showError(this.error);
       this.isLoading = false;
       console.error('Error loading all transactions:', err);
     });
   }
 
-  // This is the single function that applies ALL filters on the client side
   applyFilters(): void {
     let filtered = this.allTransactions;
 
-    // 1. Organization Filter
     if (this.organizationFilter !== 'ALL') {
       filtered = filtered.filter(tx => tx.organizationId === Number(this.organizationFilter));
     }
-
-    // 2. Search Term Filter
     if (this.searchTerm) {
       const lowerCaseSearch = this.searchTerm.toLowerCase();
       filtered = filtered.filter(tx =>
@@ -155,33 +149,29 @@ export class TransactionsComponent implements OnInit, OnDestroy {
         tx.organizationName?.toLowerCase().includes(lowerCaseSearch)
       );
     }
-
-    // 3. Type Filter
     if (this.typeFilter !== 'ALL') {
       filtered = filtered.filter(tx => tx.type === this.typeFilter);
     }
-
-    // 4. Source Type Filter
+    // --- FIX IS HERE ---
     if (this.sourceTypeFilter !== 'ALL') {
       filtered = filtered.filter(tx => tx.sourceType === this.sourceTypeFilter);
     }
-
-    // 5. Date Range Filter
+    // --- END FIX ---
     if (this.startDate) {
       filtered = filtered.filter(tx => tx.transactionDate >= this.startDate!);
     }
     if (this.endDate) {
       const end = new Date(this.endDate);
-      end.setHours(23, 59, 59, 999); // Include the whole end day
+      end.setHours(23, 59, 59, 999);
       filtered = filtered.filter(tx => new Date(tx.transactionDate) <= end);
     }
 
     this.filteredTransactions = filtered;
     this.totalRecords = filtered.length;
-    this.currentPage = 0; // Reset to the first page after any filter change
+    this.currentPage = 0;
   }
 
-  // Trigger filtering
+  // ... rest of the component methods remain unchanged ...
   onFilterChange(): void {
     this.applyFilters();
   }
@@ -259,5 +249,13 @@ export class TransactionsComponent implements OnInit, OnDestroy {
 
   getTransactionCount(): number {
     return this.filteredTransactions.length;
+  }
+
+  private extractErrorMessage(err: any): string {
+    if (err.error?.message) return err.error.message;
+    if (err.status === 401) return 'Session expired. Please login again.';
+    if (err.status === 403) return 'You do not have permission to view transactions.';
+    if (err.status === 500) return 'Server error. Please try again later.';
+    return 'Failed to load transactions. Please try again.';
   }
 }

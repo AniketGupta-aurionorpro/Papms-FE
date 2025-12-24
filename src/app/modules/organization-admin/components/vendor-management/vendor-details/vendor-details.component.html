@@ -1,1 +1,193 @@
-<p>vendor-details works!</p>
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div class="flex items-center gap-4">
+            <a routerLink="/org-admin/vendors"
+                class="h-10 w-10 bg-slate-700 hover:bg-slate-600 rounded-lg flex items-center justify-center text-slate-400 hover:text-white transition-colors">
+                <ion-icon name="arrow-back-outline" class="text-xl"></ion-icon>
+            </a>
+            <div>
+                <h1 class="text-3xl font-bold text-white">Vendor Details</h1>
+                <p class="text-slate-400 mt-1">View vendor profile and make payments</p>
+            </div>
+        </div>
+        <div *ngIf="vendor" class="flex gap-3">
+            <a [routerLink]="['/org-admin/vendors/add']" [queryParams]="{edit: vendor.id}"
+                class="flex items-center gap-2 px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors">
+                <ion-icon name="create-outline"></ion-icon>
+                Edit
+            </a>
+            <button (click)="openPaymentModal()"
+                class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-emerald-600 to-green-500 text-white rounded-lg hover:from-emerald-500 hover:to-green-400 transition-all">
+                <ion-icon name="cash-outline"></ion-icon>
+                Make Payment
+            </button>
+        </div>
+    </div>
+
+    <!-- Loading State -->
+    <app-loading-spinner *ngIf="isLoading"></app-loading-spinner>
+
+    <!-- Error State -->
+    <div *ngIf="error && !isLoading" class="bg-red-900/50 border border-red-700 text-red-300 rounded-lg p-4">
+        <p><strong>Error:</strong> {{ error }}</p>
+    </div>
+
+    <!-- Vendor Content -->
+    <div *ngIf="vendor && !isLoading" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Left Column: Vendor Profile -->
+        <div class="lg:col-span-1 space-y-6">
+            <!-- Profile Card -->
+            <div class="bg-slate-800 rounded-xl border border-slate-700 p-6 text-center">
+                <div
+                    class="h-20 w-20 rounded-2xl bg-gradient-to-br from-purple-600 to-purple-500 flex items-center justify-center text-white font-bold text-2xl mx-auto">
+                    {{ getInitials(vendor.vendorName) }}
+                </div>
+                <h2 class="text-xl font-bold text-white mt-4">{{ vendor.vendorName }}</h2>
+                <span [class]="vendor.isActive ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'"
+                    class="inline-block px-3 py-1 rounded-full text-sm font-medium mt-2">
+                    {{ vendor.isActive ? 'Active' : 'Inactive' }}
+                </span>
+            </div>
+
+            <!-- Contact Info -->
+            <div class="bg-slate-800 rounded-xl border border-slate-700 p-6">
+                <h3 class="text-sm font-medium text-slate-400 mb-4">CONTACT INFORMATION</h3>
+                <div class="space-y-4">
+                    <div class="flex items-center gap-3">
+                        <div class="h-9 w-9 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                            <ion-icon name="mail-outline" class="text-blue-400"></ion-icon>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-500">Email</p>
+                            <p class="text-white">{{ vendor.contactEmail }}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <div class="h-9 w-9 bg-green-500/20 rounded-lg flex items-center justify-center">
+                            <ion-icon name="call-outline" class="text-green-400"></ion-icon>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-500">Phone</p>
+                            <p class="text-white">{{ vendor.contactPhone }}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start gap-3">
+                        <div class="h-9 w-9 bg-amber-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <ion-icon name="location-outline" class="text-amber-400"></ion-icon>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-500">Address</p>
+                            <p class="text-white">{{ vendor.address }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Bank Details -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- Bank Details Card -->
+            <div class="bg-slate-800 rounded-xl border border-slate-700 p-6">
+                <div class="flex items-center gap-3 mb-6">
+                    <div class="h-10 w-10 bg-emerald-500/20 rounded-lg flex items-center justify-center">
+                        <ion-icon name="card-outline" class="text-emerald-400 text-xl"></ion-icon>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold text-white">Bank Account Details</h3>
+                        <p class="text-sm text-slate-400">Linked bank account for payments</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div class="bg-slate-700/50 rounded-lg p-4">
+                        <p class="text-xs text-slate-500 mb-1">Account Holder</p>
+                        <p class="text-white font-medium">{{ vendor.accountHolderName }}</p>
+                    </div>
+                    <div class="bg-slate-700/50 rounded-lg p-4">
+                        <p class="text-xs text-slate-500 mb-1">Account Number</p>
+                        <p class="text-white font-medium font-mono">{{ maskAccountNumber(vendor.accountNumber) }}</p>
+                    </div>
+                    <div class="bg-slate-700/50 rounded-lg p-4">
+                        <p class="text-xs text-slate-500 mb-1">Bank Name</p>
+                        <p class="text-white font-medium">{{ vendor.bankName }}</p>
+                    </div>
+                    <div class="bg-slate-700/50 rounded-lg p-4">
+                        <p class="text-xs text-slate-500 mb-1">IFSC Code</p>
+                        <p class="text-white font-medium font-mono">{{ vendor.ifscCode }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="bg-slate-800 rounded-xl border border-slate-700 p-6">
+                <h3 class="text-lg font-semibold text-white mb-4">Quick Actions</h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <button (click)="openPaymentModal()"
+                        class="flex items-center gap-3 p-4 bg-slate-700/50 hover:bg-slate-700 rounded-lg transition-colors">
+                        <div class="h-10 w-10 bg-emerald-500/20 rounded-lg flex items-center justify-center">
+                            <ion-icon name="cash-outline" class="text-emerald-400 text-xl"></ion-icon>
+                        </div>
+                        <div class="text-left">
+                            <p class="text-white font-medium">Make Payment</p>
+                            <p class="text-xs text-slate-400">Send funds to vendor</p>
+                        </div>
+                    </button>
+                    <a [routerLink]="['/org-admin/vendors/add']" [queryParams]="{edit: vendor.id}"
+                        class="flex items-center gap-3 p-4 bg-slate-700/50 hover:bg-slate-700 rounded-lg transition-colors">
+                        <div class="h-10 w-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                            <ion-icon name="create-outline" class="text-blue-400 text-xl"></ion-icon>
+                        </div>
+                        <div class="text-left">
+                            <p class="text-white font-medium">Edit Details</p>
+                            <p class="text-xs text-slate-400">Update vendor info</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Payment Modal -->
+<div *ngIf="showPaymentModal"
+    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+    <div class="bg-slate-800 rounded-2xl border border-slate-700 w-full max-w-md shadow-2xl">
+        <div class="p-6">
+            <div class="flex items-center justify-center mb-4">
+                <div class="h-16 w-16 bg-emerald-500/20 rounded-full flex items-center justify-center">
+                    <ion-icon name="cash-outline" class="text-4xl text-emerald-400"></ion-icon>
+                </div>
+            </div>
+            <h3 class="text-xl font-bold text-white text-center mb-2">Make Payment</h3>
+            <p class="text-slate-400 text-center mb-6">Send payment to {{ vendor?.vendorName }}</p>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm text-slate-400 mb-1">Amount (INR) *</label>
+                    <div class="relative">
+                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">₹</span>
+                        <input type="number" [(ngModel)]="paymentAmount" placeholder="Enter amount"
+                            class="w-full pl-8 pr-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-white text-lg font-semibold focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm text-slate-400 mb-1">Description (Optional)</label>
+                    <input type="text" [(ngModel)]="paymentDescription" placeholder="e.g., Invoice #123 payment"
+                        class="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500">
+                </div>
+            </div>
+
+            <div class="flex space-x-3 mt-6">
+                <button (click)="closePaymentModal()"
+                    class="flex-1 py-3 px-4 bg-slate-700 text-slate-300 rounded-lg hover:bg-slate-600 transition-colors font-medium">
+                    Cancel
+                </button>
+                <button (click)="makePayment()" [disabled]="isProcessingPayment || !paymentAmount"
+                    class="flex-1 py-3 px-4 bg-gradient-to-r from-emerald-600 to-green-500 text-white rounded-lg hover:from-emerald-500 hover:to-green-400 transition-all font-medium disabled:opacity-50">
+                    {{ isProcessingPayment ? 'Processing...' : 'Send Payment' }}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

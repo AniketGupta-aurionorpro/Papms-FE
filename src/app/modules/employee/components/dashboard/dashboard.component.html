@@ -1,1 +1,176 @@
-<p>dashboard works!</p>
+<!-- Employee Dashboard -->
+<div class="space-y-6">
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="flex items-center justify-center min-h-[400px]">
+        <div class="text-center">
+            <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-cyan-500 border-t-transparent">
+            </div>
+            <p class="mt-4 text-slate-400">Loading your dashboard...</p>
+        </div>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="error && !isLoading" class="bg-red-900/30 border border-red-700 rounded-xl p-6 text-center">
+        <ion-icon name="alert-circle-outline" class="text-4xl text-red-400 mb-2"></ion-icon>
+        <p class="text-red-300">{{ error }}</p>
+        <button (click)="refreshData()"
+            class="mt-4 px-4 py-2 bg-red-700 hover:bg-red-600 rounded-lg text-white transition-colors">
+            Try Again
+        </button>
+    </div>
+
+    <!-- Dashboard Content -->
+    <div *ngIf="!isLoading && !error && employeeProfile">
+        <!-- Welcome Header -->
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+            <div>
+                <h1 class="text-2xl md:text-3xl font-bold text-white">
+                    {{ getGreeting() }}, {{ getFirstName() }}! 👋
+                </h1>
+                <p class="text-slate-400 mt-1">Here's your dashboard overview</p>
+            </div>
+            <button (click)="refreshData()"
+                class="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-300 transition-colors self-start md:self-auto">
+                <ion-icon name="refresh-outline" class="text-lg"></ion-icon>
+                <span>Refresh</span>
+            </button>
+        </div>
+
+        <!-- Main Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Profile Card -->
+            <div
+                class="lg:col-span-1 bg-gradient-to-br from-slate-800 to-slate-800/50 rounded-2xl p-6 border border-slate-700/50">
+                <div class="text-center">
+                    <!-- Profile Picture -->
+                    <div class="relative inline-block mb-4">
+                        <div
+                            class="w-24 h-24 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-3xl font-bold text-white shadow-lg shadow-cyan-500/30">
+                            <ng-container *ngIf="!employeeProfile.profilePictureUrl">
+                                {{ employeeProfile.fullName?.charAt(0) || 'E' }}
+                            </ng-container>
+                            <img *ngIf="employeeProfile.profilePictureUrl" [src]="employeeProfile.profilePictureUrl"
+                                alt="Profile" class="w-full h-full rounded-full object-cover">
+                        </div>
+                        <div
+                            class="absolute bottom-0 right-0 w-6 h-6 bg-green-500 rounded-full border-2 border-slate-800">
+                        </div>
+                    </div>
+
+                    <h2 class="text-xl font-bold text-white">{{ employeeProfile.fullName }}</h2>
+                    <p class="text-cyan-400">{{ employeeProfile.jobTitle }}</p>
+                    <p class="text-slate-400 text-sm mt-1">{{ employeeProfile.department }}</p>
+
+                    <!-- Employee Details -->
+                    <div class="mt-6 space-y-3 text-left">
+                        <div class="flex items-center gap-3 p-3 bg-slate-900/50 rounded-lg">
+                            <ion-icon name="id-card-outline" class="text-cyan-400 text-xl"></ion-icon>
+                            <div>
+                                <p class="text-xs text-slate-400">Employee Code</p>
+                                <p class="text-white font-medium">{{ employeeProfile.employeeCode }}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3 p-3 bg-slate-900/50 rounded-lg">
+                            <ion-icon name="business-outline" class="text-blue-400 text-xl"></ion-icon>
+                            <div>
+                                <p class="text-xs text-slate-400">Organization</p>
+                                <p class="text-white font-medium">{{ employeeProfile.organizationName }}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3 p-3 bg-slate-900/50 rounded-lg">
+                            <ion-icon name="calendar-outline" class="text-purple-400 text-xl"></ion-icon>
+                            <div>
+                                <p class="text-xs text-slate-400">Date of Joining</p>
+                                <p class="text-white font-medium">{{ employeeProfile.dateOfJoining | date:'mediumDate'
+                                    }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button (click)="navigateTo('/employee/profile')"
+                        class="mt-6 w-full py-3 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 rounded-lg text-white font-medium transition-all shadow-lg shadow-cyan-500/20">
+                        View Full Profile
+                    </button>
+                </div>
+            </div>
+
+            <!-- Right Column -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Latest Payslip Card -->
+                <div
+                    class="bg-gradient-to-br from-slate-800 to-slate-800/50 rounded-2xl p-6 border border-slate-700/50">
+                    <div class="flex items-center justify-between mb-6">
+                        <h3 class="text-lg font-semibold text-white flex items-center gap-2">
+                            <ion-icon name="wallet-outline" class="text-cyan-400"></ion-icon>
+                            Latest Payslip
+                        </h3>
+                        <button (click)="navigateTo('/employee/payslips')"
+                            class="text-sm text-cyan-400 hover:text-cyan-300 flex items-center gap-1 transition-colors">
+                            View All
+                            <ion-icon name="arrow-forward-outline"></ion-icon>
+                        </button>
+                    </div>
+
+                    <div *ngIf="latestPayslip" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="bg-slate-900/50 rounded-xl p-4 text-center">
+                            <p class="text-slate-400 text-sm">Period</p>
+                            <p class="text-2xl font-bold text-white mt-1">{{ latestPayslip.period }}</p>
+                        </div>
+                        <div
+                            class="bg-gradient-to-br from-emerald-900/30 to-teal-900/30 border border-emerald-700/30 rounded-xl p-4 text-center">
+                            <p class="text-emerald-400 text-sm">Net Salary</p>
+                            <p class="text-2xl font-bold text-emerald-300 mt-1">{{
+                                formatCurrency(latestPayslip.netSalary) }}</p>
+                        </div>
+                        <div class="bg-slate-900/50 rounded-xl p-4 flex items-center justify-center">
+                            <button (click)="navigateTo('/employee/payslips/' + latestPayslip.paymentId)"
+                                class="flex items-center gap-2 px-4 py-2 bg-cyan-600 hover:bg-cyan-500 rounded-lg text-white transition-colors">
+                                <ion-icon name="eye-outline"></ion-icon>
+                                View Details
+                            </button>
+                        </div>
+                    </div>
+
+                    <div *ngIf="!latestPayslip" class="text-center py-8 text-slate-400">
+                        <ion-icon name="document-outline" class="text-4xl mb-2"></ion-icon>
+                        <p>No payslips available yet</p>
+                    </div>
+                </div>
+
+                <!-- Quick Actions -->
+                <div
+                    class="bg-gradient-to-br from-slate-800 to-slate-800/50 rounded-2xl p-6 border border-slate-700/50">
+                    <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                        <ion-icon name="flash-outline" class="text-yellow-400"></ion-icon>
+                        Quick Actions
+                    </h3>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <button *ngFor="let action of quickActions" (click)="navigateTo(action.route)"
+                            class="group p-4 bg-slate-900/50 hover:bg-slate-900 rounded-xl text-center transition-all duration-300 hover:scale-105 hover:shadow-lg">
+                            <div
+                                [class]="'w-12 h-12 mx-auto mb-3 rounded-xl bg-gradient-to-br ' + action.color + ' flex items-center justify-center shadow-lg'">
+                                <ion-icon [name]="action.icon" class="text-2xl text-white"></ion-icon>
+                            </div>
+                            <p class="text-sm text-slate-300 group-hover:text-white transition-colors">{{ action.label
+                                }}</p>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Salary Breakdown Chart -->
+                <div *ngIf="salaryChartData.length > 0"
+                    class="bg-gradient-to-br from-slate-800 to-slate-800/50 rounded-2xl p-6 border border-slate-700/50">
+                    <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                        <ion-icon name="pie-chart-outline" class="text-purple-400"></ion-icon>
+                        Salary Breakdown
+                    </h3>
+                    <div class="h-[300px]">
+                        <ngx-charts-pie-chart [results]="salaryChartData" [scheme]="colorScheme" [legend]="true"
+                            [legendTitle]="''" [labels]="true" [doughnut]="true" [arcWidth]="0.5" [animations]="true">
+                        </ngx-charts-pie-chart>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

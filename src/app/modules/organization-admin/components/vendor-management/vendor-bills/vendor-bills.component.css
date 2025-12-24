@@ -1,0 +1,11 @@
+/* Vendor Bills Styles */
+
+/* Hide scrollbar but keep scroll functionality */
+.overflow-y-auto::-webkit-scrollbar {
+    display: none;
+}
+
+.overflow-y-auto {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}

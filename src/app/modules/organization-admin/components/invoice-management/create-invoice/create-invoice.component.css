@@ -1,0 +1,7 @@
+/* Create Invoice Component Styles */
+/* Uses Tailwind CSS - minimal custom styles needed */
+
+/* Sticky preview card behavior */
+.sticky {
+    position: sticky;
+}

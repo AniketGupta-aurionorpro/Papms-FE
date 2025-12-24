@@ -5,7 +5,8 @@
       <h1 class="text-3xl font-bold text-white">Dashboard</h1>
       <p class="text-slate-400 mt-1">An overview of your organization's activity.</p>
     </div>
-    <button (click)="loadDashboardStats()" [disabled]="isLoading" class="flex items-center gap-2 px-3 py-2 text-slate-300 bg-slate-800 border border-slate-700 hover:bg-slate-700 rounded-lg transition-colors disabled:opacity-50">
+    <button (click)="loadDashboardStats()" [disabled]="isLoading"
+      class="flex items-center gap-2 px-3 py-2 text-slate-300 bg-slate-800 border border-slate-700 hover:bg-slate-700 rounded-lg transition-colors disabled:opacity-50">
       <ion-icon name="refresh-outline" class="text-lg" [class.animate-spin]="isLoading"></ion-icon>
       <span class="text-sm font-medium">Refresh</span>
     </button>
@@ -24,19 +25,31 @@
       <!-- First Row: 3 Cards -->
       <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         <!-- Custom Account Balance Card -->
-        <div class="md:col-span-1 lg:col-span-1 bg-slate-800 rounded-xl p-6 border border-slate-700/50 shadow-lg">
+        <div
+          class="md:col-span-1 lg:col-span-1 bg-slate-800 rounded-xl p-6 border border-slate-700/50 shadow-lg overflow-hidden">
           <p class="text-sm font-medium text-slate-400">Account Balance</p>
-          <p class="text-4xl font-bold text-white mt-4">{{ formatCurrency(dashboardStats.internalBalance) }}</p>
+          <p class="text-2xl sm:text-3xl lg:text-2xl xl:text-3xl font-bold text-white mt-4 truncate"
+            [title]="formatCurrency(dashboardStats.internalBalance)">
+            {{ formatCurrency(dashboardStats.internalBalance) }}
+          </p>
         </div>
         <!-- Reusable Stats Cards -->
-        <app-stats-card title="Total Employees" [value]="dashboardStats.totalEmployees.toString()" icon="people-outline" iconBgClass="bg-blue-600" [trend]="formatPercentage(dashboardStats.employeeChangePercentage)" [trendColor]="getPercentageColor(dashboardStats.employeeChangePercentage)"></app-stats-card>
-        <app-stats-card title="Pending Invoices" [value]="dashboardStats.pendingInvoicesCount.toString()" icon="document-text-outline" iconBgClass="bg-orange-600" [trend]="formatPercentage(dashboardStats.pendingInvoicesChangePercentage)" [trendColor]="getPercentageColor(dashboardStats.pendingInvoicesChangePercentage)"></app-stats-card>
+        <app-stats-card title="Total Employees" [value]="dashboardStats.totalEmployees.toString()" icon="people-outline"
+          iconBgClass="bg-blue-600" [trend]="formatPercentage(dashboardStats.employeeChangePercentage)"
+          [trendColor]="getPercentageColor(dashboardStats.employeeChangePercentage)"></app-stats-card>
+        <app-stats-card title="Pending Invoices" [value]="dashboardStats.pendingInvoicesCount.toString()"
+          icon="document-text-outline" iconBgClass="bg-orange-600"
+          [trend]="formatPercentage(dashboardStats.pendingInvoicesChangePercentage)"
+          [trendColor]="getPercentageColor(dashboardStats.pendingInvoicesChangePercentage)"></app-stats-card>
       </div>
 
       <!-- Second Row: 2 Cards -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <app-stats-card title="Client Amount Due" [value]="formatCurrency(dashboardStats.totalAmountDueFromClients)" icon="hourglass-outline" iconBgClass="bg-yellow-500"></app-stats-card>
-        <app-stats-card title="Active Vendors" [value]="dashboardStats.totalVendors.toString()" icon="business-outline" iconBgClass="bg-purple-600" [trend]="formatPercentage(dashboardStats.vendorChangePercentage)" [trendColor]="getPercentageColor(dashboardStats.vendorChangePercentage)"></app-stats-card>
+        <app-stats-card title="Client Amount Due" [value]="formatCurrency(dashboardStats.totalAmountDueFromClients)"
+          icon="hourglass-outline" iconBgClass="bg-yellow-500"></app-stats-card>
+        <app-stats-card title="Active Vendors" [value]="dashboardStats.totalVendors.toString()" icon="business-outline"
+          iconBgClass="bg-purple-600" [trend]="formatPercentage(dashboardStats.vendorChangePercentage)"
+          [trendColor]="getPercentageColor(dashboardStats.vendorChangePercentage)"></app-stats-card>
       </div>
     </div>
 
@@ -46,8 +59,10 @@
       <div class="lg:col-span-1 bg-slate-800 rounded-xl border border-slate-700 p-6">
         <h2 class="text-lg font-semibold text-white mb-6">Quick Actions</h2>
         <div class="space-y-4">
-          <a *ngFor="let action of quickActions" [routerLink]="action.route" class="w-full flex items-center gap-4 p-4 rounded-lg bg-slate-700/50 hover:bg-slate-700 transition-all duration-200 group">
-            <div [class]="action.color" class="h-10 w-10 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
+          <a *ngFor="let action of quickActions" [routerLink]="action.route"
+            class="w-full flex items-center gap-4 p-4 rounded-lg bg-slate-700/50 hover:bg-slate-700 transition-all duration-200 group">
+            <div [class]="action.color"
+              class="h-10 w-10 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
               <ion-icon [name]="action.icon" class="text-white text-xl"></ion-icon>
             </div>
             <div class="flex-1 text-left">
@@ -63,15 +78,19 @@
       <div class="lg:col-span-2 bg-slate-800 rounded-xl border border-slate-700 p-6">
         <div class="flex items-center justify-between mb-6">
           <h2 class="text-lg font-semibold text-white">Recent Transactions</h2>
-          <a [routerLink]="['/org-admin/financial/transactions']" class="text-blue-400 hover:text-blue-300 text-sm font-medium flex items-center gap-1">
+          <a [routerLink]="['/org-admin/financial/transactions']"
+            class="text-blue-400 hover:text-blue-300 text-sm font-medium flex items-center gap-1">
             View All <ion-icon name="arrow-forward-outline"></ion-icon>
           </a>
         </div>
         <div *ngIf="dashboardStats.recentTransactions.length > 0" class="space-y-4">
-          <div *ngFor="let tx of dashboardStats.recentTransactions" class="flex items-center justify-between p-4 rounded-lg bg-slate-900/50">
+          <div *ngFor="let tx of dashboardStats.recentTransactions"
+            class="flex items-center justify-between p-4 rounded-lg bg-slate-900/50">
             <div class="flex items-center gap-4">
-              <div [class]="tx.type === 'CREDIT' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'" class="h-10 w-10 rounded-lg flex items-center justify-center">
-                <ion-icon [name]="tx.type === 'CREDIT' ? 'arrow-down-outline' : 'arrow-up-outline'" class="text-lg"></ion-icon>
+              <div [class]="tx.type === 'CREDIT' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'"
+                class="h-10 w-10 rounded-lg flex items-center justify-center">
+                <ion-icon [name]="tx.type === 'CREDIT' ? 'arrow-down-outline' : 'arrow-up-outline'"
+                  class="text-lg"></ion-icon>
               </div>
               <div>
                 <h3 class="font-medium text-white">{{ tx.description }}</h3>
@@ -87,8 +106,8 @@
           </div>
         </div>
         <div *ngIf="dashboardStats.recentTransactions.length === 0" class="text-center py-10 text-slate-500">
-            <ion-icon name="receipt-outline" class="text-4xl"></ion-icon>
-            <p class="mt-2">No recent transactions to display.</p>
+          <ion-icon name="receipt-outline" class="text-4xl"></ion-icon>
+          <p class="mt-2">No recent transactions to display.</p>
         </div>
       </div>
     </div>

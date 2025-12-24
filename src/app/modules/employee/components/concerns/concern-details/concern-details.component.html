@@ -1,1 +1,125 @@
-<p>concern-details works!</p>
+<!-- Concern Details Page -->
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex items-center gap-4">
+        <button (click)="goBack()"
+            class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors">
+            <ion-icon name="arrow-back-outline" class="text-xl"></ion-icon>
+        </button>
+        <div>
+            <h1 class="text-2xl md:text-3xl font-bold text-white">Concern Details</h1>
+            <p class="text-slate-400 mt-1">Concern #{{ concernId }}</p>
+        </div>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="flex items-center justify-center min-h-[300px]">
+        <div class="text-center">
+            <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-cyan-500 border-t-transparent">
+            </div>
+            <p class="mt-4 text-slate-400">Loading concern details...</p>
+        </div>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="error && !isLoading" class="bg-red-900/30 border border-red-700 rounded-xl p-6 text-center">
+        <ion-icon name="alert-circle-outline" class="text-4xl text-red-400 mb-2"></ion-icon>
+        <p class="text-red-300">{{ error }}</p>
+    </div>
+
+    <!-- Content -->
+    <div *ngIf="!isLoading && !error && concern" class="max-w-3xl space-y-6">
+        <!-- Status Card -->
+        <div class="bg-gradient-to-br from-slate-800 to-slate-800/50 rounded-2xl p-6 border border-slate-700/50">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div class="flex items-center gap-4">
+                    <div
+                        [class]="'w-14 h-14 rounded-xl flex items-center justify-center ' + getStatusClass(concern.status)">
+                        <ion-icon [name]="getStatusIcon(concern.status)" class="text-2xl"></ion-icon>
+                    </div>
+                    <div>
+                        <p class="text-sm text-slate-400">Current Status</p>
+                        <p class="text-xl font-bold text-white">{{ concern.status }}</p>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <p class="text-sm text-slate-400">Submitted on</p>
+                    <p class="text-white font-medium">{{ concern.createdAt | date:'medium' }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Concern Details -->
+        <div class="bg-gradient-to-br from-slate-800 to-slate-800/50 rounded-2xl p-6 border border-slate-700/50">
+            <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                <ion-icon name="document-text-outline" class="text-cyan-400"></ion-icon>
+                Concern Information
+            </h3>
+
+            <div class="space-y-4">
+                <div>
+                    <p class="text-sm text-slate-400 mb-1">Subject</p>
+                    <p class="text-white text-lg font-medium">{{ concern.subject }}</p>
+                </div>
+                <div>
+                    <p class="text-sm text-slate-400 mb-1">Description</p>
+                    <p class="text-slate-300 whitespace-pre-wrap">{{ concern.description }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Resolution (if resolved) -->
+        <div *ngIf="concern.resolutionNotes"
+            class="bg-gradient-to-br from-emerald-900/20 to-teal-900/20 rounded-2xl p-6 border border-emerald-700/30">
+            <h3 class="text-lg font-semibold text-emerald-300 mb-4 flex items-center gap-2">
+                <ion-icon name="checkmark-circle-outline" class="text-emerald-400"></ion-icon>
+                Resolution
+            </h3>
+
+            <div class="space-y-4">
+                <div>
+                    <p class="text-sm text-emerald-400/70 mb-1">Resolution Notes</p>
+                    <p class="text-slate-300 whitespace-pre-wrap">{{ concern.resolutionNotes }}</p>
+                </div>
+                <div *ngIf="concern.resolvedByAdminName">
+                    <p class="text-sm text-emerald-400/70 mb-1">Resolved By</p>
+                    <p class="text-white font-medium">{{ concern.resolvedByAdminName }}</p>
+                </div>
+                <div *ngIf="concern.updatedAt">
+                    <p class="text-sm text-emerald-400/70 mb-1">Last Updated</p>
+                    <p class="text-white">{{ concern.updatedAt | date:'medium' }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status Timeline -->
+        <div class="bg-gradient-to-br from-slate-800 to-slate-800/50 rounded-2xl p-6 border border-slate-700/50">
+            <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                <ion-icon name="time-outline" class="text-purple-400"></ion-icon>
+                Status Timeline
+            </h3>
+
+            <div class="space-y-4">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center">
+                        <ion-icon name="add-outline" class="text-white text-sm"></ion-icon>
+                    </div>
+                    <div>
+                        <p class="text-white font-medium">Concern Created</p>
+                        <p class="text-slate-400 text-sm">{{ concern.createdAt | date:'medium' }}</p>
+                    </div>
+                </div>
+                <div *ngIf="concern.updatedAt && concern.updatedAt !== concern.createdAt"
+                    class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center">
+                        <ion-icon name="refresh-outline" class="text-white text-sm"></ion-icon>
+                    </div>
+                    <div>
+                        <p class="text-white font-medium">Last Updated</p>
+                        <p class="text-slate-400 text-sm">{{ concern.updatedAt | date:'medium' }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

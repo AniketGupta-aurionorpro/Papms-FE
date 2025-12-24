@@ -1,1 +1,173 @@
-<p>payslip-history works!</p>
+<!-- Payslip History Page -->
+<div class="space-y-6">
+    <!-- Header -->
+    <div>
+        <h1 class="text-2xl md:text-3xl font-bold text-white">Payslip History</h1>
+        <p class="text-slate-400 mt-1">View and download your salary slips</p>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="flex items-center justify-center min-h-[300px]">
+        <div class="text-center">
+            <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-cyan-500 border-t-transparent">
+            </div>
+            <p class="mt-4 text-slate-400">Loading payslips...</p>
+        </div>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="error && !isLoading" class="bg-red-900/30 border border-red-700 rounded-xl p-6 text-center">
+        <ion-icon name="alert-circle-outline" class="text-4xl text-red-400 mb-2"></ion-icon>
+        <p class="text-red-300">{{ error }}</p>
+    </div>
+
+    <!-- Content -->
+    <div *ngIf="!isLoading && !error">
+        <!-- Stats Summary -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <div class="bg-gradient-to-br from-slate-800 to-slate-800/50 rounded-xl p-4 border border-slate-700/50">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-cyan-600/20 rounded-lg flex items-center justify-center">
+                        <ion-icon name="document-text-outline" class="text-xl text-cyan-400"></ion-icon>
+                    </div>
+                    <div>
+                        <p class="text-slate-400 text-sm">Total Payslips</p>
+                        <p class="text-white font-semibold text-lg">{{ totalElements }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters Section -->
+        <div class="bg-gradient-to-br from-slate-800 to-slate-800/50 rounded-xl p-4 border border-slate-700/50 mb-6">
+            <div class="flex flex-wrap items-center gap-4">
+                <div class="flex items-center gap-2">
+                    <ion-icon name="filter-outline" class="text-lg text-slate-400"></ion-icon>
+                    <span class="text-slate-300 font-medium">Filter by:</span>
+                </div>
+
+                <!-- Year Filter -->
+                <div class="flex-1 min-w-[120px] max-w-[160px]">
+                    <select (change)="onYearChange($any($event.target).value)" [value]="selectedYear || ''"
+                        class="w-full px-4 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors">
+                        <option value="">All Years</option>
+                        <option *ngFor="let year of availableYears" [value]="year">{{ year }}</option>
+                    </select>
+                </div>
+
+                <!-- Month Filter -->
+                <div class="flex-1 min-w-[140px] max-w-[180px]">
+                    <select (change)="onMonthChange($any($event.target).value)" [value]="selectedMonth || ''"
+                        class="w-full px-4 py-2 bg-slate-700/50 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition-colors">
+                        <option value="">All Months</option>
+                        <option *ngFor="let month of months" [value]="month.value">{{ month.name }}</option>
+                    </select>
+                </div>
+
+                <!-- Clear Filters -->
+                <button *ngIf="selectedYear !== null || selectedMonth !== null" (click)="clearFilters()"
+                    class="px-4 py-2 bg-slate-700/50 hover:bg-slate-700 border border-slate-600 rounded-lg text-slate-300 hover:text-white transition-colors flex items-center gap-2">
+                    <ion-icon name="close-circle-outline" class="text-lg"></ion-icon>
+                    Clear
+                </button>
+
+                <!-- Results Count -->
+                <div class="ml-auto text-sm text-slate-400">
+                    Showing {{ filteredPayslips.length }} of {{ totalElements }} payslips
+                </div>
+            </div>
+        </div>
+
+        <!-- Empty State -->
+        <div *ngIf="filteredPayslips.length === 0"
+            class="bg-gradient-to-br from-slate-800 to-slate-800/50 rounded-2xl p-12 border border-slate-700/50 text-center">
+            <ion-icon name="document-outline" class="text-6xl text-slate-600 mb-4"></ion-icon>
+            <h3 class="text-xl font-semibold text-white mb-2" *ngIf="payslips.length === 0">No Payslips Yet</h3>
+            <h3 class="text-xl font-semibold text-white mb-2" *ngIf="payslips.length > 0">No Results Found</h3>
+            <p class="text-slate-400" *ngIf="payslips.length === 0">Your payslips will appear here once they are
+                generated.</p>
+            <p class="text-slate-400" *ngIf="payslips.length > 0">No payslips match your selected filters. Try adjusting
+                the filters.</p>
+        </div>
+
+        <!-- Payslips Table -->
+        <div *ngIf="filteredPayslips.length > 0"
+            class="bg-gradient-to-br from-slate-800 to-slate-800/50 rounded-2xl border border-slate-700/50 overflow-hidden">
+            <div class="overflow-x-auto">
+                <table class="w-full">
+                    <thead>
+                        <tr class="border-b border-slate-700">
+                            <th class="px-6 py-4 text-left text-sm font-semibold text-slate-300">Period</th>
+                            <th class="px-6 py-4 text-left text-sm font-semibold text-slate-300">Net Salary</th>
+                            <th class="px-6 py-4 text-left text-sm font-semibold text-slate-300">Status</th>
+                            <th class="px-6 py-4 text-right text-sm font-semibold text-slate-300">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngFor="let payslip of filteredPayslips" (click)="viewPayslip(payslip.paymentId)"
+                            class="border-b border-slate-700/50 hover:bg-slate-700/30 cursor-pointer transition-colors">
+                            <td class="px-6 py-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 bg-cyan-600/20 rounded-lg flex items-center justify-center">
+                                        <ion-icon name="calendar-outline" class="text-lg text-cyan-400"></ion-icon>
+                                    </div>
+                                    <div>
+                                        <p class="text-white font-medium">{{ getMonthName(payslip.payrollMonth) }} {{
+                                            payslip.payrollYear }}</p>
+                                        <p class="text-slate-400 text-sm">Payment #{{ payslip.paymentId }}</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="text-emerald-400 font-semibold">{{ formatCurrency(payslip.netSalaryPaid)
+                                    }}</span>
+                            </td>
+                            <td class="px-6 py-4">
+                                <span
+                                    [class]="'px-3 py-1 rounded-full text-xs font-medium border ' + getStatusClass(payslip.status)">
+                                    {{ payslip.status }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-right">
+                                <div class="flex items-center justify-end gap-2">
+                                    <button (click)="downloadPayslip(payslip.paymentId, $event)"
+                                        class="p-2 rounded-lg bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-400 transition-colors"
+                                        title="Download PDF">
+                                        <ion-icon name="download-outline" class="text-lg"></ion-icon>
+                                    </button>
+                                    <button
+                                        class="p-2 rounded-lg bg-slate-700/50 hover:bg-slate-700 text-slate-300 transition-colors"
+                                        title="View Details">
+                                        <ion-icon name="eye-outline" class="text-lg"></ion-icon>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            <div *ngIf="totalPages > 1" class="px-6 py-4 border-t border-slate-700 flex items-center justify-between">
+                <p class="text-sm text-slate-400">
+                    Showing {{ currentPage * pageSize + 1 }} - {{ (currentPage + 1) * pageSize > totalElements ?
+                    totalElements : (currentPage + 1) * pageSize }} of {{ totalElements }}
+                </p>
+                <div class="flex items-center gap-2">
+                    <button (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 0"
+                        class="p-2 rounded-lg bg-slate-700 hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed text-white transition-colors">
+                        <ion-icon name="chevron-back-outline"></ion-icon>
+                    </button>
+                    <button *ngFor="let page of pages" (click)="goToPage(page)"
+                        [class]="'w-10 h-10 rounded-lg font-medium transition-colors ' + (page === currentPage ? 'bg-cyan-600 text-white' : 'bg-slate-700 hover:bg-slate-600 text-slate-300')">
+                        {{ page + 1 }}
+                    </button>
+                    <button (click)="goToPage(currentPage + 1)" [disabled]="currentPage >= totalPages - 1"
+                        class="p-2 rounded-lg bg-slate-700 hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed text-white transition-colors">
+                        <ion-icon name="chevron-forward-outline"></ion-icon>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

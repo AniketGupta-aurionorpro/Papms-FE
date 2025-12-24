@@ -60,7 +60,7 @@ export class OrgAdminDashboardComponent implements OnInit {
   constructor(
     private dashboardService: DashboardService,
     private authService: AuthService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.loadDashboardStats();

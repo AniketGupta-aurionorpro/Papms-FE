@@ -1,1 +1,184 @@
-<p>invoice-list works!</p>
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+            <h1 class="text-3xl font-bold text-white">Invoices</h1>
+            <p class="text-slate-400 mt-1">Manage and track client invoices</p>
+        </div>
+        <div class="flex gap-2">
+            <button (click)="loadInvoices()" [disabled]="isLoading"
+                class="flex items-center gap-2 px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors disabled:opacity-50">
+                <ion-icon name="refresh-outline" [class.animate-spin]="isLoading"></ion-icon>
+                Refresh
+            </button>
+            <a routerLink="/org-admin/invoices/create"
+                class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white rounded-lg transition-all font-medium">
+                <ion-icon name="add-outline"></ion-icon>
+                Create Invoice
+            </a>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-slate-800 rounded-xl border border-slate-700 p-5">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-slate-400">Total Invoices</p>
+                    <p class="text-3xl font-bold text-white mt-2">{{ totalInvoices }}</p>
+                </div>
+                <div class="h-12 w-12 bg-blue-500/20 rounded-xl flex items-center justify-center">
+                    <ion-icon name="document-text-outline" class="text-blue-400 text-2xl"></ion-icon>
+                </div>
+            </div>
+        </div>
+        <div class="bg-slate-800 rounded-xl border border-slate-700 p-5">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-slate-400">Pending</p>
+                    <p class="text-3xl font-bold text-yellow-400 mt-2">{{ pendingCount }}</p>
+                </div>
+                <div class="h-12 w-12 bg-yellow-500/20 rounded-xl flex items-center justify-center">
+                    <ion-icon name="time-outline" class="text-yellow-400 text-2xl"></ion-icon>
+                </div>
+            </div>
+        </div>
+        <div class="bg-slate-800 rounded-xl border border-slate-700 p-5">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-slate-400">Pending Amount</p>
+                    <p class="text-2xl font-bold text-red-400 mt-2">{{ formatCurrency(pendingAmount) }}</p>
+                </div>
+                <div class="h-12 w-12 bg-red-500/20 rounded-xl flex items-center justify-center">
+                    <ion-icon name="wallet-outline" class="text-red-400 text-2xl"></ion-icon>
+                </div>
+            </div>
+        </div>
+        <div class="bg-slate-800 rounded-xl border border-slate-700 p-5">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-slate-400">Paid Amount</p>
+                    <p class="text-2xl font-bold text-green-400 mt-2">{{ formatCurrency(paidAmount) }}</p>
+                </div>
+                <div class="h-12 w-12 bg-green-500/20 rounded-xl flex items-center justify-center">
+                    <ion-icon name="checkmark-circle-outline" class="text-green-400 text-2xl"></ion-icon>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-slate-800 rounded-xl border border-slate-700 p-4">
+        <div class="flex flex-col sm:flex-row gap-4">
+            <div class="flex-1 relative">
+                <ion-icon name="search-outline"
+                    class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></ion-icon>
+                <input type="text" [(ngModel)]="searchTerm" (input)="applyFilters()"
+                    placeholder="Search by invoice#, client name or email..."
+                    class="w-full pl-10 pr-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500">
+            </div>
+            <select [(ngModel)]="statusFilter" (change)="applyFilters()"
+                class="px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white">
+                <option *ngFor="let status of statuses" [value]="status">{{ status === 'ALL' ? 'All Status' : status }}
+                </option>
+            </select>
+            <button (click)="resetFilters()"
+                class="px-4 py-2 bg-slate-600 hover:bg-slate-500 text-white rounded-lg transition-colors">Reset</button>
+        </div>
+    </div>
+
+    <!-- Loading -->
+    <app-loading-spinner *ngIf="isLoading"></app-loading-spinner>
+
+    <!-- Error -->
+    <div *ngIf="error && !isLoading" class="bg-red-900/50 border border-red-700 text-red-300 rounded-lg p-4">
+        <p><strong>Error:</strong> {{ error }}</p>
+    </div>
+
+    <!-- Invoices Table -->
+    <div *ngIf="!isLoading && !error" class="bg-slate-800 rounded-xl border border-slate-700 overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="w-full">
+                <thead class="bg-slate-900/50">
+                    <tr>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-slate-400 uppercase">Invoice #</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-slate-400 uppercase">Client</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-slate-400 uppercase">Issue Date</th>
+                        <th class="px-6 py-4 text-left text-xs font-semibold text-slate-400 uppercase">Due Date</th>
+                        <th class="px-6 py-4 text-right text-xs font-semibold text-slate-400 uppercase">Amount</th>
+                        <th class="px-6 py-4 text-center text-xs font-semibold text-slate-400 uppercase">Status</th>
+                        <th class="px-6 py-4 text-center text-xs font-semibold text-slate-400 uppercase">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-700">
+                    <tr *ngFor="let invoice of paginatedInvoices" class="hover:bg-slate-700/30 transition-colors">
+                        <td class="px-6 py-4 text-white font-medium">{{ invoice.invoiceNumber }}</td>
+                        <td class="px-6 py-4">
+                            <div>
+                                <p class="text-white">{{ invoice.clientCompanyName }}</p>
+                                <p class="text-slate-400 text-sm">{{ invoice.clientEmail }}</p>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 text-slate-300">{{ formatDate(invoice.issueDate) }}</td>
+                        <td class="px-6 py-4"
+                            [class]="isOverdue(invoice) ? 'text-red-400 font-semibold' : 'text-slate-300'">
+                            {{ formatDate(invoice.dueDate) }}
+                        </td>
+                        <td class="px-6 py-4 text-white text-right font-semibold">{{ formatCurrency(invoice.amount) }}
+                        </td>
+                        <td class="px-6 py-4 text-center">
+                            <span [class]="getStatusColor(invoice.status)"
+                                class="px-2 py-1 rounded-full text-xs font-medium">
+                                {{ invoice.status }}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="flex items-center justify-center gap-2">
+                                <!-- Download PDF -->
+                                <button (click)="downloadPdf(invoice)"
+                                    class="p-2 text-blue-400 hover:bg-blue-500/20 rounded-lg transition-colors"
+                                    title="Download PDF">
+                                    <ion-icon name="download-outline"></ion-icon>
+                                </button>
+                                <!-- Send Email -->
+                                <button *ngIf="canPerformActions(invoice)" (click)="sendEmail(invoice)"
+                                    class="p-2 text-purple-400 hover:bg-purple-500/20 rounded-lg transition-colors"
+                                    title="Send Email">
+                                    <ion-icon name="mail-outline"></ion-icon>
+                                </button>
+                                <!-- Mark as Paid -->
+                                <button *ngIf="canPerformActions(invoice)" (click)="markAsPaid(invoice)"
+                                    class="p-2 text-green-400 hover:bg-green-500/20 rounded-lg transition-colors"
+                                    title="Mark as Paid">
+                                    <ion-icon name="checkmark-circle-outline"></ion-icon>
+                                </button>
+                                <!-- Cancel -->
+                                <button *ngIf="canPerformActions(invoice)" (click)="cancelInvoice(invoice)"
+                                    class="p-2 text-red-400 hover:bg-red-500/20 rounded-lg transition-colors"
+                                    title="Cancel Invoice">
+                                    <ion-icon name="close-circle-outline"></ion-icon>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Pagination -->
+        <app-pagination *ngIf="totalRecords > 0" [totalRecords]="totalRecords" [rows]="pageSize"
+            [currentPage]="currentPage" (onPageChange)="onPageChange($event)">
+        </app-pagination>
+
+        <!-- Empty State -->
+        <div *ngIf="filteredInvoices.length === 0" class="py-16 text-center">
+            <ion-icon name="document-text-outline" class="text-5xl text-slate-500"></ion-icon>
+            <p class="text-slate-400 mt-3">No invoices found</p>
+            <a routerLink="/org-admin/invoices/create"
+                class="inline-flex items-center gap-2 mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors">
+                <ion-icon name="add-outline"></ion-icon>
+                Create Invoice
+            </a>
+        </div>
+    </div>
+</div>

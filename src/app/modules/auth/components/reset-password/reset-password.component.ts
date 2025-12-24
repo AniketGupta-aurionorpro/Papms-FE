@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../../../core/services/auth.service';
+import { NotificationService } from '../../../../core/services/notification.service';
 import { finalize } from 'rxjs/operators';
 
 @Component({
@@ -21,10 +22,11 @@ export class ResetPasswordComponent implements OnInit {
     private fb: FormBuilder,
     private authService: AuthService,
     private route: ActivatedRoute,
-    private router: Router
+    private router: Router,
+    private notificationService: NotificationService
   ) {
     this.resetPasswordForm = this.fb.group({
-      newPassword: ['', [Validators.required, Validators.minLength(6)]],
+      newPassword: ['', [Validators.required, Validators.minLength(8)]],
       confirmPassword: ['', [Validators.required]]
     }, { validators: this.passwordMatchValidator });
   }
@@ -88,6 +90,7 @@ export class ResetPasswordComponent implements OnInit {
       next: (response: string) => {
         console.log('Password reset successful:', response);
         this.success = true;
+        this.notificationService.showSuccess('Password reset successfully! Redirecting to login...');
 
         // Redirect to login after a short delay
         setTimeout(() => {
@@ -110,6 +113,7 @@ export class ResetPasswordComponent implements OnInit {
         } else {
           this.error = 'Password reset failed. Please try again.';
         }
+        this.notificationService.showError(this.error);
       }
     });
   }

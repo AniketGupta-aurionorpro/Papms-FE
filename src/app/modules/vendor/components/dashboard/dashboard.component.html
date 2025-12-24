@@ -1,0 +1,163 @@
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-3xl font-bold text-white">Vendor Dashboard</h1>
+            <p class="text-slate-400 mt-1">Overview of your bills and payments</p>
+        </div>
+        <a routerLink="/vendor/bills/create"
+            class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-lg hover:from-blue-500 hover:to-blue-400 transition-all font-medium">
+            <ion-icon name="add-outline" class="text-xl"></ion-icon>
+            Create Bill
+        </a>
+    </div>
+
+    <!-- Loading -->
+    <app-loading-spinner *ngIf="isLoading"></app-loading-spinner>
+
+    <!-- Error -->
+    <div *ngIf="error && !isLoading" class="bg-red-900/50 border border-red-700 text-red-300 rounded-lg p-4">
+        <p><strong>Error:</strong> {{ error }}</p>
+    </div>
+
+    <!-- Dashboard Content -->
+    <div *ngIf="!isLoading && !error" class="space-y-6">
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <!-- Total Bills -->
+            <div class="bg-slate-800 rounded-xl border border-slate-700 p-5">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-slate-400">Total Bills</p>
+                        <p class="text-3xl font-bold text-white mt-2">{{ totalBills }}</p>
+                    </div>
+                    <div class="h-12 w-12 bg-blue-500/20 rounded-xl flex items-center justify-center">
+                        <ion-icon name="document-text-outline" class="text-blue-400 text-2xl"></ion-icon>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pending Bills -->
+            <div class="bg-slate-800 rounded-xl border border-slate-700 p-5">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-slate-400">Pending Bills</p>
+                        <p class="text-3xl font-bold text-yellow-400 mt-2">{{ pendingBills }}</p>
+                    </div>
+                    <div class="h-12 w-12 bg-yellow-500/20 rounded-xl flex items-center justify-center">
+                        <ion-icon name="time-outline" class="text-yellow-400 text-2xl"></ion-icon>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Total Pending Amount -->
+            <div class="bg-slate-800 rounded-xl border border-slate-700 p-5">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-slate-400">Pending Amount</p>
+                        <p class="text-2xl font-bold text-red-400 mt-2">{{ formatCurrency(totalPending) }}</p>
+                    </div>
+                    <div class="h-12 w-12 bg-red-500/20 rounded-xl flex items-center justify-center">
+                        <ion-icon name="wallet-outline" class="text-red-400 text-2xl"></ion-icon>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Total Received -->
+            <div class="bg-slate-800 rounded-xl border border-slate-700 p-5">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-slate-400">Total Received</p>
+                        <p class="text-2xl font-bold text-green-400 mt-2">{{ formatCurrency(totalReceived) }}</p>
+                    </div>
+                    <div class="h-12 w-12 bg-green-500/20 rounded-xl flex items-center justify-center">
+                        <ion-icon name="checkmark-circle-outline" class="text-green-400 text-2xl"></ion-icon>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Quick Actions Card -->
+            <div class="bg-slate-800 rounded-xl border border-slate-700 p-6">
+                <h2 class="text-lg font-semibold text-white mb-4">Quick Actions</h2>
+                <div class="space-y-3">
+                    <a routerLink="/vendor/bills/create"
+                        class="flex items-center gap-3 p-3 bg-slate-700/50 hover:bg-slate-700 rounded-lg transition-colors">
+                        <div class="h-10 w-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                            <ion-icon name="add-circle-outline" class="text-blue-400 text-xl"></ion-icon>
+                        </div>
+                        <div>
+                            <p class="text-white font-medium">Create New Bill</p>
+                            <p class="text-xs text-slate-400">Submit a bill to organization</p>
+                        </div>
+                    </a>
+                    <a routerLink="/vendor/bills/history"
+                        class="flex items-center gap-3 p-3 bg-slate-700/50 hover:bg-slate-700 rounded-lg transition-colors">
+                        <div class="h-10 w-10 bg-purple-500/20 rounded-lg flex items-center justify-center">
+                            <ion-icon name="document-text-outline" class="text-purple-400 text-xl"></ion-icon>
+                        </div>
+                        <div>
+                            <p class="text-white font-medium">View All Bills</p>
+                            <p class="text-xs text-slate-400">Check bill history and status</p>
+                        </div>
+                    </a>
+                    <a routerLink="/vendor/payments"
+                        class="flex items-center gap-3 p-3 bg-slate-700/50 hover:bg-slate-700 rounded-lg transition-colors">
+                        <div class="h-10 w-10 bg-green-500/20 rounded-lg flex items-center justify-center">
+                            <ion-icon name="cash-outline" class="text-green-400 text-xl"></ion-icon>
+                        </div>
+                        <div>
+                            <p class="text-white font-medium">Payment History</p>
+                            <p class="text-xs text-slate-400">Track received payments</p>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Recent Bills -->
+            <div class="lg:col-span-2 bg-slate-800 rounded-xl border border-slate-700">
+                <div class="px-6 py-4 border-b border-slate-700 flex items-center justify-between">
+                    <h2 class="text-lg font-semibold text-white">Recent Bills</h2>
+                    <a routerLink="/vendor/bills/history"
+                        class="text-blue-400 hover:text-blue-300 text-sm font-medium flex items-center gap-1">
+                        View All <ion-icon name="arrow-forward-outline"></ion-icon>
+                    </a>
+                </div>
+
+                <div *ngIf="recentBills.length > 0" class="divide-y divide-slate-700">
+                    <div *ngFor="let bill of recentBills"
+                        class="px-6 py-4 flex items-center justify-between hover:bg-slate-700/30 transition-colors">
+                        <div class="flex items-center gap-4">
+                            <div class="h-10 w-10 bg-slate-700 rounded-lg flex items-center justify-center">
+                                <ion-icon name="receipt-outline" class="text-slate-400 text-lg"></ion-icon>
+                            </div>
+                            <div>
+                                <p class="font-medium text-white">{{ bill.billNumber }}</p>
+                                <p class="text-sm text-slate-400">{{ formatDate(bill.billDate) }}</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="font-semibold text-white">{{ formatCurrency(bill.amount) }}</p>
+                            <span [class]="getStatusColor(bill.status) + ' ' + getStatusBgColor(bill.status)"
+                                class="text-xs px-2 py-0.5 rounded-full">
+                                {{ bill.status }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div *ngIf="recentBills.length === 0" class="py-10 text-center">
+                    <ion-icon name="document-text-outline" class="text-4xl text-slate-500"></ion-icon>
+                    <p class="text-slate-400 mt-2">No bills created yet</p>
+                    <a routerLink="/vendor/bills/create"
+                        class="inline-flex items-center gap-2 mt-3 text-blue-400 hover:text-blue-300 text-sm">
+                        <ion-icon name="add-outline"></ion-icon>
+                        Create your first bill
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

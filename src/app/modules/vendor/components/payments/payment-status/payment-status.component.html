@@ -1,0 +1,89 @@
+<div class="space-y-6">
+    <!-- Header -->
+    <div>
+        <h1 class="text-3xl font-bold text-white">Payment Status</h1>
+        <p class="text-slate-400 mt-1">Track payments received for your bills</p>
+    </div>
+
+    <!-- Loading -->
+    <app-loading-spinner *ngIf="isLoading"></app-loading-spinner>
+
+    <!-- Error -->
+    <div *ngIf="error && !isLoading" class="bg-red-900/50 border border-red-700 text-red-300 rounded-lg p-4">
+        <p><strong>Error:</strong> {{ error }}</p>
+    </div>
+
+    <!-- Content -->
+    <div *ngIf="!isLoading && !error" class="space-y-6">
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="bg-slate-800 rounded-xl border border-slate-700 p-5">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-slate-400">Total Received</p>
+                        <p class="text-2xl font-bold text-green-400 mt-2">{{ formatCurrency(totalReceived) }}</p>
+                    </div>
+                    <div class="h-12 w-12 bg-green-500/20 rounded-xl flex items-center justify-center">
+                        <ion-icon name="checkmark-circle-outline" class="text-green-400 text-2xl"></ion-icon>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-slate-800 rounded-xl border border-slate-700 p-5">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-slate-400">Pending Amount</p>
+                        <p class="text-2xl font-bold text-yellow-400 mt-2">{{ formatCurrency(totalPending) }}</p>
+                    </div>
+                    <div class="h-12 w-12 bg-yellow-500/20 rounded-xl flex items-center justify-center">
+                        <ion-icon name="time-outline" class="text-yellow-400 text-2xl"></ion-icon>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-slate-800 rounded-xl border border-slate-700 p-5">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-slate-400">Fully Paid Bills</p>
+                        <p class="text-3xl font-bold text-white mt-2">{{ paidBillsCount }}</p>
+                    </div>
+                    <div class="h-12 w-12 bg-blue-500/20 rounded-xl flex items-center justify-center">
+                        <ion-icon name="document-text-outline" class="text-blue-400 text-2xl"></ion-icon>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Payments List -->
+        <div class="bg-slate-800 rounded-xl border border-slate-700">
+            <div class="px-6 py-4 border-b border-slate-700">
+                <h2 class="text-lg font-semibold text-white">Payment History</h2>
+            </div>
+
+            <div *ngIf="bills.length > 0" class="divide-y divide-slate-700">
+                <div *ngFor="let bill of bills"
+                    class="px-6 py-4 flex items-center justify-between hover:bg-slate-700/30 transition-colors">
+                    <div class="flex items-center gap-4">
+                        <div class="h-10 w-10 bg-green-500/20 rounded-lg flex items-center justify-center">
+                            <ion-icon name="cash-outline" class="text-green-400 text-lg"></ion-icon>
+                        </div>
+                        <div>
+                            <p class="font-medium text-white">{{ bill.billNumber }}</p>
+                            <p class="text-sm text-slate-400">{{ formatDate(bill.updatedAt) }}</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-lg font-semibold text-green-400">+{{ formatCurrency(bill.paidAmount) }}</p>
+                        <p class="text-xs text-slate-500">of {{ formatCurrency(bill.amount) }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <div *ngIf="bills.length === 0" class="py-16 text-center">
+                <ion-icon name="cash-outline" class="text-5xl text-slate-500"></ion-icon>
+                <p class="text-slate-400 mt-3 font-medium">No payments received yet</p>
+                <p class="text-sm text-slate-500 mt-1">Payments will appear here once your bills are paid</p>
+            </div>
+        </div>
+    </div>
+</div>

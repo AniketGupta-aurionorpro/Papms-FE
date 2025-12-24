@@ -1,1 +1,189 @@
-<p>vendor-list works!</p>
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+            <h1 class="text-3xl font-bold text-white">Vendor Management</h1>
+            <p class="text-slate-400 mt-1">Manage your organization's vendors and suppliers</p>
+        </div>
+        <a routerLink="/org-admin/vendors/add"
+            class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-lg hover:from-blue-500 hover:to-blue-400 transition-all font-medium">
+            <ion-icon name="add-outline" class="text-xl"></ion-icon>
+            Add Vendor
+        </a>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="bg-slate-800 rounded-xl border border-slate-700 p-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-slate-400">Total Vendors</p>
+                    <p class="text-2xl font-bold text-white mt-1">{{ totalVendors }}</p>
+                </div>
+                <div class="h-10 w-10 bg-blue-500/20 rounded-lg flex items-center justify-center">
+                    <ion-icon name="business-outline" class="text-blue-400 text-xl"></ion-icon>
+                </div>
+            </div>
+        </div>
+        <div class="bg-slate-800 rounded-xl border border-slate-700 p-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-slate-400">Active</p>
+                    <p class="text-2xl font-bold text-green-400 mt-1">{{ activeVendors }}</p>
+                </div>
+                <div class="h-10 w-10 bg-green-500/20 rounded-lg flex items-center justify-center">
+                    <ion-icon name="checkmark-circle-outline" class="text-green-400 text-xl"></ion-icon>
+                </div>
+            </div>
+        </div>
+        <div class="bg-slate-800 rounded-xl border border-slate-700 p-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <p class="text-sm text-slate-400">Inactive</p>
+                    <p class="text-2xl font-bold text-red-400 mt-1">{{ inactiveVendors }}</p>
+                </div>
+                <div class="h-10 w-10 bg-red-500/20 rounded-lg flex items-center justify-center">
+                    <ion-icon name="close-circle-outline" class="text-red-400 text-xl"></ion-icon>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="bg-slate-800 rounded-xl border border-slate-700 p-4">
+        <div class="flex flex-col sm:flex-row gap-4">
+            <div class="flex-1">
+                <div class="relative">
+                    <ion-icon name="search-outline"
+                        class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></ion-icon>
+                    <input type="text" [(ngModel)]="searchTerm" (input)="onFilterChange()"
+                        placeholder="Search by name, email, or bank..."
+                        class="w-full pl-10 pr-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                </div>
+            </div>
+            <select [(ngModel)]="statusFilter" (change)="onFilterChange()"
+                class="px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white focus:ring-2 focus:ring-blue-500">
+                <option value="ALL">All Status</option>
+                <option value="ACTIVE">Active Only</option>
+                <option value="INACTIVE">Inactive Only</option>
+            </select>
+            <button (click)="resetFilters()"
+                class="px-4 py-2 bg-slate-600 hover:bg-slate-500 text-white rounded-lg transition-colors">
+                Reset
+            </button>
+        </div>
+    </div>
+
+    <!-- Loading State -->
+    <app-loading-spinner *ngIf="isLoading"></app-loading-spinner>
+
+    <!-- Error State -->
+    <div *ngIf="error && !isLoading" class="bg-red-900/50 border border-red-700 text-red-300 rounded-lg p-4">
+        <p><strong>Error:</strong> {{ error }}</p>
+    </div>
+
+    <!-- Vendor Cards -->
+    <div *ngIf="!isLoading && !error" class="space-y-4">
+        <div *ngFor="let vendor of filteredVendors"
+            class="bg-slate-800 rounded-xl border border-slate-700 p-4 hover:border-slate-600 transition-colors">
+            <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+                <!-- Avatar and Info -->
+                <div class="flex items-center gap-4 flex-1">
+                    <div
+                        class="h-14 w-14 rounded-xl bg-gradient-to-br from-purple-600 to-purple-500 flex items-center justify-center text-white font-bold text-lg">
+                        {{ getInitials(vendor.vendorName) }}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2">
+                            <h3 class="text-lg font-semibold text-white truncate">{{ vendor.vendorName }}</h3>
+                            <span
+                                [class]="vendor.isActive ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'"
+                                class="px-2 py-0.5 rounded-full text-xs font-medium">
+                                {{ vendor.isActive ? 'Active' : 'Inactive' }}
+                            </span>
+                        </div>
+                        <p class="text-sm text-slate-400 truncate">{{ vendor.contactEmail }}</p>
+                        <div class="flex items-center gap-4 mt-1 text-xs text-slate-500">
+                            <span class="flex items-center gap-1">
+                                <ion-icon name="call-outline"></ion-icon>
+                                {{ vendor.contactPhone }}
+                            </span>
+                            <span *ngIf="vendor.bankName" class="flex items-center gap-1">
+                                <ion-icon name="card-outline"></ion-icon>
+                                {{ vendor.bankName }} • {{ maskAccountNumber(vendor.accountNumber) }}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex items-center gap-2 sm:flex-shrink-0">
+                    <a [routerLink]="['/org-admin/vendors', vendor.id]"
+                        class="flex items-center gap-1 px-3 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-colors text-sm">
+                        <ion-icon name="eye-outline"></ion-icon>
+                        View
+                    </a>
+                    <a [routerLink]="['/org-admin/vendors/add']" [queryParams]="{edit: vendor.id}"
+                        class="flex items-center gap-1 px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors text-sm">
+                        <ion-icon name="create-outline"></ion-icon>
+                        Edit
+                    </a>
+                    <button (click)="confirmDelete(vendor)"
+                        class="flex items-center gap-1 px-3 py-2 bg-red-600 hover:bg-red-500 text-white rounded-lg transition-colors text-sm">
+                        <ion-icon name="trash-outline"></ion-icon>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Empty State -->
+        <div *ngIf="filteredVendors.length === 0"
+            class="bg-slate-800 rounded-xl border border-slate-700 py-16 text-center">
+            <div class="h-16 w-16 bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-4">
+                <ion-icon name="business-outline" class="text-3xl text-slate-500"></ion-icon>
+            </div>
+            <p class="text-slate-400 font-medium">No vendors found</p>
+            <p class="text-sm text-slate-500 mt-1">Add your first vendor to get started</p>
+            <a routerLink="/org-admin/vendors/add"
+                class="inline-flex items-center gap-2 mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg transition-colors">
+                <ion-icon name="add-outline"></ion-icon>
+                Add Vendor
+            </a>
+        </div>
+
+        <!-- Pagination -->
+        <app-pagination *ngIf="totalRecords > pageSize" [totalRecords]="totalRecords" [rows]="pageSize"
+            [currentPage]="currentPage" (onPageChange)="onPageChange($event)">
+        </app-pagination>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div *ngIf="showDeleteModal"
+    class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+    <div class="bg-slate-800 rounded-2xl border border-slate-700 w-full max-w-md shadow-2xl">
+        <div class="p-6">
+            <div class="flex items-center justify-center mb-4">
+                <div class="h-16 w-16 bg-red-500/20 rounded-full flex items-center justify-center">
+                    <ion-icon name="warning-outline" class="text-4xl text-red-400"></ion-icon>
+                </div>
+            </div>
+            <h3 class="text-xl font-bold text-white text-center mb-2">Delete Vendor?</h3>
+            <p class="text-slate-400 text-center mb-6">
+                Are you sure you want to delete <strong class="text-white">{{ vendorToDelete?.vendorName }}</strong>?
+                This action cannot be undone.
+            </p>
+
+            <div class="flex space-x-3">
+                <button (click)="cancelDelete()"
+                    class="flex-1 py-3 px-4 bg-slate-700 text-slate-300 rounded-lg hover:bg-slate-600 transition-colors font-medium">
+                    Cancel
+                </button>
+                <button (click)="deleteVendor()" [disabled]="isDeleting"
+                    class="flex-1 py-3 px-4 bg-red-600 text-white rounded-lg hover:bg-red-500 transition-colors font-medium disabled:opacity-50">
+                    {{ isDeleting ? 'Deleting...' : 'Delete' }}
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

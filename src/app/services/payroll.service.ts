@@ -5,13 +5,14 @@ import { environment } from '../../environments/environment';
 import {
   CreatePayrollRequest,
   PayrollBatchResponse,
+  PayrollPreviewItem,
 } from '../models/payroll.models';
 
 @Injectable({
   providedIn: 'root',
 })
 export class PayrollService {
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   private url = environment.apiUrl + '/api';
 
@@ -36,15 +37,31 @@ export class PayrollService {
   getPayrollsForOrganization(
     organizationId: number,
     page: number = 0,
-    size: number = 10
+    size: number = 10,
+    status?: string | null, // MODIFIED
+    year?: number | null    // MODIFIED
   ): Observable<any> {
-    const params = new HttpParams()
+    let params = new HttpParams()
       .set('page', page.toString())
       .set('size', size.toString());
+
+    if (status && status !== 'ALL') {
+      params = params.set('status', status);
+    }
+    if (year) {
+      params = params.set('year', year.toString());
+    }
 
     return this.http.get<any>(
       `${this.url}/organizations/${organizationId}/payrolls`,
       { params }
+    );
+  }
+
+  // NEW METHOD
+  getPayrollsByYear(organizationId: number, year: number): Observable<PayrollBatchResponse[]> {
+    return this.http.get<PayrollBatchResponse[]>(
+      `${this.url}/organizations/${organizationId}/payrolls/by-year/${year}`
     );
   }
 
@@ -75,6 +92,24 @@ export class PayrollService {
   getPendingPayrollCounts(): Observable<{ [key: number]: number }> {
     return this.http.get<{ [key: number]: number }>(
       `${this.url}/payrolls/pending-counts`
+    );
+  }
+
+  getPayrollYears(organizationId: number): Observable<number[]> {
+    return this.http.get<number[]>(`${this.url}/organizations/${organizationId}/payrolls/years`);
+  }
+
+  /**
+   * Get payroll preview with all employee salaries for a given month/year.
+   * Used in the preview step before confirming payroll creation.
+   */
+  getPayrollPreview(organizationId: number, month: number, year: number): Observable<PayrollPreviewItem[]> {
+    const params = new HttpParams()
+      .set('month', month.toString())
+      .set('year', year.toString());
+    return this.http.get<PayrollPreviewItem[]>(
+      `${this.url}/organizations/${organizationId}/payrolls/preview`,
+      { params }
     );
   }
 }

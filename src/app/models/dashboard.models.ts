@@ -64,6 +64,17 @@ export interface BankAdminDashboardStatsDto {
   transactionVolume: OrganizationGrowthDataPoint[];
   monthlyOrganizationGrowthPercentage: number;
   monthlyTransactionVolumePercentage: number;
+  // NEW: Payroll trends
+  payrollTrends: OrganizationGrowthDataPoint[];
+  monthlyPayrollPercentage: number;
+  // NEW: Transaction count (system activity)
+  transactionCounts: TransactionCountDataPoint[];
+  monthlyTransactionCountPercentage: number;
+}
+
+export interface TransactionCountDataPoint {
+  name: string;
+  value: number;
 }
 
 export interface ExtendedTransactionDto extends TransactionDto {

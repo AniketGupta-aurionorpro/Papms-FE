@@ -122,9 +122,9 @@ export class EmployeeService {
     return this.http.put<string>(`${this.baseUrl}/employees/${employeeId}/password`, request);
   }
 
-  updateBankAccount(employeeId: number, request: any): Observable<CompleteEmployeeResponse> {
+  updateBankAccount(organizationId: number, employeeId: number, request: any): Observable<CompleteEmployeeResponse> {
     return this.http.put<CompleteEmployeeResponse>(
-      `${this.baseUrl}/employees/${employeeId}/bank-account`,
+      `${this.baseUrl}/${organizationId}/employees/${employeeId}/bank-account`,
       request
     );
   }
@@ -161,8 +161,9 @@ export class EmployeeService {
     );
   }
 
-  downloadPayslip(organizationId: number, paymentId: number): Observable<Blob> {
-    return this.http.get(`${this.baseUrl}/${organizationId}/employees/payslips/${paymentId}/download`, {
+  downloadPayslip(paymentId: number): Observable<Blob> {
+    // Use the self-service endpoint that doesn't require organizationId
+    return this.http.get(`${environment.apiUrl}/api/employees/dashboard/me/payslips/${paymentId}/download`, {
       responseType: 'blob'
     });
   }
@@ -178,9 +179,10 @@ export class EmployeeService {
     });
   }
 
-  getPayslipDetails(organizationId: number, paymentId: number): Observable<PayrollPaymentResponse> {
+  getPayslipDetails(paymentId: number): Observable<PayrollPaymentResponse> {
+    // Use the self-service endpoint that doesn't require organizationId
     return this.http.get<PayrollPaymentResponse>(
-      `${this.baseUrl}/${organizationId}/employees/payslips/${paymentId}`
+      `${environment.apiUrl}/api/employees/dashboard/me/payslips/${paymentId}`
     );
   }
 
@@ -189,7 +191,8 @@ export class EmployeeService {
       .set('page', page.toString())
       .set('size', size.toString());
 
-    return this.http.get<any>(`${this.baseUrl}/employees/me/payslips`, { params });
+    // Use the self-service endpoint that doesn't require organizationId
+    return this.http.get<any>(`${environment.apiUrl}/api/employees/dashboard/me/payslips`, { params });
   }
 
   uploadProfilePicture(organizationId: number, employeeId: number, file: File): Observable<CompleteEmployeeResponse> {
@@ -223,5 +226,9 @@ export class EmployeeService {
   checkEmailAvailability(organizationId: number, email: string): Observable<{ isAvailable: boolean }> {
     const params = new HttpParams().set('email', email);
     return this.http.get<{ isAvailable: boolean }>(`${this.baseUrl}/${organizationId}/employees/check-email`, { params });
+  }
+
+  scheduleHardDeletion(organizationId: number, employeeId: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${organizationId}/employees/${employeeId}/schedule-deletion`);
   }
 }

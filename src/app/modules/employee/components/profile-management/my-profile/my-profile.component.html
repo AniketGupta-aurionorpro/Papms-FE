@@ -1,1 +1,224 @@
-<p>my-profile works!</p>
+<!-- My Profile Page -->
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+            <h1 class="text-2xl md:text-3xl font-bold text-white">My Profile</h1>
+            <p class="text-slate-400 mt-1">View and manage your personal information</p>
+        </div>
+        <button (click)="navigateToEdit()"
+            class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 rounded-lg text-white font-medium transition-all shadow-lg shadow-cyan-500/20 self-start md:self-auto">
+            <ion-icon name="create-outline" class="text-lg"></ion-icon>
+            Edit Profile
+        </button>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="flex items-center justify-center min-h-[300px]">
+        <div class="text-center">
+            <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-cyan-500 border-t-transparent">
+            </div>
+            <p class="mt-4 text-slate-400">Loading profile...</p>
+        </div>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="error && !isLoading" class="bg-red-900/30 border border-red-700 rounded-xl p-6 text-center">
+        <ion-icon name="alert-circle-outline" class="text-4xl text-red-400 mb-2"></ion-icon>
+        <p class="text-red-300">{{ error }}</p>
+        <button (click)="loadProfile()"
+            class="mt-4 px-4 py-2 bg-red-700 hover:bg-red-600 rounded-lg text-white transition-colors">
+            Try Again
+        </button>
+    </div>
+
+    <!-- Profile Content -->
+    <div *ngIf="!isLoading && !error && profile" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Left Column - Profile Picture & Basic Info -->
+        <div class="lg:col-span-1">
+            <div class="bg-gradient-to-br from-slate-800 to-slate-800/50 rounded-2xl p-6 border border-slate-700/50">
+                <!-- Profile Picture -->
+                <div class="text-center mb-6">
+                    <div class="relative inline-block">
+                        <div
+                            class="w-32 h-32 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-4xl font-bold text-white shadow-lg shadow-cyan-500/30 overflow-hidden">
+                            <ng-container *ngIf="!profile.profilePictureUrl">
+                                {{ profile.fullName?.charAt(0) || 'E' }}
+                            </ng-container>
+                            <img *ngIf="profile.profilePictureUrl" [src]="profile.profilePictureUrl" alt="Profile"
+                                class="w-full h-full object-cover">
+                        </div>
+                        <!-- Upload Button -->
+                        <label
+                            class="absolute bottom-0 right-0 w-10 h-10 bg-cyan-600 hover:bg-cyan-500 rounded-full flex items-center justify-center cursor-pointer transition-colors shadow-lg">
+                            <ion-icon name="camera-outline" class="text-xl text-white"></ion-icon>
+                            <input type="file" accept="image/*" (change)="onFileSelected($event)" class="hidden">
+                        </label>
+                    </div>
+                    <div *ngIf="isUploadingPicture" class="mt-2 text-cyan-400 text-sm">Uploading...</div>
+                </div>
+
+                <h2 class="text-xl font-bold text-white text-center">{{ profile.fullName }}</h2>
+                <p class="text-cyan-400 text-center">{{ profile.jobTitle }}</p>
+                <p class="text-slate-400 text-sm text-center mt-1">{{ profile.department }}</p>
+
+                <!-- Status Badge -->
+                <div class="mt-4 flex justify-center">
+                    <span
+                        [class]="'px-3 py-1 rounded-full text-xs font-medium ' + (profile.isEmployeeActive ? 'bg-green-900/50 text-green-400 border border-green-700/50' : 'bg-red-900/50 text-red-400 border border-red-700/50')">
+                        {{ profile.isEmployeeActive ? 'Active' : 'Inactive' }}
+                    </span>
+                </div>
+
+                <!-- Quick Info -->
+                <div class="mt-6 space-y-3">
+                    <div class="flex items-center gap-3 p-3 bg-slate-900/50 rounded-lg">
+                        <ion-icon name="mail-outline" class="text-cyan-400 text-xl"></ion-icon>
+                        <div class="overflow-hidden">
+                            <p class="text-xs text-slate-400">Email</p>
+                            <p class="text-white text-sm truncate">{{ profile.email }}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3 p-3 bg-slate-900/50 rounded-lg">
+                        <ion-icon name="id-card-outline" class="text-blue-400 text-xl"></ion-icon>
+                        <div>
+                            <p class="text-xs text-slate-400">Employee Code</p>
+                            <p class="text-white text-sm">{{ profile.employeeCode }}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3 p-3 bg-slate-900/50 rounded-lg">
+                        <ion-icon name="calendar-outline" class="text-purple-400 text-xl"></ion-icon>
+                        <div>
+                            <p class="text-xs text-slate-400">Joined On</p>
+                            <p class="text-white text-sm">{{ profile.dateOfJoining | date:'mediumDate' }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column - Details -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- Organization Info -->
+            <div class="bg-gradient-to-br from-slate-800 to-slate-800/50 rounded-2xl p-6 border border-slate-700/50">
+                <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                    <ion-icon name="business-outline" class="text-cyan-400"></ion-icon>
+                    Organization Details
+                </h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="p-4 bg-slate-900/50 rounded-xl">
+                        <p class="text-sm text-slate-400">Organization</p>
+                        <p class="text-white font-medium mt-1">{{ profile.organizationName }}</p>
+                    </div>
+                    <div class="p-4 bg-slate-900/50 rounded-xl">
+                        <p class="text-sm text-slate-400">Department</p>
+                        <p class="text-white font-medium mt-1">{{ profile.department }}</p>
+                    </div>
+                    <div class="p-4 bg-slate-900/50 rounded-xl">
+                        <p class="text-sm text-slate-400">Job Title</p>
+                        <p class="text-white font-medium mt-1">{{ profile.jobTitle }}</p>
+                    </div>
+                    <div class="p-4 bg-slate-900/50 rounded-xl">
+                        <p class="text-sm text-slate-400">Account Status</p>
+                        <p class="text-white font-medium mt-1">{{ profile.isUserEnabled ? 'Enabled' : 'Disabled' }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bank Account Info -->
+            <div class="bg-gradient-to-br from-slate-800 to-slate-800/50 rounded-2xl p-6 border border-slate-700/50">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-white flex items-center gap-2">
+                        <ion-icon name="card-outline" class="text-emerald-400"></ion-icon>
+                        Bank Account
+                    </h3>
+                    <button (click)="navigateToBankAccount()"
+                        class="text-sm text-cyan-400 hover:text-cyan-300 flex items-center gap-1 transition-colors">
+                        <ion-icon name="create-outline"></ion-icon>
+                        Edit
+                    </button>
+                </div>
+
+                <div *ngIf="profile.bankAccount" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="p-4 bg-slate-900/50 rounded-xl">
+                        <p class="text-sm text-slate-400">Account Holder</p>
+                        <p class="text-white font-medium mt-1">{{ profile.bankAccount.accountHolderName }}</p>
+                    </div>
+                    <div class="p-4 bg-slate-900/50 rounded-xl">
+                        <p class="text-sm text-slate-400">Account Number</p>
+                        <p class="text-white font-medium mt-1 font-mono">{{ profile.bankAccount.accountNumber }}</p>
+                    </div>
+                    <div class="p-4 bg-slate-900/50 rounded-xl">
+                        <p class="text-sm text-slate-400">Bank Name</p>
+                        <p class="text-white font-medium mt-1">{{ profile.bankAccount.bankName }}</p>
+                    </div>
+                    <div class="p-4 bg-slate-900/50 rounded-xl">
+                        <p class="text-sm text-slate-400">IFSC Code</p>
+                        <p class="text-white font-medium mt-1 font-mono">{{ profile.bankAccount.ifscCode }}</p>
+                    </div>
+                </div>
+
+                <div *ngIf="!profile.bankAccount" class="text-center py-8 text-slate-400">
+                    <ion-icon name="card-outline" class="text-4xl mb-2"></ion-icon>
+                    <p>No bank account linked</p>
+                    <button (click)="navigateToBankAccount()"
+                        class="mt-4 px-4 py-2 bg-cyan-600 hover:bg-cyan-500 rounded-lg text-white transition-colors">
+                        Add Bank Account
+                    </button>
+                </div>
+            </div>
+
+            <!-- Salary Structure -->
+            <div class="bg-gradient-to-br from-slate-800 to-slate-800/50 rounded-2xl p-6 border border-slate-700/50">
+                <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                    <ion-icon name="wallet-outline" class="text-purple-400"></ion-icon>
+                    Current Salary Structure
+                </h3>
+
+                <div *ngIf="profile.currentSalary" class="space-y-4">
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                        <div class="p-4 bg-slate-900/50 rounded-xl">
+                            <p class="text-sm text-slate-400">Basic Salary</p>
+                            <p class="text-white font-medium mt-1">{{ formatCurrency(profile.currentSalary.basicSalary)
+                                }}</p>
+                        </div>
+                        <div class="p-4 bg-slate-900/50 rounded-xl">
+                            <p class="text-sm text-slate-400">HRA</p>
+                            <p class="text-white font-medium mt-1">{{ formatCurrency(profile.currentSalary.hra) }}</p>
+                        </div>
+                        <div class="p-4 bg-slate-900/50 rounded-xl">
+                            <p class="text-sm text-slate-400">DA</p>
+                            <p class="text-white font-medium mt-1">{{ formatCurrency(profile.currentSalary.da) }}</p>
+                        </div>
+                        <div class="p-4 bg-slate-900/50 rounded-xl">
+                            <p class="text-sm text-slate-400">Other Allowances</p>
+                            <p class="text-white font-medium mt-1">{{
+                                formatCurrency(profile.currentSalary.otherAllowances) }}</p>
+                        </div>
+                        <div class="p-4 bg-slate-900/50 rounded-xl">
+                            <p class="text-sm text-slate-400">PF Contribution</p>
+                            <p class="text-red-400 font-medium mt-1">- {{
+                                formatCurrency(profile.currentSalary.pfContribution) }}</p>
+                        </div>
+                        <div
+                            class="p-4 bg-gradient-to-br from-emerald-900/30 to-teal-900/30 border border-emerald-700/30 rounded-xl">
+                            <p class="text-sm text-emerald-400">Total Salary</p>
+                            <p class="text-emerald-300 font-bold text-lg mt-1">{{
+                                formatCurrency(profile.currentSalary.totalSalary) }}</p>
+                        </div>
+                    </div>
+                    <div class="p-4 bg-slate-900/50 rounded-xl">
+                        <p class="text-sm text-slate-400">Effective From</p>
+                        <p class="text-white font-medium mt-1">{{ profile.currentSalary.effectiveFromDate |
+                            date:'mediumDate' }}</p>
+                    </div>
+                </div>
+
+                <div *ngIf="!profile.currentSalary" class="text-center py-8 text-slate-400">
+                    <ion-icon name="wallet-outline" class="text-4xl mb-2"></ion-icon>
+                    <p>Salary structure not configured</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

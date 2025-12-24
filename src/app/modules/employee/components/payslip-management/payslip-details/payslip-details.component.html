@@ -1,1 +1,141 @@
-<p>payslip-details works!</p>
+<!-- Payslip Details Page -->
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div class="flex items-center gap-4">
+            <button (click)="goBack()"
+                class="p-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors">
+                <ion-icon name="arrow-back-outline" class="text-xl"></ion-icon>
+            </button>
+            <div>
+                <h1 class="text-2xl md:text-3xl font-bold text-white">Payslip Details</h1>
+                <p class="text-slate-400 mt-1">Payment #{{ paymentId }}</p>
+            </div>
+        </div>
+        <button (click)="downloadPayslip()" [disabled]="isDownloading || isLoading"
+            class="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 rounded-lg text-white font-medium transition-all shadow-lg shadow-cyan-500/20 disabled:opacity-50 self-start md:self-auto">
+            <ion-icon [name]="isDownloading ? 'hourglass-outline' : 'download-outline'" class="text-lg"></ion-icon>
+            {{ isDownloading ? 'Downloading...' : 'Download PDF' }}
+        </button>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="flex items-center justify-center min-h-[300px]">
+        <div class="text-center">
+            <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-cyan-500 border-t-transparent">
+            </div>
+            <p class="mt-4 text-slate-400">Loading payslip details...</p>
+        </div>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="error && !isLoading" class="bg-red-900/30 border border-red-700 rounded-xl p-6 text-center">
+        <ion-icon name="alert-circle-outline" class="text-4xl text-red-400 mb-2"></ion-icon>
+        <p class="text-red-300">{{ error }}</p>
+    </div>
+
+    <!-- Content -->
+    <div *ngIf="!isLoading && !error && payslip" class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Left Column - Employee Info -->
+        <div class="lg:col-span-1">
+            <div class="bg-gradient-to-br from-slate-800 to-slate-800/50 rounded-2xl p-6 border border-slate-700/50">
+                <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                    <ion-icon name="person-outline" class="text-cyan-400"></ion-icon>
+                    Employee Details
+                </h3>
+
+                <div class="space-y-4">
+                    <div class="p-4 bg-slate-900/50 rounded-xl">
+                        <p class="text-sm text-slate-400">Employee Name</p>
+                        <p class="text-white font-medium mt-1">{{ payslip.employeeName }}</p>
+                    </div>
+                    <div class="p-4 bg-slate-900/50 rounded-xl">
+                        <p class="text-sm text-slate-400">Employee Code</p>
+                        <p class="text-white font-medium mt-1 font-mono">{{ payslip.employeeCode }}</p>
+                    </div>
+                    <div class="p-4 bg-slate-900/50 rounded-xl">
+                        <p class="text-sm text-slate-400">Payment Status</p>
+                        <span
+                            [class]="'mt-2 inline-block px-3 py-1 rounded-full text-xs font-medium border ' + getStatusClass(payslip.status)">
+                            {{ payslip.status }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column - Salary Breakdown -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- Earnings -->
+            <div class="bg-gradient-to-br from-slate-800 to-slate-800/50 rounded-2xl p-6 border border-slate-700/50">
+                <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                    <ion-icon name="trending-up-outline" class="text-emerald-400"></ion-icon>
+                    Earnings
+                </h3>
+
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center p-4 bg-slate-900/50 rounded-xl">
+                        <span class="text-slate-300">Basic Salary</span>
+                        <span class="text-white font-medium">{{ formatCurrency(payslip.basicSalary) }}</span>
+                    </div>
+                    <div class="flex justify-between items-center p-4 bg-slate-900/50 rounded-xl">
+                        <span class="text-slate-300">HRA (House Rent Allowance)</span>
+                        <span class="text-white font-medium">{{ formatCurrency(payslip.hra) }}</span>
+                    </div>
+                    <div class="flex justify-between items-center p-4 bg-slate-900/50 rounded-xl">
+                        <span class="text-slate-300">DA (Dearness Allowance)</span>
+                        <span class="text-white font-medium">{{ formatCurrency(payslip.da) }}</span>
+                    </div>
+                    <div class="flex justify-between items-center p-4 bg-slate-900/50 rounded-xl">
+                        <span class="text-slate-300">Other Allowances</span>
+                        <span class="text-white font-medium">{{ formatCurrency(payslip.otherAllowances) }}</span>
+                    </div>
+                    <div
+                        class="flex justify-between items-center p-4 bg-emerald-900/20 border border-emerald-700/30 rounded-xl">
+                        <span class="text-emerald-300 font-semibold">Total Earnings</span>
+                        <span class="text-emerald-400 font-bold text-lg">{{ formatCurrency(payslip.totalEarnings)
+                            }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Deductions -->
+            <div class="bg-gradient-to-br from-slate-800 to-slate-800/50 rounded-2xl p-6 border border-slate-700/50">
+                <h3 class="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                    <ion-icon name="trending-down-outline" class="text-red-400"></ion-icon>
+                    Deductions
+                </h3>
+
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center p-4 bg-slate-900/50 rounded-xl">
+                        <span class="text-slate-300">PF Contribution</span>
+                        <span class="text-red-400 font-medium">- {{ formatCurrency(payslip.pfContribution) }}</span>
+                    </div>
+                    <div
+                        class="flex justify-between items-center p-4 bg-red-900/20 border border-red-700/30 rounded-xl">
+                        <span class="text-red-300 font-semibold">Total Deductions</span>
+                        <span class="text-red-400 font-bold text-lg">- {{ formatCurrency(payslip.totalDeductions)
+                            }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Net Salary -->
+            <div class="bg-gradient-to-br from-cyan-900/30 to-blue-900/30 rounded-2xl p-6 border border-cyan-700/30">
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div class="flex items-center gap-3">
+                        <div
+                            class="w-14 h-14 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg shadow-cyan-500/30">
+                            <ion-icon name="wallet-outline" class="text-2xl text-white"></ion-icon>
+                        </div>
+                        <div>
+                            <p class="text-cyan-300 font-semibold">Net Salary Paid</p>
+                            <p class="text-xs text-slate-400">Total Earnings - Total Deductions</p>
+                        </div>
+                    </div>
+                    <p class="text-3xl md:text-4xl font-bold text-white">{{ formatCurrency(payslip.netSalaryPaid) }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,1 +1,167 @@
-<p>payroll-reports works!</p>
+<div class="space-y-6">
+  <!-- Header -->
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+    <div>
+      <h1 class="text-3xl font-bold text-white">Payroll Reports</h1>
+      <p class="text-slate-400 mt-1">Generate and download comprehensive payroll reports</p>
+    </div>
+    <div class="flex items-center space-x-3">
+      <select [(ngModel)]="selectedYear" (ngModelChange)="onYearChange()"
+        class="bg-slate-700 border border-slate-600 text-white rounded-lg px-4 py-2">
+        <option *ngFor="let year of years" [value]="year">{{ year }}</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Quick Stats -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div *ngFor="let stat of quickStats" class="bg-slate-800 rounded-xl border border-slate-700 p-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm text-slate-400">{{ stat.label }}</p>
+          <p class="text-2xl font-bold text-white mt-1">{{ stat.value }}</p>
+        </div>
+        <div
+          [ngClass]="{'bg-green-500/20': stat.color === 'green', 'bg-blue-500/20': stat.color === 'blue', 'bg-purple-500/20': stat.color === 'purple', 'bg-amber-500/20': stat.color === 'amber'}"
+          class="h-10 w-10 rounded-lg flex items-center justify-center">
+          <ion-icon [name]="stat.icon"
+            [ngClass]="{'text-green-400': stat.color === 'green', 'text-blue-400': stat.color === 'blue', 'text-purple-400': stat.color === 'purple', 'text-amber-400': stat.color === 'amber'}"
+            class="text-xl"></ion-icon>
+        </div>
+      </div>
+    </div>
+    <div *ngIf="isLoadingStats" class="col-span-4 text-center py-4">
+      <div class="animate-spin h-6 w-6 border-2 border-blue-500 border-t-transparent rounded-full mx-auto"></div>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Report Configuration -->
+    <div class="lg:col-span-2 space-y-6">
+      <!-- Report Type Selection -->
+      <div class="bg-slate-800 rounded-xl border border-slate-700 p-6">
+        <h2 class="text-lg font-semibold text-white mb-4">Select Report Type</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <button *ngFor="let type of reportTypes" (click)="selectReportType(type.id)"
+            [ngClass]="{'border-blue-500 bg-blue-500/10': selectedReportType === type.id, 'border-slate-700 hover:border-slate-600': selectedReportType !== type.id}"
+            class="p-4 border rounded-lg text-left transition-colors">
+            <div class="flex items-start space-x-3">
+              <ion-icon [name]="type.icon"
+                [ngClass]="{'text-blue-400': selectedReportType === type.id, 'text-slate-400': selectedReportType !== type.id}"
+                class="text-2xl mt-0.5"></ion-icon>
+              <div>
+                <p class="font-medium text-white">{{ type.name }}</p>
+                <p class="text-sm text-slate-400 mt-0.5">{{ type.description }}</p>
+              </div>
+            </div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Period Selection -->
+      <div class="bg-slate-800 rounded-xl border border-slate-700 p-6">
+        <h2 class="text-lg font-semibold text-white mb-4">Select Period</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <!-- Year -->
+          <div>
+            <label class="block text-sm font-medium text-slate-300 mb-2">Year</label>
+            <select [(ngModel)]="selectedYear"
+              class="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-4 py-2.5">
+              <option *ngFor="let year of years" [value]="year">{{ year }}</option>
+            </select>
+          </div>
+          <!-- Month (for monthly/employee reports) -->
+          <div *ngIf="selectedReportType === 'monthly' || selectedReportType === 'employee'">
+            <label class="block text-sm font-medium text-slate-300 mb-2">Month</label>
+            <select [(ngModel)]="selectedMonth"
+              class="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-4 py-2.5">
+              <option *ngFor="let month of months" [value]="month.value">{{ month.name }}</option>
+            </select>
+          </div>
+          <!-- Quarter (for quarterly reports) -->
+          <div *ngIf="selectedReportType === 'quarterly'">
+            <label class="block text-sm font-medium text-slate-300 mb-2">Quarter</label>
+            <select [(ngModel)]="selectedQuarter"
+              class="w-full bg-slate-700 border border-slate-600 text-white rounded-lg px-4 py-2.5">
+              <option *ngFor="let q of quarters" [value]="q.value">{{ q.name }}</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Export Options -->
+      <div class="bg-slate-800 rounded-xl border border-slate-700 p-6">
+        <h2 class="text-lg font-semibold text-white mb-4">Export Format</h2>
+        <div class="flex flex-wrap gap-3">
+          <button *ngFor="let format of exportFormats" (click)="exportFormat = format.id"
+            [ngClass]="{'bg-blue-600 border-blue-500': exportFormat === format.id, 'bg-slate-700 border-slate-600 hover:border-slate-500': exportFormat !== format.id}"
+            class="flex items-center space-x-2 px-4 py-2 border rounded-lg transition-colors">
+            <ion-icon [name]="format.icon" class="text-white"></ion-icon>
+            <span class="text-white text-sm font-medium">{{ format.name }}</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Generate Button -->
+      <button (click)="generateReport()" [disabled]="isLoading"
+        class="w-full flex items-center justify-center space-x-2 px-6 py-4 bg-gradient-to-r from-blue-600 to-blue-500 text-white rounded-xl hover:from-blue-500 hover:to-blue-400 transition-all font-semibold text-lg disabled:opacity-50 disabled:cursor-not-allowed shadow-lg">
+        <ion-icon [name]="isLoading ? 'sync-outline' : 'download-outline'" [class.animate-spin]="isLoading"
+          class="text-xl"></ion-icon>
+        <span>{{ isLoading ? 'Generating Report...' : 'Generate & Download Report' }}</span>
+      </button>
+    </div>
+
+    <!-- Recent Reports / History -->
+    <div class="space-y-6">
+      <div class="bg-slate-800 rounded-xl border border-slate-700 p-6">
+        <h2 class="text-lg font-semibold text-white mb-4">Recent Payrolls ({{ selectedYear }})</h2>
+        <div *ngIf="recentPayrolls.length > 0; else noRecent" class="space-y-3">
+          <div *ngFor="let payroll of recentPayrolls"
+            class="flex items-center justify-between p-3 bg-slate-700/50 rounded-lg">
+            <div>
+              <p class="font-medium text-white">{{ getMonthName(payroll.payrollMonth) }}</p>
+              <p class="text-sm text-slate-400">{{ payroll.totalEmployees }} employees</p>
+            </div>
+            <div class="text-right">
+              <p class="font-semibold text-white">{{ formatCurrency(payroll.totalAmount) }}</p>
+              <span [class]="'px-2 py-0.5 rounded-full text-xs ' + getStatusColor(payroll.status)">{{
+                payroll.status.replace('_', ' ') }}</span>
+            </div>
+          </div>
+        </div>
+        <ng-template #noRecent>
+          <div class="text-center py-6">
+            <ion-icon name="folder-open-outline" class="text-4xl text-slate-500 mb-2"></ion-icon>
+            <p class="text-slate-400">No payrolls for {{ selectedYear }}</p>
+          </div>
+        </ng-template>
+      </div>
+
+      <!-- Quick Tips -->
+      <div class="bg-slate-800 rounded-xl border border-slate-700 p-6">
+        <h2 class="text-lg font-semibold text-white mb-4">
+          <ion-icon name="bulb-outline" class="mr-2 text-amber-400"></ion-icon>
+          Report Tips
+        </h2>
+        <ul class="space-y-3 text-sm text-slate-400">
+          <li class="flex items-start space-x-2">
+            <ion-icon name="checkmark-circle-outline" class="text-green-400 mt-0.5"></ion-icon>
+            <span>Monthly reports include detailed salary breakdowns</span>
+          </li>
+          <li class="flex items-start space-x-2">
+            <ion-icon name="checkmark-circle-outline" class="text-green-400 mt-0.5"></ion-icon>
+            <span>Quarterly reports help track trends over time</span>
+          </li>
+          <li class="flex items-start space-x-2">
+            <ion-icon name="checkmark-circle-outline" class="text-green-400 mt-0.5"></ion-icon>
+            <span>Excel format includes all salary components</span>
+          </li>
+          <li class="flex items-start space-x-2">
+            <ion-icon name="checkmark-circle-outline" class="text-green-400 mt-0.5"></ion-icon>
+            <span>PDF is ideal for sharing with stakeholders</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>

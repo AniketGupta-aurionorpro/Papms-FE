@@ -1,29 +1,238 @@
+/* Modern Sidebar Navigation Styles */
+
 /* Custom scrollbar for sidebar */
 nav::-webkit-scrollbar {
   width: 4px;
 }
 
 nav::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: transparent;
 }
 
 nav::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 2px;
+  background: rgba(148, 163, 184, 0.3);
+  border-radius: 4px;
 }
 
 nav::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: rgba(148, 163, 184, 0.5);
+}
+
+/* Glassmorphism sidebar */
+.sidebar-modern {
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%);
+  backdrop-filter: blur(20px);
+  border-right: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+/* Logo container with subtle glow */
+.logo-container {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+/* Navigation item base */
+.nav-item {
+  position: relative;
+  margin-bottom: 4px;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Navigation item hover effect */
+.nav-item:hover {
+  background: rgba(59, 130, 246, 0.08);
+}
+
+/* Active navigation item with gradient */
+.nav-item-active {
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.9) 0%, rgba(37, 99, 235, 0.95) 100%) !important;
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3),
+    0 0 0 1px rgba(59, 130, 246, 0.5);
+}
+
+/* Glowing icon for active state */
+.nav-item-active ion-icon {
+  filter: drop-shadow(0 0 6px rgba(255, 255, 255, 0.5));
+}
+
+/* Submenu container with modern styling */
+.submenu-container {
+  background: rgba(15, 23, 42, 0.5);
+  border-radius: 8px;
+  margin-top: 8px;
+  margin-left: 16px;
+  padding: 8px;
+  border-left: 2px solid rgba(59, 130, 246, 0.3);
+}
+
+/* Submenu item */
+.submenu-item {
+  padding: 10px 12px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.submenu-item:hover {
+  background: rgba(59, 130, 246, 0.1);
+  padding-left: 16px;
+}
+
+.submenu-item-active {
+  background: rgba(59, 130, 246, 0.15);
+  color: #60a5fa !important;
+  font-weight: 600;
+}
+
+.submenu-item-active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 16px;
+  background: #60a5fa;
+  border-radius: 0 4px 4px 0;
+}
+
+/* User profile section */
+.user-profile-section {
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%);
+  border-top: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+/* Avatar with gradient border */
+.avatar-modern {
+  background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+  padding: 2px;
+  border-radius: 12px;
+}
+
+.avatar-modern-inner {
+  background: #1e293b;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+/* Logout button with hover effect */
+.logout-btn {
+  transition: all 0.3s ease;
+  border-radius: 10px;
+}
+
+.logout-btn:hover {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  transform: translateX(2px);
+}
+
+/* Toggle button animation */
+.toggle-btn {
+  position: relative;
+  overflow: hidden;
+  border-radius: 10px;
+}
+
+.toggle-btn::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(139, 92, 246, 0.2) 100%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.toggle-btn:hover::before {
+  opacity: 1;
+}
+
+/* Collapsed sidebar adjustments */
+.sidebar-collapsed .nav-item {
+  padding: 12px;
+  justify-content: center;
+}
+
+/* Tooltip for collapsed menu */
+.nav-tooltip {
+  position: absolute;
+  left: calc(100% + 12px);
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  padding: 8px 12px;
+  border-radius: 8px;
+  white-space: nowrap;
+  font-size: 13px;
+  font-weight: 500;
+  color: white;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.2s ease;
+  z-index: 100;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.nav-item:hover .nav-tooltip {
+  opacity: 1;
+  left: calc(100% + 16px);
+}
+
+/* Chevron animation */
+.chevron-animated {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.chevron-rotated {
+  transform: rotate(90deg);
+}
+
+/* Badge for notifications */
+.nav-badge {
+  background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 10px;
+  min-width: 18px;
+  text-align: center;
+}
+
+/* Header improvements */
+.header-modern {
+  background: linear-gradient(135deg, rgba(30, 41, 59, 0.8) 0%, rgba(15, 23, 42, 0.9) 100%);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
 }
 
 /* Smooth transitions */
 * {
-  transition-property: color, background-color, border-color, transform, opacity;
+  transition-property: color, background-color, border-color, transform, opacity, box-shadow;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 150ms;
+  transition-duration: 200ms;
 }
 
-/* Custom background color for active states */
-.bg-cyan-25 {
-  background-color: rgba(6, 182, 212, 0.08);
+/* Animation keyframes */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.submenu-animated {
+  animation: slideIn 0.3s ease forwards;
 }

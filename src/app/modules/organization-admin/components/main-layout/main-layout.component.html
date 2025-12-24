@@ -1,32 +1,58 @@
 <div class="flex h-screen bg-slate-900 text-slate-300">
-  <!-- Sticky Sidebar -->
-  <aside [class]="isSidebarOpen ? 'w-64' : 'w-20'" class="bg-slate-800 flex flex-col transition-all duration-300 border-r border-slate-700">
-    <!-- Logo/Org Name -->
-    <div class="p-4 border-b border-slate-700 flex items-center justify-between h-16">
-      <div class="flex items-center gap-3" *ngIf="isSidebarOpen && userInfo">
-        <div class="h-8 w-8 bg-slate-700 rounded-lg flex items-center justify-center text-white font-bold text-sm overflow-hidden">
-          <img *ngIf="userInfo.organizationLogoUrl" [src]="userInfo.organizationLogoUrl" [alt]="userInfo.organizationName" class="h-full w-full object-cover">
-          <span *ngIf="!userInfo.organizationLogoUrl">{{ getInitials(userInfo.organizationName) }}</span>
+  <!-- Modern Sidebar -->
+  <aside [class]="isSidebarOpen ? 'w-64' : 'w-20'"
+    class="sidebar-modern flex flex-col transition-all duration-300 ease-out">
+
+    <!-- Logo/Org Header -->
+    <div class="logo-container p-4 flex items-center justify-between h-16">
+      <div class="flex items-center gap-3 overflow-hidden" *ngIf="isSidebarOpen && userInfo">
+        <div class="avatar-modern h-9 w-9 flex-shrink-0">
+          <div class="avatar-modern-inner h-full w-full">
+            <img *ngIf="userInfo.organizationLogoUrl" [src]="userInfo.organizationLogoUrl"
+              [alt]="userInfo.organizationName" class="h-full w-full object-cover rounded-lg">
+            <span *ngIf="!userInfo.organizationLogoUrl" class="text-white font-bold text-sm">
+              {{ getInitials(userInfo.organizationName) }}
+            </span>
+          </div>
         </div>
         <span class="text-lg font-bold text-white truncate">{{ userInfo.organizationName }}</span>
       </div>
-      <button (click)="toggleSidebar()" class="p-2 rounded-lg hover:bg-slate-700 transition-colors">
-        <ion-icon [name]="isSidebarOpen ? 'menu-outline' : 'menu-outline'" class="text-slate-400 text-xl"></ion-icon>
+
+      <!-- Collapse Toggle -->
+      <button (click)="toggleSidebar()" class="toggle-btn p-2 hover:bg-slate-700/50 transition-all">
+        <ion-icon [name]="isSidebarOpen ? 'chevron-back-outline' : 'chevron-forward-outline'"
+          class="text-slate-400 text-xl"></ion-icon>
       </button>
     </div>
 
     <!-- Navigation -->
-    <nav class="flex-grow p-4 space-y-2 overflow-y-auto">
+    <nav class="flex-grow p-3 space-y-1 overflow-y-auto">
       <div *ngFor="let item of menuItems" class="relative">
-        <button (click)="item.children ? toggleSubMenu(item) : router.navigate([item.route])" [class]="isMenuItemActive(item) ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-300 hover:bg-slate-700/50 hover:text-white'" class="w-full flex items-center gap-3 p-3 rounded-lg transition-all duration-200 group">
+        <!-- Main Navigation Item -->
+        <button (click)="item.children ? toggleSubMenu(item) : router.navigate([item.route])"
+          [class]="isMenuItemActive(item) ? 'nav-item nav-item-active text-white' : 'nav-item text-slate-300 hover:text-white'"
+          class="w-full flex items-center gap-3 p-3 rounded-xl transition-all duration-200 group">
+
           <ion-icon [name]="item.icon" class="text-xl flex-shrink-0"></ion-icon>
-          <span *ngIf="isSidebarOpen" class="text-sm font-medium flex-1 text-left truncate">{{ item.label }}</span>
-          <ion-icon *ngIf="item.children && isSidebarOpen" [name]="item.isExpanded ? 'chevron-down-outline' : 'chevron-forward-outline'" class="text-slate-400 text-sm transition-transform"></ion-icon>
+
+          <span *ngIf="isSidebarOpen" class="text-sm font-medium flex-1 text-left truncate">
+            {{ item.label }}
+          </span>
+
+          <!-- Chevron for expandable items -->
+          <ion-icon *ngIf="item.children && isSidebarOpen" name="chevron-forward-outline"
+            class="text-sm chevron-animated" [class.chevron-rotated]="item.isExpanded"></ion-icon>
+
+          <!-- Tooltip for collapsed sidebar -->
+          <span *ngIf="!isSidebarOpen" class="nav-tooltip">{{ item.label }}</span>
         </button>
 
         <!-- Submenu -->
-        <div *ngIf="item.children && item.isExpanded && isSidebarOpen" class="ml-8 mt-2 space-y-1 border-l border-slate-600 pl-4">
-          <a *ngFor="let child of item.children" [routerLink]="child.route" routerLinkActive="text-blue-400 font-semibold" [routerLinkActiveOptions]="{exact: true}" class="flex items-center gap-2 p-2 rounded text-sm text-slate-400 hover:text-white transition-colors">
+        <div *ngIf="item.children && item.isExpanded && isSidebarOpen" class="submenu-container submenu-animated">
+          <a *ngFor="let child of item.children" [routerLink]="child.route" routerLinkActive="submenu-item-active"
+            [routerLinkActiveOptions]="{exact: true}"
+            class="submenu-item flex items-center gap-3 text-sm text-slate-400 hover:text-white cursor-pointer">
+            <ion-icon [name]="child.icon" class="text-base"></ion-icon>
             <span>{{ child.label }}</span>
           </a>
         </div>
@@ -34,16 +60,23 @@
     </nav>
 
     <!-- User Profile & Logout -->
-    <div class="p-4 border-t border-slate-700">
+    <div class="user-profile-section p-4">
       <div class="flex items-center gap-3">
-        <div class="h-10 w-10 bg-gradient-to-br from-slate-600 to-slate-700 rounded-full flex items-center justify-center flex-shrink-0">
-          <span class="text-white text-sm font-medium">{{ getInitials(userInfo?.fullName) }}</span>
+        <!-- Avatar -->
+        <div class="avatar-modern h-11 w-11 flex-shrink-0">
+          <div class="avatar-modern-inner h-full w-full p-0.5">
+            <span class="text-white text-sm font-semibold">{{ getInitials(userInfo?.fullName) }}</span>
+          </div>
         </div>
+
+        <!-- User Info (visible when expanded) -->
         <div *ngIf="isSidebarOpen" class="flex-1 min-w-0">
-          <p class="text-sm font-medium text-white truncate">{{ userInfo?.fullName || 'User' }}</p>
-          <p class="text-xs text-slate-400 truncate">{{ userInfo?.email || 'email@example.com' }}</p>
+          <p class="text-sm font-semibold text-white truncate">{{ userInfo?.fullName || 'User' }}</p>
+          <p class="text-xs text-slate-500 truncate">{{ userInfo?.email || 'email@example.com' }}</p>
         </div>
-        <button (click)="logout()" class="p-2 rounded-lg text-slate-400 hover:bg-red-800/50 hover:text-red-300 transition-colors">
+
+        <!-- Logout Button -->
+        <button (click)="logout()" class="logout-btn p-2 text-slate-400 hover:text-red-400">
           <ion-icon name="log-out-outline" class="text-xl"></ion-icon>
         </button>
       </div>
@@ -52,34 +85,29 @@
 
   <!-- Main Content Area -->
   <div class="flex-1 flex flex-col overflow-hidden">
-    <!-- Header (optional, can be removed if not needed) -->
-    <header class="bg-slate-800/50 backdrop-blur-sm border-b border-slate-700 h-16 flex items-center px-6 justify-between flex-shrink-0">
-      <h1 class="text-xl font-semibold text-white">Organization Dashboard</h1>
+    <!-- Modern Header -->
+    <header class="header-modern h-16 flex items-center px-6 justify-between flex-shrink-0">
       <div class="flex items-center gap-4">
-        <button [routerLink]="['/org-admin/financial/deposits']" class="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-500 transition-colors">
-          <ion-icon name="add-outline"></ion-icon>
+        <h1 class="text-xl font-semibold text-white">Organization Dashboard</h1>
+      </div>
+      <div class="flex items-center gap-4">
+        <button [routerLink]="['/org-admin/financial/deposits']"
+          class="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-blue-700 text-white rounded-xl hover:from-blue-500 hover:to-blue-600 transition-all shadow-lg shadow-blue-500/20 hover:shadow-blue-500/30">
+          <ion-icon name="add-outline" class="text-lg"></ion-icon>
           <span class="text-sm font-medium">Add Funds</span>
         </button>
       </div>
     </header>
 
     <!-- Scrollable Page Content -->
-    <main class="flex-1 overflow-y-auto p-6 md:p-8">
+    <main class="flex-1 overflow-y-auto p-6 md:p-8 bg-slate-900">
       <router-outlet></router-outlet>
 
-      <!-- Sticky Footer -->
-      <footer class="mt-8 text-center text-sm text-slate-500">
-        © {{
-          (
-            (
-              (
-                (
-                  null
-                )
-              )
-            )
-          )
-        }} Payroll & Payment Management System. All Rights Reserved.
+      <!-- Footer -->
+      <footer class="mt-8 text-center">
+        <p class="text-sm text-slate-600">
+          © 2024 Payroll & Payment Management System
+        </p>
       </footer>
     </main>
   </div>

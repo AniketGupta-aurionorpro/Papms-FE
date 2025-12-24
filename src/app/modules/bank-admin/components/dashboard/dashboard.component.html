@@ -1,6 +1,23 @@
 <!-- src/app/modules/bank-admin/components/dashboard/dashboard.component.html -->
 
-<h2 class="text-3xl font-bold text-white mb-6">Bank Admin Dashboard</h2>
+<!-- Welcome Header with Refresh -->
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-4">
+  <div>
+    <h2 class="text-3xl font-bold text-white">{{ getGreeting() }}, <span class="gradient-text">{{ adminName }}</span>
+    </h2>
+    <p class="text-slate-400 text-sm mt-1">Here's what's happening with your platform today.</p>
+  </div>
+  <div class="flex items-center gap-3">
+    <span class="text-xs text-slate-500">Last updated: {{ lastUpdated | date:'shortTime' }}</span>
+    <!-- Refresh Button -->
+    <button (click)="refreshData()" [disabled]="isLoading"
+      class="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg transition-all border border-slate-700">
+      <ion-icon name="refresh-outline" class="text-lg" [class.refresh-btn]="true"
+        [class.spinning]="isRefreshing"></ion-icon>
+      <span class="text-sm">Refresh</span>
+    </button>
+  </div>
+</div>
 
 <div *ngIf="isLoading" class="flex justify-center items-center h-96">
   <div class="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-blue-500"></div>
@@ -12,22 +29,27 @@
 <!-- Main content wrapper -->
 <div *ngIf="!isLoading && !error" class="space-y-8">
 
-  <!-- Stats Grid -->
+  <!-- Stats Grid with Icons -->
   <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-    <!-- MODIFIED STAT CARD LAYOUT -->
-    <div *ngFor="let stat of stats" class="bg-slate-800 p-6 rounded-lg shadow-lg transition-all hover:shadow-blue-500/10 hover:-translate-y-1">
-      <p class="text-sm font-medium text-slate-400">{{ stat.label }}</p>
-      <div class="flex items-baseline justify-between mt-2">
-        <p class="text-4xl font-bold text-white">{{ stat.value | number }}</p>
-        <div class="text-right">
-          <p class="text-sm font-medium" [ngClass]="stat.change >= 0 ? 'text-green-400' : 'text-red-400'">
-            {{ stat.change | number:'1.1-1' }}%
-          </p>
-          <p class="text-xs text-slate-500">{{ stat.changeLabel }}</p>
+    <div *ngFor="let stat of stats"
+      class="stat-card bg-slate-800 p-6 rounded-lg shadow-lg transition-all hover:shadow-blue-500/10"
+      [ngClass]="stat.cardClass">
+      <div class="flex items-start justify-between">
+        <div>
+          <p class="text-sm font-medium text-slate-400">{{ stat.label }}</p>
+          <p class="text-4xl font-bold text-white mt-2">{{ stat.value | number }}</p>
+        </div>
+        <div class="stat-icon" [ngClass]="stat.iconClass">
+          <ion-icon [name]="stat.icon"></ion-icon>
         </div>
       </div>
+      <div class="flex items-center mt-4 gap-2">
+        <span class="text-sm font-medium" [ngClass]="stat.change >= 0 ? 'text-green-400' : 'text-red-400'">
+          {{ stat.change | number:'1.1-1' }}%
+        </span>
+        <span class="text-xs text-slate-500">{{ stat.changeLabel }}</span>
+      </div>
     </div>
-    <!-- END MODIFICATION -->
   </div>
 
   <!-- Two-Column Layout for Charts and Actions -->
@@ -36,12 +58,29 @@
     <!-- Left Column: Platform Analytics (Charts) -->
     <div class="lg:col-span-2">
       <div class="bg-slate-800 p-6 rounded-lg shadow-lg h-full">
-        <h3 class="text-xl font-bold text-white mb-1">Platform Analytics</h3>
+        <div class="flex items-center justify-between mb-1">
+          <h3 class="text-xl font-bold text-white">Platform Analytics</h3>
+          <button (click)="toggleChartFullscreen()"
+            class="p-2 text-slate-400 hover:text-white hover:bg-slate-700 rounded-lg transition-all"
+            title="Expand chart">
+            <ion-icon name="expand-outline" class="text-xl"></ion-icon>
+          </button>
+        </div>
         <p class="text-sm text-slate-400 mb-4">Visualize key metrics over the last 12 months.</p>
         <div class="border-b border-slate-700">
-          <nav class="-mb-px flex space-x-8" aria-label="Tabs">
-            <button (click)="setActiveChart('growth')" [ngClass]="{'border-blue-500 text-blue-400': activeChart === 'growth', 'border-transparent text-slate-400 hover:text-slate-300': activeChart !== 'growth'}" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">New Organization Growth</button>
-            <button (click)="setActiveChart('volume')" [ngClass]="{'border-teal-500 text-teal-400': activeChart === 'volume', 'border-transparent text-slate-400 hover:text-slate-300': activeChart !== 'volume'}" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Monthly Transaction Volume</button>
+          <nav class="-mb-px flex space-x-4 overflow-x-auto" aria-label="Tabs">
+            <button (click)="setActiveChart('growth')"
+              [ngClass]="{'border-blue-500 text-blue-400': activeChart === 'growth', 'border-transparent text-slate-400 hover:text-slate-300': activeChart !== 'growth'}"
+              class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">📈 Growth</button>
+            <button (click)="setActiveChart('volume')"
+              [ngClass]="{'border-teal-500 text-teal-400': activeChart === 'volume', 'border-transparent text-slate-400 hover:text-slate-300': activeChart !== 'volume'}"
+              class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">💰 Volume</button>
+            <button (click)="setActiveChart('payroll')"
+              [ngClass]="{'border-purple-500 text-purple-400': activeChart === 'payroll', 'border-transparent text-slate-400 hover:text-slate-300': activeChart !== 'payroll'}"
+              class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">💼 Payroll</button>
+            <button (click)="setActiveChart('success')"
+              [ngClass]="{'border-green-500 text-green-400': activeChart === 'success', 'border-transparent text-slate-400 hover:text-slate-300': activeChart !== 'success'}"
+              class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">📊 Activity</button>
           </nav>
         </div>
 
@@ -49,23 +88,18 @@
         <div [hidden]="activeChart !== 'growth'" class="pt-6 space-y-4">
           <div class="flex items-baseline gap-4">
             <p class="text-4xl font-bold text-white">{{ formatPercentage(growthSummary.value) }}</p>
-            <!-- MODIFIED LABEL -->
-            <p class="text-sm font-medium" [ngClass]="growthSummary.changeType === 'positive' ? 'text-green-400' : 'text-red-400'">
+            <p class="text-sm font-medium"
+              [ngClass]="growthSummary.changeType === 'positive' ? 'text-green-400' : 'text-red-400'">
               vs Previous Month
             </p>
-            <!-- END MODIFICATION -->
           </div>
-          <div class="h-80 w-full">
-            <ngx-charts-line-chart *ngIf="growthChartData[0]?.series.length > 0"
-              [scheme]="colorScheme"
-              [results]="growthChartData"
-              [gradient]="true"
-              [xAxis]="true"
-              [yAxis]="true"
-              [legend]="false"
-              [autoScale]="true">
+          <div class="h-80 w-full chart-container">
+            <ngx-charts-line-chart *ngIf="growthChartData[0]?.series.length > 0" [scheme]="colorScheme"
+              [results]="growthChartData" [gradient]="true" [xAxis]="true" [yAxis]="true" [legend]="false"
+              [showGridLines]="showGridLines" [curve]="curve" [autoScale]="true">
             </ngx-charts-line-chart>
-            <div *ngIf="!growthChartData[0]?.series.length" class="flex items-center justify-center h-full text-center text-slate-500">
+            <div *ngIf="!growthChartData[0]?.series.length"
+              class="flex items-center justify-center h-full text-center text-slate-500">
               <div>
                 <ion-icon name="analytics-outline" class="text-5xl"></ion-icon>
                 <p class="mt-2">No organization growth data available.</p>
@@ -78,27 +112,71 @@
         <div [hidden]="activeChart !== 'volume'" class="pt-6 space-y-4">
           <div class="flex items-baseline gap-4">
             <p class="text-4xl font-bold text-white">{{ formatPercentage(volumeSummary.value) }}</p>
-            <!-- MODIFIED LABEL -->
-            <p class="text-sm font-medium" [ngClass]="volumeSummary.changeType === 'positive' ? 'text-green-400' : 'text-red-400'">
+            <p class="text-sm font-medium"
+              [ngClass]="volumeSummary.changeType === 'positive' ? 'text-green-400' : 'text-red-400'">
               vs Previous Month
             </p>
-            <!-- END MODIFICATION -->
           </div>
-          <div class="h-80 w-full">
-            <ngx-charts-line-chart *ngIf="volumeChartData[0]?.series.length > 0"
-              [scheme]="volumeColorScheme"
-              [results]="volumeChartData"
-              [gradient]="true"
-              [xAxis]="true"
-              [yAxis]="true"
-              [legend]="false"
-              [autoScale]="true"
-              [yAxisTickFormatting]="formatCurrency">
+          <div class="h-80 w-full chart-container">
+            <ngx-charts-line-chart *ngIf="volumeChartData[0]?.series.length > 0" [scheme]="volumeColorScheme"
+              [results]="volumeChartData" [gradient]="true" [xAxis]="true" [yAxis]="true" [legend]="false"
+              [showGridLines]="showGridLines" [curve]="curve" [autoScale]="true"
+              [yAxisTickFormatting]="formatCurrencyCompact">
             </ngx-charts-line-chart>
-            <div *ngIf="!volumeChartData[0]?.series.length" class="flex items-center justify-center h-full text-center text-slate-500">
+            <div *ngIf="!volumeChartData[0]?.series.length"
+              class="flex items-center justify-center h-full text-center text-slate-500">
               <div>
                 <ion-icon name="wallet-outline" class="text-5xl"></ion-icon>
                 <p class="mt-2">No transaction data available.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chart Container for Payroll Trends -->
+        <div [hidden]="activeChart !== 'payroll'" class="pt-6 space-y-4">
+          <div class="flex items-baseline gap-4">
+            <p class="text-4xl font-bold text-white">{{ formatPercentage(payrollSummary.value) }}</p>
+            <p class="text-sm font-medium"
+              [ngClass]="payrollSummary.changeType === 'positive' ? 'text-green-400' : 'text-red-400'">
+              vs Previous Month
+            </p>
+          </div>
+          <div class="h-80 w-full chart-container">
+            <ngx-charts-line-chart *ngIf="payrollChartData[0]?.series.length > 0" [scheme]="payrollColorScheme"
+              [results]="payrollChartData" [gradient]="true" [xAxis]="true" [yAxis]="true" [legend]="false"
+              [showGridLines]="showGridLines" [curve]="curve" [autoScale]="true"
+              [yAxisTickFormatting]="formatCurrencyCompact">
+            </ngx-charts-line-chart>
+            <div *ngIf="!payrollChartData[0]?.series.length"
+              class="flex items-center justify-center h-full text-center text-slate-500">
+              <div>
+                <ion-icon name="briefcase-outline" class="text-5xl"></ion-icon>
+                <p class="mt-2">No payroll data available.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chart Container for Transaction Activity -->
+        <div [hidden]="activeChart !== 'success'" class="pt-6 space-y-4">
+          <div class="flex items-baseline gap-4">
+            <p class="text-4xl font-bold text-white">{{ formatPercentage(successRateSummary.value) }}</p>
+            <p class="text-sm font-medium"
+              [ngClass]="successRateSummary.changeType === 'positive' ? 'text-green-400' : 'text-red-400'">
+              vs Previous Month
+            </p>
+          </div>
+          <div class="h-80 w-full chart-container">
+            <ngx-charts-line-chart *ngIf="successRateChartData[0]?.series.length > 0" [scheme]="successRateColorScheme"
+              [results]="successRateChartData" [gradient]="true" [xAxis]="true" [yAxis]="true" [legend]="false"
+              [showGridLines]="showGridLines" [curve]="curve" [autoScale]="true">
+            </ngx-charts-line-chart>
+            <div *ngIf="!successRateChartData[0]?.series.length"
+              class="flex items-center justify-center h-full text-center text-slate-500">
+              <div>
+                <ion-icon name="stats-chart-outline" class="text-5xl"></ion-icon>
+                <p class="mt-2">No transaction activity data available.</p>
               </div>
             </div>
           </div>
@@ -108,51 +186,59 @@
 
     <!-- Right Column: Action Center -->
     <div class="lg:col-span-1">
-        <!-- (This section remains unchanged) -->
-        <div class="bg-slate-800 rounded-lg shadow-lg h-full">
+      <div class="bg-slate-800 rounded-lg shadow-lg h-full">
         <h3 class="text-xl font-bold text-white p-6 pb-2">Action Center</h3>
         <div class="border-b border-slate-700 px-6">
-            <nav class="-mb-px flex space-x-8" aria-label="Tabs">
-            <button (click)="activeActionCenterTab = 'org'" [ngClass]="{'border-blue-500 text-blue-400': activeActionCenterTab === 'org', 'border-transparent text-slate-400 hover:text-slate-300': activeActionCenterTab !== 'org'}" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Organizations</button>
-            <button (click)="activeActionCenterTab = 'payroll'" [ngClass]="{'border-blue-500 text-blue-400': activeActionCenterTab === 'payroll', 'border-transparent text-slate-400 hover:text-slate-300': activeActionCenterTab !== 'payroll'}" class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Payrolls</button>
-            </nav>
+          <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+            <button (click)="activeActionCenterTab = 'org'"
+              [ngClass]="{'border-blue-500 text-blue-400': activeActionCenterTab === 'org', 'border-transparent text-slate-400 hover:text-slate-300': activeActionCenterTab !== 'org'}"
+              class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Organizations</button>
+            <button (click)="activeActionCenterTab = 'payroll'"
+              [ngClass]="{'border-blue-500 text-blue-400': activeActionCenterTab === 'payroll', 'border-transparent text-slate-400 hover:text-slate-300': activeActionCenterTab !== 'payroll'}"
+              class="whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm">Payrolls</button>
+          </nav>
         </div>
         <div class="overflow-x-auto p-2">
-            <div *ngIf="activeActionCenterTab === 'org'">
+          <div *ngIf="activeActionCenterTab === 'org'">
             <ul class="divide-y divide-slate-700">
-                <li *ngFor="let org of pendingOrganizations" class="p-4 hover:bg-slate-700/50 rounded-md">
+              <li *ngFor="let org of pendingOrganizations" class="action-item p-4 rounded-md cursor-pointer"
+                (click)="viewOrganizationDetails(org.id)">
                 <div class="flex items-center justify-between">
-                    <div>
+                  <div>
                     <p class="font-medium text-white">{{ org.companyName }}</p>
                     <p class="text-xs text-slate-400">{{ org.contactEmail }}</p>
-                    </div>
-                    <button (click)="viewOrganizationDetails(org.id)" class="text-blue-400 hover:text-blue-300 text-sm font-medium">Review</button>
+                  </div>
+                  <button class="text-blue-400 hover:text-blue-300 text-sm font-medium">Review</button>
                 </div>
-                </li>
-                <li *ngIf="pendingOrganizations.length === 0" class="text-center py-8 text-slate-500 text-sm">No pending approvals.</li>
+              </li>
+              <li *ngIf="pendingOrganizations.length === 0" class="text-center py-8 text-slate-500 text-sm">No pending
+                approvals.</li>
             </ul>
-            </div>
-            <div *ngIf="activeActionCenterTab === 'payroll'">
-                <ul class="divide-y divide-slate-700">
-                <li *ngFor="let payroll of pendingPayrolls" class="p-4 hover:bg-slate-700/50 rounded-md">
-                    <div class="flex items-center justify-between">
-                    <div>
-                        <p class="font-medium text-white">{{ payroll.organizationName }}</p>
-                        <p class="text-xs text-slate-400">{{ payroll.payrollMonth }}/{{ payroll.payrollYear }} - {{ payroll.totalAmount | currency:'INR' }}</p>
-                    </div>
-                    <button (click)="viewPayrollDetails(payroll.id)" class="text-blue-400 hover:text-blue-300 text-sm font-medium">Review</button>
-                    </div>
-                </li>
-                <li *ngIf="pendingPayrolls.length === 0" class="text-center py-8 text-slate-500 text-sm">No pending payrolls.</li>
-                </ul>
-            </div>
+          </div>
+          <div *ngIf="activeActionCenterTab === 'payroll'">
+            <ul class="divide-y divide-slate-700">
+              <li *ngFor="let payroll of pendingPayrolls" class="action-item p-4 rounded-md cursor-pointer"
+                (click)="viewPayrollDetails(payroll.id)">
+                <div class="flex items-center justify-between">
+                  <div>
+                    <p class="font-medium text-white">{{ payroll.organizationName }}</p>
+                    <p class="text-xs text-slate-400">{{ payroll.payrollMonth }}/{{ payroll.payrollYear }} - {{
+                      payroll.totalAmount | currency:'INR' }}</p>
+                  </div>
+                  <button class="text-blue-400 hover:text-blue-300 text-sm font-medium">Review</button>
+                </div>
+              </li>
+              <li *ngIf="pendingPayrolls.length === 0" class="text-center py-8 text-slate-500 text-sm">No pending
+                payrolls.</li>
+            </ul>
+          </div>
         </div>
-        </div>
+      </div>
     </div>
 
   </div>
 
-  <!-- All Organizations Management (This section remains unchanged) -->
+  <!-- All Organizations Management -->
   <div class="bg-slate-800 rounded-lg shadow-lg">
     <div class="p-6 flex justify-between items-center">
       <h3 class="text-xl font-bold text-white">All Organizations</h3>
@@ -169,24 +255,160 @@
           </tr>
         </thead>
         <tbody>
-          <tr *ngFor="let org of allOrganizations" class="border-b bg-slate-800 border-slate-700 hover:bg-slate-700/50 cursor-pointer" (click)="viewOrganizationDetails(org.id)">
+          <tr *ngFor="let org of allOrganizations"
+            class="border-b bg-slate-800 border-slate-700 hover:bg-slate-700/50 cursor-pointer"
+            (click)="viewOrganizationDetails(org.id)">
             <td class="px-6 py-4 font-medium text-white whitespace-nowrap">{{ org.companyName }}</td>
             <td class="px-6 py-4">{{ org.contactEmail }}</td>
             <td class="px-6 py-4">
-              <span *ngIf="org.status === 'ACTIVE'" class="px-2 py-1 text-xs font-medium rounded-full bg-green-900 text-green-300">Active</span>
-              <span *ngIf="org.status === 'SUSPENDED'" class="px-2 py-1 text-xs font-medium rounded-full bg-red-900 text-red-300">Suspended</span>
-              <span *ngIf="org.status === 'PENDING_APPROVAL'" class="px-2 py-1 text-xs font-medium rounded-full bg-yellow-900 text-yellow-300">Pending</span>
+              <span *ngIf="org.status === 'ACTIVE'"
+                class="px-2 py-1 text-xs font-medium rounded-full bg-green-900 text-green-300">Active</span>
+              <span *ngIf="org.status === 'SUSPENDED'"
+                class="px-2 py-1 text-xs font-medium rounded-full bg-red-900 text-red-300">Suspended</span>
+              <span *ngIf="org.status === 'PENDING_APPROVAL'"
+                class="px-2 py-1 text-xs font-medium rounded-full bg-yellow-900 text-yellow-300">Pending</span>
             </td>
             <td class="px-6 py-4 text-right">
-              <button (click)="viewOrganizationDetails(org.id); $event.stopPropagation()" class="font-medium text-blue-400 hover:underline">View Details</button>
+              <button (click)="viewOrganizationDetails(org.id); $event.stopPropagation()"
+                class="font-medium text-blue-400 hover:underline">View Details</button>
             </td>
           </tr>
-           <tr *ngIf="allOrganizations.length === 0">
-              <td colspan="4" class="text-center py-8 text-slate-500">No organizations to display.</td>
+          <tr *ngIf="allOrganizations.length === 0">
+            <td colspan="4" class="text-center py-8 text-slate-500">No organizations to display.</td>
           </tr>
         </tbody>
       </table>
     </div>
   </div>
 
+</div>
+
+<!-- Fullscreen Chart Modal -->
+<div *ngIf="isChartFullscreen" class="fixed inset-0 z-50 bg-slate-900 flex flex-col p-4 md:p-6 overflow-hidden">
+  <!-- Modal Header -->
+  <div class="flex items-center justify-between mb-4 flex-shrink-0">
+    <div>
+      <h2 class="text-xl md:text-2xl font-bold text-white">Platform Analytics</h2>
+      <p class="text-slate-400 text-xs md:text-sm">Comprehensive view of key business metrics</p>
+    </div>
+    <button (click)="toggleChartFullscreen()"
+      class="p-2 md:p-3 bg-slate-800 hover:bg-red-600 text-white rounded-lg transition-all" title="Close (Esc)">
+      <ion-icon name="close-outline" class="text-xl md:text-2xl"></ion-icon>
+    </button>
+  </div>
+
+  <!-- Chart Tabs -->
+  <div class="border-b border-slate-700 flex-shrink-0">
+    <nav class="-mb-px flex space-x-4 md:space-x-8 overflow-x-auto" aria-label="Tabs">
+      <button (click)="setActiveChart('growth')"
+        [ngClass]="{'border-blue-500 text-blue-400': activeChart === 'growth', 'border-transparent text-slate-400 hover:text-slate-300': activeChart !== 'growth'}"
+        class="whitespace-nowrap py-3 px-1 border-b-2 font-medium text-xs md:text-sm">📈 Org Growth</button>
+      <button (click)="setActiveChart('volume')"
+        [ngClass]="{'border-teal-500 text-teal-400': activeChart === 'volume', 'border-transparent text-slate-400 hover:text-slate-300': activeChart !== 'volume'}"
+        class="whitespace-nowrap py-3 px-1 border-b-2 font-medium text-xs md:text-sm">💰 Transaction Volume</button>
+      <button (click)="setActiveChart('payroll')"
+        [ngClass]="{'border-purple-500 text-purple-400': activeChart === 'payroll', 'border-transparent text-slate-400 hover:text-slate-300': activeChart !== 'payroll'}"
+        class="whitespace-nowrap py-3 px-1 border-b-2 font-medium text-xs md:text-sm">💼 Payroll Trends</button>
+      <button (click)="setActiveChart('success')"
+        [ngClass]="{'border-green-500 text-green-400': activeChart === 'success', 'border-transparent text-slate-400 hover:text-slate-300': activeChart !== 'success'}"
+        class="whitespace-nowrap py-3 px-1 border-b-2 font-medium text-xs md:text-sm">✅ Success Rate</button>
+    </nav>
+  </div>
+
+  <!-- Chart Content Area - Fills remaining space -->
+  <div class="flex-1 flex flex-col min-h-0 pt-4">
+
+    <!-- Organization Growth Chart -->
+    <div *ngIf="activeChart === 'growth'" class="flex-1 flex flex-col h-full">
+      <div class="flex items-center justify-between mb-2 flex-shrink-0">
+        <div class="flex items-baseline gap-3">
+          <p class="text-3xl md:text-4xl font-bold text-white">{{ formatPercentage(growthSummary.value) }}</p>
+          <p class="text-sm font-medium"
+            [ngClass]="growthSummary.changeType === 'positive' ? 'text-green-400' : 'text-red-400'">
+            vs Previous Month
+          </p>
+        </div>
+        <div class="text-right text-xs text-slate-500">
+          <p>📊 Tracks new organization registrations</p>
+          <p>Used for: Market expansion analysis</p>
+        </div>
+      </div>
+      <div class="flex-1 min-h-0">
+        <ngx-charts-line-chart *ngIf="growthChartData[0]?.series.length > 0" [scheme]="colorScheme"
+          [results]="growthChartData" [gradient]="true" [xAxis]="true" [yAxis]="true" [legend]="false"
+          [showGridLines]="false" [curve]="curve" [autoScale]="true">
+        </ngx-charts-line-chart>
+      </div>
+    </div>
+
+    <!-- Transaction Volume Chart -->
+    <div *ngIf="activeChart === 'volume'" class="flex-1 flex flex-col h-full">
+      <div class="flex items-center justify-between mb-2 flex-shrink-0">
+        <div class="flex items-baseline gap-3">
+          <p class="text-3xl md:text-4xl font-bold text-white">{{ formatPercentage(volumeSummary.value) }}</p>
+          <p class="text-sm font-medium"
+            [ngClass]="volumeSummary.changeType === 'positive' ? 'text-green-400' : 'text-red-400'">
+            vs Previous Month
+          </p>
+        </div>
+        <div class="text-right text-xs text-slate-500">
+          <p>💵 Total transaction value processed</p>
+          <p>Used for: Revenue forecasting & capacity planning</p>
+        </div>
+      </div>
+      <div class="flex-1 min-h-0">
+        <ngx-charts-line-chart *ngIf="volumeChartData[0]?.series.length > 0" [scheme]="volumeColorScheme"
+          [results]="volumeChartData" [gradient]="true" [xAxis]="true" [yAxis]="true" [legend]="false"
+          [showGridLines]="false" [curve]="curve" [autoScale]="true" [yAxisTickFormatting]="formatCurrency">
+        </ngx-charts-line-chart>
+      </div>
+    </div>
+
+    <!-- Payroll Trends Chart -->
+    <div *ngIf="activeChart === 'payroll'" class="flex-1 flex flex-col h-full">
+      <div class="flex items-center justify-between mb-2 flex-shrink-0">
+        <div class="flex items-baseline gap-3">
+          <p class="text-3xl md:text-4xl font-bold text-white">{{ formatPercentage(payrollSummary.value) }}</p>
+          <p class="text-sm font-medium"
+            [ngClass]="payrollSummary.changeType === 'positive' ? 'text-green-400' : 'text-red-400'">
+            vs Previous Month
+          </p>
+        </div>
+        <div class="text-right text-xs text-slate-500">
+          <p>📋 Monthly payroll batches processed</p>
+          <p>Used for: Operational efficiency & SLA monitoring</p>
+        </div>
+      </div>
+      <div class="flex-1 min-h-0">
+        <ngx-charts-line-chart *ngIf="payrollChartData[0]?.series.length > 0" [scheme]="payrollColorScheme"
+          [results]="payrollChartData" [gradient]="true" [xAxis]="true" [yAxis]="true" [legend]="false"
+          [showGridLines]="false" [curve]="curve" [autoScale]="true" [yAxisTickFormatting]="formatCurrencyCompact">
+        </ngx-charts-line-chart>
+      </div>
+    </div>
+
+    <!-- Success Rate Chart -->
+    <div *ngIf="activeChart === 'success'" class="flex-1 flex flex-col h-full">
+      <div class="flex items-center justify-between mb-2 flex-shrink-0">
+        <div class="flex items-baseline gap-3">
+          <p class="text-3xl md:text-4xl font-bold text-white">{{ successRateSummary.value }}%</p>
+          <p class="text-sm font-medium"
+            [ngClass]="successRateSummary.changeType === 'positive' ? 'text-green-400' : 'text-red-400'">
+            {{ successRateSummary.changeType === 'positive' ? 'Improved' : 'Declined' }}
+          </p>
+        </div>
+        <div class="text-right text-xs text-slate-500">
+          <p>✅ Transaction success percentage</p>
+          <p>Used for: Quality assurance & failure analysis</p>
+        </div>
+      </div>
+      <div class="flex-1 min-h-0">
+        <ngx-charts-line-chart *ngIf="successRateChartData[0]?.series.length > 0" [scheme]="successRateColorScheme"
+          [results]="successRateChartData" [gradient]="true" [xAxis]="true" [yAxis]="true" [legend]="false"
+          [showGridLines]="false" [curve]="curve" [autoScale]="true" [yAxisTickFormatting]="formatPercentageAxis">
+        </ngx-charts-line-chart>
+      </div>
+    </div>
+
+  </div>
 </div>

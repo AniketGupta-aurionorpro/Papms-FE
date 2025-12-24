@@ -14,7 +14,7 @@ import {
   providedIn: 'root',
 })
 export class OrganizationService {
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) { }
 
   // private url = environment.apiUrl + '/organizations';
   private url = environment.apiUrl + '/api/organizations';
@@ -61,8 +61,8 @@ export class OrganizationService {
     );
   }
 
-  getOrganizationProfile(): Observable<OrganizationProfileResponse> {
-    return this.http.get<OrganizationProfileResponse>(`${this.url}/profile`);
+  getOrganizationProfile(organizationId: number): Observable<OrganizationProfileResponse> {
+    return this.http.get<OrganizationProfileResponse>(`${this.url}/${organizationId}/profile`);
   }
 
   updateOrganizationStatus(
@@ -90,11 +90,11 @@ export class OrganizationService {
     return this.http.post(`${this.url}/upload-logo`, formData);
   }
 
-   approveOrganization(id: number): Observable<OrganizationResponseDto> {
+  approveOrganization(id: number): Observable<OrganizationResponseDto> {
     return this.http.put<OrganizationResponseDto>(`${this.url}/${id}/approve`, {});
   }
 
-   suspendOrganization(id: number): Observable<any> {
+  suspendOrganization(id: number): Observable<any> {
     return this.http.put(`${this.url}/${id}/suspend`, {});
   }
 

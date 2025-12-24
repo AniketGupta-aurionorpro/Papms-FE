@@ -1,1 +1,270 @@
-<p>create-payroll works!</p>
+<div class="space-y-6">
+  <!-- Step Indicator -->
+  <div class="bg-slate-800 rounded-xl shadow-lg border border-slate-700 p-6">
+    <div class="flex items-center justify-between">
+      <!-- Step 1 -->
+      <div class="flex items-center">
+        <div
+          [class]="'h-10 w-10 rounded-full flex items-center justify-center font-bold ' + (currentStep === 'select' ? 'bg-blue-600 text-white' : 'bg-green-600 text-white')">
+          <ion-icon *ngIf="currentStep === 'preview'" name="checkmark-outline" class="text-lg"></ion-icon>
+          <span *ngIf="currentStep === 'select'">1</span>
+        </div>
+        <div class="ml-3">
+          <p class="text-sm font-medium" [class.text-blue-400]="currentStep === 'select'"
+            [class.text-slate-400]="currentStep !== 'select'">Step 1</p>
+          <p class="text-white font-semibold">Select Period</p>
+        </div>
+      </div>
+
+      <!-- Connector -->
+      <div class="flex-1 mx-8">
+        <div class="h-1 rounded-full" [class.bg-blue-600]="currentStep === 'preview'"
+          [class.bg-slate-600]="currentStep !== 'preview'"></div>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="flex items-center">
+        <div
+          [class]="'h-10 w-10 rounded-full flex items-center justify-center font-bold ' + (currentStep === 'preview' ? 'bg-blue-600 text-white' : 'bg-slate-600 text-slate-300')">
+          2
+        </div>
+        <div class="ml-3">
+          <p class="text-sm font-medium" [class.text-blue-400]="currentStep === 'preview'"
+            [class.text-slate-400]="currentStep !== 'preview'">Step 2</p>
+          <p [class.text-white]="currentStep === 'preview'" [class.text-slate-400]="currentStep !== 'preview'"
+            class="font-semibold">Review & Confirm</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Error Display -->
+  <div *ngIf="error" class="p-4 bg-red-900/50 text-red-300 rounded-lg">{{ error }}</div>
+
+  <!-- STEP 1: Select Month/Year -->
+  <div *ngIf="currentStep === 'select'" class="space-y-6">
+    <!-- Year Selection -->
+    <div class="bg-slate-800 rounded-xl shadow-lg border border-slate-700 p-6">
+      <h2 class="text-xl font-bold text-white mb-4">
+        <ion-icon name="calendar-outline" class="mr-2 text-blue-400"></ion-icon>
+        Select Payroll Period
+      </h2>
+      <div class="flex items-center space-x-4">
+        <label class="text-slate-400">Year:</label>
+        <select [(ngModel)]="selectedYear" (ngModelChange)="onYearChange()"
+          class="bg-slate-700 border border-slate-600 text-white rounded-lg px-4 py-2 focus:ring-blue-500 focus:border-blue-500">
+          <option *ngFor="let year of years" [value]="year">{{ year }}</option>
+        </select>
+        <div *ngIf="yearIsLoading"
+          class="animate-spin h-5 w-5 border-2 border-blue-500 border-t-transparent rounded-full"></div>
+      </div>
+    </div>
+
+    <!-- Month Grid -->
+    <div class="bg-slate-800 rounded-xl shadow-lg border border-slate-700 p-6">
+      <h3 class="text-lg font-semibold text-white mb-4">Select Month</h3>
+      <div class="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+        <button *ngFor="let month of months" (click)="selectMonth(month)" [disabled]="month.isCompleted" [class]="'p-4 rounded-lg text-center font-medium transition-all duration-200 ' +
+            (month.isCompleted ? 'bg-green-600/20 text-green-400 cursor-not-allowed' :
+             selectedMonth === month.value ? 'bg-blue-600 text-white ring-2 ring-blue-400' :
+             'bg-slate-700 text-slate-300 hover:bg-slate-600')">
+          <span class="block text-sm">{{ month.name }}</span>
+          <ion-icon *ngIf="month.isCompleted" name="checkmark-circle" class="text-lg mt-1"></ion-icon>
+        </button>
+      </div>
+    </div>
+
+    <!-- Next Button -->
+    <div class="flex justify-end">
+      <button (click)="loadPreview()" [disabled]="!selectedMonth || previewLoading"
+        class="inline-flex items-center px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+        <span *ngIf="previewLoading" class="mr-2">
+          <div class="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></div>
+        </span>
+        <span *ngIf="!previewLoading">Preview Salaries</span>
+        <span *ngIf="previewLoading">Loading...</span>
+        <ion-icon *ngIf="!previewLoading" name="arrow-forward-outline" class="ml-2"></ion-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- STEP 2: Preview & Edit Salaries -->
+  <div *ngIf="currentStep === 'preview'" class="space-y-6">
+    <!-- Summary Header -->
+    <div class="bg-slate-800 rounded-xl shadow-lg border border-slate-700 p-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-xl font-bold text-white">
+            Payroll Preview: {{ getMonthName(selectedMonth!) }} {{ selectedYear }}
+          </h2>
+          <p class="text-slate-400 mt-1">Review and adjust employee salaries before submitting</p>
+        </div>
+        <button (click)="goBackToSelect()" class="text-slate-400 hover:text-white transition-colors">
+          <ion-icon name="arrow-back-outline" class="text-2xl"></ion-icon>
+        </button>
+      </div>
+    </div>
+
+    <!-- Summary Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div class="bg-slate-800 p-4 rounded-xl border border-slate-700">
+        <p class="text-sm text-slate-400">Total Employees</p>
+        <p class="text-2xl font-bold text-white">{{ previewData.length }}</p>
+      </div>
+      <div class="bg-slate-800 p-4 rounded-xl border border-slate-700">
+        <p class="text-sm text-slate-400">Total Earnings</p>
+        <p class="text-2xl font-bold text-green-400">{{ formatCurrency(getTotalEarnings()) }}</p>
+      </div>
+      <div class="bg-slate-800 p-4 rounded-xl border border-slate-700">
+        <p class="text-sm text-slate-400">Total Deductions</p>
+        <p class="text-2xl font-bold text-red-400">{{ formatCurrency(getTotalDeductions()) }}</p>
+      </div>
+      <div class="bg-slate-800 p-4 rounded-xl border border-slate-700">
+        <p class="text-sm text-slate-400">Net Payout</p>
+        <p class="text-2xl font-bold text-blue-400">{{ formatCurrency(getTotalNetSalary()) }}</p>
+      </div>
+    </div>
+
+    <!-- Modified Count Badge -->
+    <div *ngIf="getModifiedCount() > 0" class="bg-amber-500/20 border border-amber-500/50 rounded-lg p-4">
+      <div class="flex items-center">
+        <ion-icon name="create-outline" class="text-amber-400 text-xl mr-3"></ion-icon>
+        <p class="text-amber-400">
+          <strong>{{ getModifiedCount() }}</strong> employee(s) have modified salaries
+        </p>
+      </div>
+    </div>
+
+    <!-- Search, Filter, Page Size -->
+    <div class="bg-slate-800 rounded-xl shadow-lg border border-slate-700 p-4">
+      <div class="flex flex-wrap items-center gap-4">
+        <!-- Search -->
+        <div class="flex-1 min-w-[200px]">
+          <div class="relative">
+            <ion-icon name="search-outline" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></ion-icon>
+            <input type="text" [(ngModel)]="searchQuery" (ngModelChange)="onFilterChange()"
+              placeholder="Search by name or code..."
+              class="w-full pl-10 pr-4 py-2 bg-slate-700 border border-slate-600 text-white rounded-lg">
+          </div>
+        </div>
+        <!-- Department -->
+        <select [(ngModel)]="selectedDepartment" (ngModelChange)="onFilterChange()"
+          class="bg-slate-700 border border-slate-600 text-white rounded-lg px-3 py-2">
+          <option *ngFor="let dept of departments" [value]="dept">{{ dept === 'ALL' ? 'All Departments' : dept }}
+          </option>
+        </select>
+        <!-- Modified Only -->
+        <label class="flex items-center space-x-2 cursor-pointer">
+          <input type="checkbox" [(ngModel)]="showOnlyModified" (ngModelChange)="onFilterChange()"
+            class="w-4 h-4 rounded bg-slate-700 border-slate-600 text-blue-600">
+          <span class="text-slate-300 text-sm">Modified only</span>
+        </label>
+        <!-- Page Size -->
+        <select [(ngModel)]="pageSize" (ngModelChange)="onFilterChange()"
+          class="bg-slate-700 border border-slate-600 text-white rounded px-2 py-1 text-sm">
+          <option *ngFor="let size of pageSizeOptions" [value]="size">{{ size }}</option>
+        </select>
+        <span class="text-slate-400 text-sm">{{ filteredData.length }} results</span>
+      </div>
+    </div>
+
+    <!-- Editable Salary Table -->
+    <div class="bg-slate-800 rounded-xl shadow-lg border border-slate-700 overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead class="bg-slate-700/50">
+            <tr>
+              <th class="px-4 py-3 text-left text-slate-400 font-medium">Employee</th>
+              <th class="px-4 py-3 text-right text-slate-400 font-medium">Basic</th>
+              <th class="px-4 py-3 text-right text-slate-400 font-medium">HRA</th>
+              <th class="px-4 py-3 text-right text-slate-400 font-medium">DA</th>
+              <th class="px-4 py-3 text-right text-slate-400 font-medium">Allowances</th>
+              <th class="px-4 py-3 text-right text-slate-400 font-medium">PF</th>
+              <th class="px-4 py-3 text-right text-slate-400 font-medium">Net Salary</th>
+            </tr>
+          </thead>
+          <tbody>
+            <ng-container *ngFor="let item of paginatedData">
+              <tr [ngClass]="{'bg-amber-500/10': item.isModified}"
+                class="border-t border-slate-700 hover:bg-slate-700/30">
+                <td class="px-4 py-3">
+                  <div class="flex items-center space-x-3">
+                    <div
+                      class="h-8 w-8 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-full flex items-center justify-center">
+                      <span class="text-white text-xs font-medium">{{ item.employeeName.charAt(0) }}</span>
+                    </div>
+                    <div>
+                      <p class="font-medium text-white">{{ item.employeeName }}</p>
+                      <p class="text-xs text-slate-400">{{ item.employeeCode }} · {{ item.department || 'No Dept' }}</p>
+                    </div>
+                    <ion-icon *ngIf="item.isModified" name="create-outline" class="text-amber-400"></ion-icon>
+                  </div>
+                </td>
+                <td class="px-4 py-3">
+                  <input type="number" [(ngModel)]="item.basicSalary" (ngModelChange)="onSalaryChange(item)"
+                    class="w-24 bg-slate-700 border border-slate-600 text-white text-right rounded px-2 py-1">
+                </td>
+                <td class="px-4 py-3">
+                  <input type="number" [(ngModel)]="item.hra" (ngModelChange)="onSalaryChange(item)"
+                    class="w-20 bg-slate-700 border border-slate-600 text-white text-right rounded px-2 py-1">
+                </td>
+                <td class="px-4 py-3">
+                  <input type="number" [(ngModel)]="item.da" (ngModelChange)="onSalaryChange(item)"
+                    class="w-20 bg-slate-700 border border-slate-600 text-white text-right rounded px-2 py-1">
+                </td>
+                <td class="px-4 py-3">
+                  <input type="number" [(ngModel)]="item.otherAllowances" (ngModelChange)="onSalaryChange(item)"
+                    class="w-20 bg-slate-700 border border-slate-600 text-white text-right rounded px-2 py-1">
+                </td>
+                <td class="px-4 py-3">
+                  <input type="number" [(ngModel)]="item.pfContribution" (ngModelChange)="onSalaryChange(item)"
+                    class="w-20 bg-slate-700 border border-slate-600 text-white text-right rounded px-2 py-1">
+                </td>
+                <td class="px-4 py-3 text-right">
+                  <span class="font-semibold text-white">{{ formatCurrency(item.netSalary) }}</span>
+                </td>
+              </tr>
+            </ng-container>
+            <tr *ngIf="paginatedData.length === 0">
+              <td colspan="7" class="px-4 py-8 text-center text-slate-400">No employees match your search</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <!-- Pagination -->
+      <div *ngIf="totalPages > 1" class="flex items-center justify-between px-4 py-3 border-t border-slate-700">
+        <span class="text-sm text-slate-400">Page {{ currentPage }} of {{ totalPages }}</span>
+        <div class="flex items-center space-x-1">
+          <button (click)="goToPage(1)" [disabled]="currentPage === 1"
+            class="px-2 py-1 rounded bg-slate-700 text-slate-300 disabled:opacity-50">«</button>
+          <button (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 1"
+            class="px-2 py-1 rounded bg-slate-700 text-slate-300 disabled:opacity-50">‹</button>
+          <button *ngFor="let p of pages" (click)="goToPage(p)"
+            [ngClass]="{'bg-blue-600 text-white': currentPage === p, 'bg-slate-700 text-slate-300': currentPage !== p}"
+            class="px-3 py-1 rounded">{{ p }}</button>
+          <button (click)="goToPage(currentPage + 1)" [disabled]="currentPage === totalPages"
+            class="px-2 py-1 rounded bg-slate-700 text-slate-300 disabled:opacity-50">›</button>
+          <button (click)="goToPage(totalPages)" [disabled]="currentPage === totalPages"
+            class="px-2 py-1 rounded bg-slate-700 text-slate-300 disabled:opacity-50">»</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div class="flex justify-between items-center">
+      <button (click)="goBackToSelect()"
+        class="inline-flex items-center px-6 py-3 bg-slate-700 text-white font-semibold rounded-lg hover:bg-slate-600 transition-colors">
+        <ion-icon name="arrow-back-outline" class="mr-2"></ion-icon>
+        Back
+      </button>
+      <button (click)="confirmPayroll()" [disabled]="isLoading"
+        class="inline-flex items-center px-6 py-3 bg-green-600 text-white font-semibold rounded-lg hover:bg-green-500 disabled:opacity-50 transition-colors">
+        <span *ngIf="isLoading" class="mr-2">
+          <div class="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></div>
+        </span>
+        <ion-icon *ngIf="!isLoading" name="checkmark-outline" class="mr-2"></ion-icon>
+        {{ isLoading ? 'Submitting...' : 'Confirm & Submit' }}
+      </button>
+    </div>
+  </div>
+</div>

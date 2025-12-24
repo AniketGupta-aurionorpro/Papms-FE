@@ -1,0 +1,95 @@
+<div class="flex h-screen bg-slate-900 text-slate-300">
+    <!-- Modern Sidebar -->
+    <aside [class]="isSidebarOpen ? 'w-64' : 'w-20'"
+        class="sidebar-modern flex flex-col transition-all duration-300 ease-out">
+
+        <!-- Logo/Client Header -->
+        <div class="logo-container p-4 flex items-center justify-between h-16">
+            <div class="flex items-center gap-3 overflow-hidden" *ngIf="isSidebarOpen && userInfo">
+                <div class="avatar-modern h-9 w-9 flex-shrink-0">
+                    <div class="avatar-modern-inner h-full w-full">
+                        <span class="text-white font-bold text-sm">
+                            {{ getInitials(userInfo.fullName) }}
+                        </span>
+                    </div>
+                </div>
+                <span class="text-lg font-bold text-white truncate">Client Portal</span>
+            </div>
+
+            <!-- Collapse Toggle -->
+            <button (click)="toggleSidebar()" class="toggle-btn p-2 hover:bg-slate-700/50 transition-all">
+                <ion-icon [name]="isSidebarOpen ? 'chevron-back-outline' : 'chevron-forward-outline'"
+                    class="text-slate-400 text-xl"></ion-icon>
+            </button>
+        </div>
+
+        <!-- Navigation -->
+        <nav class="flex-grow p-3 space-y-1 overflow-y-auto">
+            <a *ngFor="let item of menuItems" [routerLink]="item.route"
+                [class]="isMenuItemActive(item) ? 'nav-item nav-item-active text-white' : 'nav-item text-slate-300 hover:text-white'"
+                class="w-full flex items-center gap-3 p-3 rounded-xl transition-all duration-200 group">
+
+                <ion-icon [name]="item.icon" class="text-xl flex-shrink-0"></ion-icon>
+
+                <span *ngIf="isSidebarOpen" class="text-sm font-medium flex-1 text-left truncate">
+                    {{ item.label }}
+                </span>
+
+                <!-- Tooltip for collapsed sidebar -->
+                <span *ngIf="!isSidebarOpen" class="nav-tooltip">{{ item.label }}</span>
+            </a>
+        </nav>
+
+        <!-- User Profile & Logout -->
+        <div class="user-profile-section p-4">
+            <div class="flex items-center gap-3">
+                <!-- Avatar -->
+                <div class="avatar-modern h-11 w-11 flex-shrink-0">
+                    <div class="avatar-modern-inner h-full w-full p-0.5">
+                        <span class="text-white text-sm font-semibold">{{ getInitials(userInfo?.fullName) }}</span>
+                    </div>
+                </div>
+
+                <!-- User Info (visible when expanded) -->
+                <div *ngIf="isSidebarOpen" class="flex-1 min-w-0">
+                    <p class="text-sm font-semibold text-white truncate">{{ userInfo?.fullName || 'Client' }}</p>
+                    <p class="text-xs text-slate-500 truncate">{{ userInfo?.email || 'email@example.com' }}</p>
+                </div>
+
+                <!-- Logout Button -->
+                <button (click)="logout()" class="logout-btn p-2 text-slate-400 hover:text-red-400">
+                    <ion-icon name="log-out-outline" class="text-xl"></ion-icon>
+                </button>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="flex-1 flex flex-col overflow-hidden">
+        <!-- Modern Header -->
+        <header class="header-modern h-16 flex items-center px-6 justify-between flex-shrink-0">
+            <div class="flex items-center gap-4">
+                <h1 class="text-xl font-semibold text-white">Client Portal</h1>
+            </div>
+            <div class="flex items-center gap-4">
+                <a routerLink="/client/deposits"
+                    class="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl hover:from-green-500 hover:to-green-600 transition-all shadow-lg shadow-green-500/20 hover:shadow-green-500/30">
+                    <ion-icon name="add-outline" class="text-lg"></ion-icon>
+                    <span class="text-sm font-medium">Add Funds</span>
+                </a>
+            </div>
+        </header>
+
+        <!-- Scrollable Page Content -->
+        <main class="flex-1 overflow-y-auto p-6 md:p-8 bg-slate-900">
+            <router-outlet></router-outlet>
+
+            <!-- Footer -->
+            <footer class="mt-8 text-center">
+                <p class="text-sm text-slate-600">
+                    © 2024 Payroll & Payment Management System
+                </p>
+            </footer>
+        </main>
+    </div>
+</div>

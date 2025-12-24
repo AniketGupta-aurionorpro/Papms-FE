@@ -6,6 +6,7 @@ import { OrganizationResponseDto } from '../../../../../models/organization.mode
 import { BankAdminService } from '../../../../../services/bank-admin.service';
 import { LoadingService } from '../../../../../services/loading.service';
 import { OrganizationService } from '../../../../../services/organization.service';
+import { NotificationService } from '../../../../../core/services/notification.service';
 
 @Component({
   selector: 'app-organization-financials',
@@ -41,8 +42,9 @@ export class OrganizationFinancialsComponent implements OnInit {
     private organizationService: OrganizationService,
     private bankAdminService: BankAdminService,
     private loadingService: LoadingService,
-    private router: Router
-  ) {}
+    private router: Router,
+    private notificationService: NotificationService
+  ) { }
 
   ngOnInit(): void {
     this.loadOrganizations();
@@ -56,7 +58,8 @@ export class OrganizationFinancialsComponent implements OnInit {
         this.loadFinancialSummaries();
       },
       error: (error) => {
-        this.error = error.error?.message || 'Failed to load organizations';
+        this.error = this.extractErrorMessage(error);
+        this.notificationService.showError(this.error);
         this.isLoading = false;
         this.organizations = [];
       },
@@ -80,6 +83,7 @@ export class OrganizationFinancialsComponent implements OnInit {
       })
       .catch((error) => {
         this.error = 'Failed to load financial summaries';
+        this.notificationService.showError(this.error);
         this.isLoading = false;
       });
   }
@@ -259,5 +263,13 @@ export class OrganizationFinancialsComponent implements OnInit {
   getSortIcon(column: string): string {
     if (this.sortBy !== column) return 'swap-vertical-outline';
     return this.sortOrder === 'asc' ? 'arrow-up-outline' : 'arrow-down-outline';
+  }
+
+  private extractErrorMessage(err: any): string {
+    if (err.error?.message) return err.error.message;
+    if (err.status === 401) return 'Session expired. Please login again.';
+    if (err.status === 403) return 'You do not have permission to view financial data.';
+    if (err.status === 500) return 'Server error. Please try again later.';
+    return 'Failed to load organization financials. Please try again.';
   }
 }

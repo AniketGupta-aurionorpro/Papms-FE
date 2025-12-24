@@ -1,1 +1,82 @@
-<p>notifications works!</p>
+<!-- Notifications Page -->
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+            <h1 class="text-2xl md:text-3xl font-bold text-white">Notifications</h1>
+            <p class="text-slate-400 mt-1">
+                <span *ngIf="unreadCount > 0">{{ unreadCount }} unread notification{{ unreadCount > 1 ? 's' : ''
+                    }}</span>
+                <span *ngIf="unreadCount === 0">All caught up!</span>
+            </p>
+        </div>
+        <button *ngIf="unreadCount > 0" (click)="markAllAsRead()"
+            class="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-slate-300 transition-colors self-start md:self-auto">
+            <ion-icon name="checkmark-done-outline" class="text-lg"></ion-icon>
+            Mark All as Read
+        </button>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="flex items-center justify-center min-h-[300px]">
+        <div class="text-center">
+            <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-cyan-500 border-t-transparent">
+            </div>
+            <p class="mt-4 text-slate-400">Loading notifications...</p>
+        </div>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="error && !isLoading" class="bg-red-900/30 border border-red-700 rounded-xl p-6 text-center">
+        <ion-icon name="alert-circle-outline" class="text-4xl text-red-400 mb-2"></ion-icon>
+        <p class="text-red-300">{{ error }}</p>
+    </div>
+
+    <!-- Content -->
+    <div *ngIf="!isLoading && !error">
+        <!-- Empty State -->
+        <div *ngIf="notifications.length === 0"
+            class="bg-gradient-to-br from-slate-800 to-slate-800/50 rounded-2xl p-12 border border-slate-700/50 text-center">
+            <ion-icon name="notifications-off-outline" class="text-6xl text-slate-600 mb-4"></ion-icon>
+            <h3 class="text-xl font-semibold text-white mb-2">No Notifications</h3>
+            <p class="text-slate-400">You don't have any notifications yet.</p>
+        </div>
+
+        <!-- Notifications List -->
+        <div *ngIf="notifications.length > 0" class="space-y-3">
+            <div *ngFor="let notification of notifications" (click)="markAsRead(notification)"
+                [class]="'bg-gradient-to-br from-slate-800 to-slate-800/50 rounded-xl p-5 border transition-all cursor-pointer ' + 
+                 (notification.read ? 'border-slate-700/50 opacity-75' : 'border-cyan-700/50 shadow-lg shadow-cyan-500/10')">
+                <div class="flex items-start gap-4">
+                    <div
+                        [class]="'w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ' + getTypeClass(notification)">
+                        <ion-icon [name]="getTypeIcon(notification)" class="text-xl"></ion-icon>
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex items-start justify-between gap-4">
+                            <div>
+                                <p class="text-white font-medium">{{ notification.message }}</p>
+                            </div>
+                            <div *ngIf="!notification.read" class="w-2 h-2 bg-cyan-400 rounded-full flex-shrink-0 mt-2">
+                            </div>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-3">{{ notification.createdAt | date:'medium' }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        <div *ngIf="totalPages > 1" class="flex items-center justify-center gap-2 pt-4">
+            <button (click)="goToPage(currentPage - 1)" [disabled]="currentPage === 0"
+                class="p-2 rounded-lg bg-slate-700 hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed text-white transition-colors">
+                <ion-icon name="chevron-back-outline"></ion-icon>
+            </button>
+            <span class="text-slate-400 px-4">Page {{ currentPage + 1 }} of {{ totalPages }}</span>
+            <button (click)="goToPage(currentPage + 1)" [disabled]="currentPage >= totalPages - 1"
+                class="p-2 rounded-lg bg-slate-700 hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed text-white transition-colors">
+                <ion-icon name="chevron-forward-outline"></ion-icon>
+            </button>
+        </div>
+    </div>
+</div>

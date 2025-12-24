@@ -1,1 +1,142 @@
-<p>concerns-list works!</p>
+<!-- Concerns Management - List View -->
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+            <h1 class="text-2xl md:text-3xl font-bold text-white">Employee Concerns</h1>
+            <p class="text-slate-400 mt-1">Manage and resolve employee concerns</p>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="bg-gradient-to-br from-slate-800 to-slate-800/50 rounded-xl p-4 border border-slate-700/50">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg bg-cyan-500/20 flex items-center justify-center">
+                    <ion-icon name="chatbubbles-outline" class="text-cyan-400 text-xl"></ion-icon>
+                </div>
+                <div>
+                    <p class="text-2xl font-bold text-white">{{ totalConcerns }}</p>
+                    <p class="text-xs text-slate-400">Total</p>
+                </div>
+            </div>
+        </div>
+        <div class="bg-gradient-to-br from-slate-800 to-slate-800/50 rounded-xl p-4 border border-slate-700/50">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                    <ion-icon name="radio-button-on-outline" class="text-blue-400 text-xl"></ion-icon>
+                </div>
+                <div>
+                    <p class="text-2xl font-bold text-white">{{ openConcerns }}</p>
+                    <p class="text-xs text-slate-400">Open</p>
+                </div>
+            </div>
+        </div>
+        <div class="bg-gradient-to-br from-slate-800 to-slate-800/50 rounded-xl p-4 border border-slate-700/50">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg bg-yellow-500/20 flex items-center justify-center">
+                    <ion-icon name="hourglass-outline" class="text-yellow-400 text-xl"></ion-icon>
+                </div>
+                <div>
+                    <p class="text-2xl font-bold text-white">{{ inProgressConcerns }}</p>
+                    <p class="text-xs text-slate-400">In Progress</p>
+                </div>
+            </div>
+        </div>
+        <div class="bg-gradient-to-br from-slate-800 to-slate-800/50 rounded-xl p-4 border border-slate-700/50">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg bg-green-500/20 flex items-center justify-center">
+                    <ion-icon name="checkmark-circle-outline" class="text-green-400 text-xl"></ion-icon>
+                </div>
+                <div>
+                    <p class="text-2xl font-bold text-white">{{ resolvedConcerns }}</p>
+                    <p class="text-xs text-slate-400">Resolved</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-gradient-to-br from-slate-800 to-slate-800/50 rounded-xl p-4 border border-slate-700/50">
+        <div class="flex flex-col md:flex-row gap-4">
+            <!-- Search -->
+            <div class="flex-1 relative">
+                <ion-icon name="search-outline"
+                    class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></ion-icon>
+                <input type="text" [(ngModel)]="searchTerm" (input)="applyFilters()"
+                    placeholder="Search by subject, employee name, or description..."
+                    class="w-full pl-10 pr-4 py-2.5 bg-slate-900/50 border border-slate-700 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 transition-colors">
+            </div>
+            <!-- Status Filter -->
+            <select [(ngModel)]="statusFilter" (change)="applyFilters()"
+                class="px-4 py-2.5 bg-slate-900/50 border border-slate-700 rounded-lg text-white focus:outline-none focus:border-cyan-500 transition-colors">
+                <option value="ALL">All Statuses</option>
+                <option [value]="ConcernStatus.OPEN">Open</option>
+                <option [value]="ConcernStatus.IN_PROGRESS">In Progress</option>
+                <option [value]="ConcernStatus.RESOLVED">Resolved</option>
+                <option [value]="ConcernStatus.CLOSED">Closed</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="flex items-center justify-center min-h-[300px]">
+        <div class="text-center">
+            <div class="inline-block animate-spin rounded-full h-12 w-12 border-4 border-cyan-500 border-t-transparent">
+            </div>
+            <p class="mt-4 text-slate-400">Loading concerns...</p>
+        </div>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="error && !isLoading" class="bg-red-900/30 border border-red-700 rounded-xl p-6 text-center">
+        <ion-icon name="alert-circle-outline" class="text-4xl text-red-400 mb-2"></ion-icon>
+        <p class="text-red-300">{{ error }}</p>
+    </div>
+
+    <!-- Content -->
+    <div *ngIf="!isLoading && !error">
+        <!-- Empty State -->
+        <div *ngIf="filteredConcerns.length === 0"
+            class="bg-gradient-to-br from-slate-800 to-slate-800/50 rounded-2xl p-12 border border-slate-700/50 text-center">
+            <ion-icon name="chatbubble-ellipses-outline" class="text-6xl text-slate-600 mb-4"></ion-icon>
+            <h3 class="text-xl font-semibold text-white mb-2">No Concerns Found</h3>
+            <p class="text-slate-400" *ngIf="concerns.length === 0">No employee concerns have been raised yet.</p>
+            <p class="text-slate-400" *ngIf="concerns.length > 0">No concerns match your current filters.</p>
+        </div>
+
+        <!-- Concerns List -->
+        <div *ngIf="filteredConcerns.length > 0" class="space-y-3">
+            <div *ngFor="let concern of filteredConcerns" (click)="viewConcern(concern.id)"
+                class="bg-gradient-to-br from-slate-800 to-slate-800/50 rounded-xl p-5 border border-slate-700/50 hover:border-cyan-700/50 cursor-pointer transition-all hover:shadow-lg hover:shadow-cyan-500/10">
+                <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                    <div class="flex-1">
+                        <div class="flex items-center gap-3 mb-2">
+                            <ion-icon [name]="getStatusIcon(concern.status)"
+                                [class]="'text-xl ' + (concern.status === ConcernStatus.OPEN ? 'text-blue-400' : concern.status === ConcernStatus.IN_PROGRESS ? 'text-yellow-400' : concern.status === ConcernStatus.RESOLVED ? 'text-green-400' : 'text-slate-400')"></ion-icon>
+                            <h3 class="text-lg font-semibold text-white">{{ concern.subject }}</h3>
+                        </div>
+                        <p class="text-slate-400 text-sm line-clamp-2 mb-3">{{ concern.description }}</p>
+                        <div class="flex flex-wrap items-center gap-4 text-xs text-slate-500">
+                            <span class="flex items-center gap-1">
+                                <ion-icon name="person-outline"></ion-icon>
+                                {{ concern.employeeName }}
+                            </span>
+                            <span class="flex items-center gap-1">
+                                <ion-icon name="calendar-outline"></ion-icon>
+                                {{ concern.createdAt | date:'medium' }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span
+                            [class]="'px-3 py-1 rounded-full text-xs font-medium border ' + getStatusClass(concern.status)">
+                            {{ concern.status }}
+                        </span>
+                        <ion-icon name="chevron-forward-outline" class="text-slate-400"></ion-icon>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

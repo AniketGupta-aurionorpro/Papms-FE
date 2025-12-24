@@ -107,6 +107,13 @@
                 <button (click)="openEditModal(emp)" class="p-2 rounded-md text-slate-400 hover:bg-slate-700 hover:text-white transition">
                   <ion-icon name="create-outline" class="text-lg"></ion-icon>
                 </button>
+                 <!-- NEW DELETION BUTTON -->
+                <button (click)="scheduleDeletion(emp, $event)"
+                        [disabled]="emp.deletionScheduledAt"
+                        [title]="emp.deletionScheduledAt ? 'Deletion already scheduled on ' + (emp.deletionScheduledAt | date:'short') : 'Schedule for Permanent Deletion'"
+                        class="p-2 rounded-md text-red-500 hover:bg-red-500/20 hover:text-red-400 transition disabled:opacity-40 disabled:cursor-not-allowed">
+                  <ion-icon name="trash-outline" class="text-lg"></ion-icon>
+                </button>
               </div>
             </td>
           </tr>
